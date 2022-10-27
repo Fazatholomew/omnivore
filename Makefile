@@ -31,6 +31,7 @@ build-prod:
 	@echo "\n${BLUE}Building Production image with labels:\n"
 	@echo "name: $(MODULE)"
 	@echo "version: $(VERSION)${NC}\n"
+	@pip freeze > requirements.txt
 	@sed                                     \
 	    -e 's|{NAME}|$(MODULE)|g'            \
 	    -e 's|{VERSION}|$(VERSION)|g'        \
@@ -41,6 +42,7 @@ build-dev:
 	@echo "\n${BLUE}Building Development image with labels:\n"
 	@echo "name: $(MODULE)"
 	@echo "version: $(TAG)${NC}\n"
+	@pip freeze > requirements.txt
 	@sed                                 \
 	    -e 's|{NAME}|$(MODULE)|g'        \
 	    -e 's|{VERSION}|$(TAG)|g'        \
