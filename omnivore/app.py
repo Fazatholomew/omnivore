@@ -1,3 +1,5 @@
+from .utils import salesforce
+
 class Blueprint:
 
     @staticmethod
