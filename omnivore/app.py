@@ -1,7 +1,13 @@
-from .utils import salesforce
+from .utils.salesforce import SalesforceConnection
+from dotenv import load_dotenv
+from os import getenv
+
+# Load environment variable from .env
+load_dotenv()
 
 class Blueprint:
 
     @staticmethod
     def run():
-        print("Hello World...")
+        sf = SalesforceConnection(username=getenv('EMAIL'), consumer_key=getenv('CONSUMER_KEY'), privatekey_file=getenv('PRIVATEKEY_FILE'))
+        sf.get_salesforce_table()
