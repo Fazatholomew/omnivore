@@ -65,10 +65,20 @@ class SalesforceConnection:
         self.aieId_to_oppId = {}
 
     def get_salesforce_table(self):
-        # Querying all Opportunities
-        res = self.sf.query_all(f"SELECT {', '.join(OPPORTUNITY_COLUMNS)} FROM Opportunity WHERE RecordTypeID = '{HEA_ID}'")
-        if res['done']:
-          for opportunity in res['records']:
-            table[account['Id']] = account
-        res = self.sf.query_all(f"SELECT {', '.join(ACCOUNT_COLUMNS)} FROM Account WHERE RecordTypeID = '{PERSON_ACCOUNT_ID}'")
-        
+      '''
+        Create multiple look up table that reflect current SF Database
+      '''
+      # Querying all Opportunities
+      res = self.sf.query_all(f"SELECT {', '.join(OPPORTUNITY_COLUMNS)} FROM Opportunity WHERE RecordTypeID = '{HEA_ID}'")
+      if res['done']:
+        for opportunity in res['records']:
+          if not opportunity['AccountId'] in self.accId_to_oppIds:
+            self.accId_to_oppIds[opportunity['AccountId']] = []
+          self.accId_to_oppIds[opportunity['AccountId']].append(opportunity['Id'])
+          self.aieId_to_oppId[opportunity['ID_from_HPC__c']] = opportunity['Id']
+      res = self.sf.query_all(f"SELECT {', '.join(ACCOUNT_COLUMNS)} FROM Account WHERE RecordTypeID = '{PERSON_ACCOUNT_ID}'")
+      if res['done']:
+        for account in res['records']:
+          self.email_to_accId[account['PersonEmail']] = account['Id']
+          self.phone_to_accId[account['Phone']] = account['Id']
+      
