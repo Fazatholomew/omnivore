@@ -12,6 +12,10 @@ TAG := $(shell git describe --tags --always --dirty)
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+freeze:
+	@echo "\n${BLUE}Saving installed package into requirements.txt${NC}\n"
+	@pip freeze > requirements.txt
+
 run:
 	@python -m $(MODULE)
 
