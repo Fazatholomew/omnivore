@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from os import getenv
 from .constants import PERSON_ACCOUNT_ID, HEA_ID
 
+
 # Opportunity columns to fetch
 OPPORTUNITY_COLUMNS = [
     'Id',
@@ -61,14 +62,13 @@ class SalesforceConnection:
         self.accId_to_oppIds = {}
         self.email_to_accId = {}
         self.phone_to_accId = {}
+        self.aieId_to_oppId = {}
 
     def get_salesforce_table(self):
         # Querying all Opportunities
         res = self.sf.query_all(f"SELECT {', '.join(OPPORTUNITY_COLUMNS)} FROM Opportunity WHERE RecordTypeID = '{HEA_ID}'")
         if res['done']:
           for opportunity in res['records']:
-            print(opportunity['Id'])
+            table[account['Id']] = account
         res = self.sf.query_all(f"SELECT {', '.join(ACCOUNT_COLUMNS)} FROM Account WHERE RecordTypeID = '{PERSON_ACCOUNT_ID}'")
-        if res['done']:
-          for account in res['records']:
-            print(account['Id'])
+        
