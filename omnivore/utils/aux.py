@@ -43,5 +43,18 @@ def toSalesforceEmail(input):
 
 def extractId(input):
     '''
-      Extract AIE ID from as string
+      Extract AIE IDs from a string
     '''
+    
+    # decode from URL string
+    decoded = unquote_plus(f'{input}')
+
+    if len(decoded) < 4:
+      return []
+
+    # Keep only valid ID
+    # ID only containes alphanumeric characters, if a word contains other than
+    # alphanumeric, throw it out.
+    possible_ids = [possible_id for possible_id in decoded.split(AIE_ID_SEPARATOR) if not '^' in sub(r'[&/\\#,+()$~%.\'":*?<>{} ]', '^', possible_id) and (len(possible_id) == 15 or len(possible_id) == 18)]
+
+    return possible_ids

@@ -1,4 +1,4 @@
-from omnivore.utils.aux import toSalesforcePhone, toSalesforceEmail
+from omnivore.utils.aux import toSalesforcePhone, toSalesforceEmail, extractId
 
 def test_toSalesforcePhone():
   # Test extracting number
@@ -53,3 +53,16 @@ def test_toSalesforceEmail():
   # Lower all email
   lower_email = toSalesforceEmail('JffsImmY@yaHOO.com')
   assert lower_email == 'jffsimmy@yahoo.com'
+
+def test_extractId():
+  # Return empty array when no id
+  nothing = extractId('asdfasdfasdfsfsfsfsfsfsfsfsfsfsfsfsfsfsfsfsfsfsfsfsfsfsfsfsfsf')
+  assert nothing == []
+  
+  # Test extracting from encoded url
+  decoded = extractId('%3C%7C%3E00Q3i00000E6fVKEAZ%3C%7C%3E%20test%20test%20%3C%7C%3E00Q3i00000E6fVKEAZ%3C%7C%3E')
+  assert decoded == ['00Q3i00000E6fVKEAZ', '00Q3i00000E6fVKEAZ']
+
+  # From a paragraph
+  parag = extractId('test test \n \t \n <|>00Q3i00000E6fVKEAZ<|>sdfsdf this is just a test')
+  assert parag == ['00Q3i00000E6fVKEAZ']
