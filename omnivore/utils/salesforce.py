@@ -63,7 +63,7 @@ class SalesforceConnection:
         self.accId_to_oppIds = {}
         self.email_to_accId = {}
         self.phone_to_accId = {}
-        self.aieId_to_oppId = {}
+        self.ids_to_oppId = {}
 
     def get_salesforce_table(self):
         '''
@@ -85,7 +85,9 @@ class SalesforceConnection:
                 if not opportunity['AccountId'] in self.accId_to_oppIds:
                     self.accId_to_oppIds[opportunity['AccountId']] = []
                 self.accId_to_oppIds[opportunity['AccountId']].append(opportunity['Id'])
-                self.aieId_to_oppId[opportunity['ID_from_HPC__c']] = opportunity['Id']
+                self.ids_to_oppId[opportunity['ID_from_HPC__c']] = opportunity['Id']
+                # Extracting AIE ID
+                self.ids_to_oppId[opportunity['All_In_Energy_ID__c']] = opportunity['Id']
         res = self.sf.query_all(
             f"SELECT {', '.join(ACCOUNT_COLUMNS)} FROM Account WHERE RecordTypeID IN ('{PERSON_ACCOUNT_ID}', '{CFP_ACCOUNT_ID}')")
         # Generating Dummies
@@ -101,5 +103,6 @@ class SalesforceConnection:
         #   dump(res, opp_file)
         if res['done']:
             for account in res['records']:
+                # Cleaning email and phone
                 self.email_to_accId[account['PersonEmail']] = account['Id']
                 self.phone_to_accId[account['Phone']] = account['Id']

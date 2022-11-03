@@ -16,5 +16,7 @@ if __name__ == '__main__':
       opps[opp['AccountId']] = []
     opps[opp['AccountId']].append(opp['Id'])
   print(opps)
-  load_dummy_query_all('dada FROM Account fsfsf')
+  accounts = load_dummy_query_all('dada FROM Account fsfsf')
+  print(accounts)
+
   

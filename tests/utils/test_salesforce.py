@@ -5,7 +5,7 @@ from .salesforce_data import load_dummy_query_all
 
 @pytest.fixture()
 def sf():
-  # Get salesforce table should load dummy in test
+  # Load dummy in test
   with patch('omnivore.utils.salesforce.Salesforce') as MockSf:
     MockSf.return_value.query_all.side_effect = load_dummy_query_all
     sf = SalesforceConnection('', '', '') 
@@ -13,5 +13,15 @@ def sf():
     yield sf
 
 # Get Salesforce Table
-def test_aieId_table(sf):
-  assert sf.aieId_to_oppId['<|>0063i00000DD4EkAAL<|>'] == '0063i00000DD4EkAAL'
+def test_get_salesforce_table(sf):
+  # Test Email to Account ID
+  assert sf.email_to_accId['davidmcmenimen@hotmail.co'] == '0013i00002YKIiNAAX'
+  # Test Phone to Account ID
+  assert sf.phone_to_accId['6172178302'] == '0018Z00002ifJUkQAM' 
+  # Test 2 opps in 1 account      
+  assert len(sf.accId_to_oppIds['0018Z00002ifJUkQAM']) == 2
+  # Test All In Energy ID
+  assert sf.ids_to_oppId['0063i00000ArTc7AAF'] == '0063i00000ArTc7AAF'
+  # Test HPC ID
+  assert sf.ids_to_oppId['260798493'] == '0063i00000ArTc7AAF'
+
