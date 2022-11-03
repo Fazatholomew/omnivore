@@ -1,4 +1,6 @@
-from re import sub
+from re import sub, match
+from .constants import AIE_ID_SEPARATOR
+from urllib.parse import unquote_plus
 
 
 def toSalesforcePhone(input):
@@ -21,16 +23,25 @@ def toSalesforcePhone(input):
 
 
 def toSalesforceEmail(input):
+    '''
+      Clean and extract email from input
+    '''
     # Serial to string to avoid error data type
     text_input = f'{input}'
 
-    # Return nothing if there's no @ and .
+       # Return nothing if there's no @ and .
     if not '@' in text_input and not '.' in text_input:
-        return ''
+      return ''
 
     # Split input and filter through it
     # https://www.emailregex.com/
     # Email validation
     possible_email = [email for email in text_input.split(' ') if match(r'^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\
 .[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$', email)]
-    return possible_email[0] if len(possible_email) > 0 else ''
+    return possible_email[0].lower() if len(possible_email) > 0 else ''
+
+
+def extractId(input):
+    '''
+      Extract AIE ID from as string
+    '''

@@ -1,4 +1,4 @@
-from omnivore.utils.aux import toSalesforcePhone
+from omnivore.utils.aux import toSalesforcePhone, toSalesforceEmail
 
 def test_toSalesforcePhone():
   # Test extracting number
@@ -28,3 +28,28 @@ def test_toSalesforcePhone():
   # Convert to string
   phone_from_number = toSalesforcePhone(9123348123)
   assert phone_from_number == '9123348123'
+
+def test_toSalesforceEmail():
+  # return nothing if no email detected
+  nothing = toSalesforceEmail([])
+  assert nothing == ''
+  
+  # return nothing if no email detected
+  nothing = toSalesforceEmail('sdfsdfdsf')
+  assert nothing == ''
+
+  # return nothing if no email detected
+  nothing = toSalesforceEmail(12121344)
+  assert nothing == ''
+
+  # return nothing if no email detected
+  nothing = toSalesforceEmail({})
+  assert nothing == ''
+
+  # Test multiple email, only get the first one
+  first_email = toSalesforceEmail('garbafe@gmail.com   asdfasdfasdf@yahoo.com')
+  assert first_email == 'garbafe@gmail.com'
+
+  # Lower all email
+  lower_email = toSalesforceEmail('JffsImmY@yaHOO.com')
+  assert lower_email == 'jffsimmy@yahoo.com'
