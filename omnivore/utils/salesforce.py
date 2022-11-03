@@ -1,8 +1,9 @@
 from simple_salesforce import Salesforce
 from dotenv import load_dotenv
 from os import getenv
-from .constants import PERSON_ACCOUNT_ID, HEA_ID
-
+from .constants import PERSON_ACCOUNT_ID, HEA_ID, OPPS_RECORD_TYPE, CFP_ACCOUNT_ID
+from pickle import dump
+from random import sample
 
 # Opportunity columns to fetch
 OPPORTUNITY_COLUMNS = [
@@ -65,20 +66,40 @@ class SalesforceConnection:
         self.aieId_to_oppId = {}
 
     def get_salesforce_table(self):
-      '''
-        Create multiple look up table that reflect current SF Database
-      '''
-      # Querying all Opportunities
-      res = self.sf.query_all(f"SELECT {', '.join(OPPORTUNITY_COLUMNS)} FROM Opportunity WHERE RecordTypeID = '{HEA_ID}'")
-      if res['done']:
-        for opportunity in res['records']:
-          if not opportunity['AccountId'] in self.accId_to_oppIds:
-            self.accId_to_oppIds[opportunity['AccountId']] = []
-          self.accId_to_oppIds[opportunity['AccountId']].append(opportunity['Id'])
-          self.aieId_to_oppId[opportunity['ID_from_HPC__c']] = opportunity['Id']
-      res = self.sf.query_all(f"SELECT {', '.join(ACCOUNT_COLUMNS)} FROM Account WHERE RecordTypeID = '{PERSON_ACCOUNT_ID}'")
-      if res['done']:
-        for account in res['records']:
-          self.email_to_accId[account['PersonEmail']] = account['Id']
-          self.phone_to_accId[account['Phone']] = account['Id']
-      
+        '''
+          Create multiple look up table that reflect current SF Database
+        '''
+        # Querying all Opportunities
+        res = self.sf.query_all(
+            f"SELECT {', '.join(OPPORTUNITY_COLUMNS)} FROM Opportunity WHERE RecordTypeID IN ('{OPPS_RECORD_TYPE}')")
+        # Generating dummies
+        # dummy_data = sample(res['records'], 15)
+        # for opp in res['records']:
+        #   if opp['Id'] == '0068Z00001YqFDhQAN' or opp['Id'] == '0068Z00001YqMLnQAN':
+        #     dummy_data.append(opp)
+        # res['records'] = dummy_data
+        # with open('opportunity', 'wb') as opp_file:
+        #   dump(res, opp_file)
+        if res['done']:
+            for opportunity in res['records']:
+                if not opportunity['AccountId'] in self.accId_to_oppIds:
+                    self.accId_to_oppIds[opportunity['AccountId']] = []
+                self.accId_to_oppIds[opportunity['AccountId']].append(opportunity['Id'])
+                self.aieId_to_oppId[opportunity['ID_from_HPC__c']] = opportunity['Id']
+        res = self.sf.query_all(
+            f"SELECT {', '.join(ACCOUNT_COLUMNS)} FROM Account WHERE RecordTypeID IN ('{PERSON_ACCOUNT_ID}', '{CFP_ACCOUNT_ID}')")
+        # Generating Dummies
+        # accs = []
+        # current_accs = {}
+        # for acc in res['records']:
+        #   current_accs[acc['Id']] = acc
+        # for opp in dummy_data:
+        #   if opp['AccountId'] in current_accs:
+        #     accs.append(current_accs[opp['AccountId']])
+        # res['records'] = accs
+        # with open('account', 'wb') as opp_file:
+        #   dump(res, opp_file)
+        if res['done']:
+            for account in res['records']:
+                self.email_to_accId[account['PersonEmail']] = account['Id']
+                self.phone_to_accId[account['Phone']] = account['Id']

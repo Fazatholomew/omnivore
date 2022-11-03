@@ -8,6 +8,8 @@ NEEECOWX_A1 = 'Neeeco Wx!A2:I'
 PREVIOUS_A1 = 'Processed Rows!A1:A'
 # Person Account Record Type ID
 PERSON_ACCOUNT_ID = '0123i000000YGesAAG'
+# CFP Person Account Record Type ID
+CFP_ACCOUNT_ID = '0128Z0000002307QAA'
 # Home Energy Assessment Record Type ID
 HEA_ID = '0123i000000YF7QAAW'
 # Renters Record Type ID
@@ -16,6 +18,8 @@ RENTER_ID = '0123i000000YiBoAAK'
 CS_ID = '0123i000000YnfmAAC'
 # Energy Bill Checkup ID
 ENERGY_ID = '0123i000000Ys96AAC'
+# CFP ID
+CFP_OPP_ID = '0128Z000000230CQAQ'
 # Neeeco Account ID
 NEEECO_ACCID = '0013i00000AtGAvAAN'
 # Revise Account ID
@@ -24,6 +28,8 @@ REVISE_ACCID = '0013i00000AtGAqAAN'
 HOMEWORKS_ACCID = '0013i00000AtGGeAAN'
 # VHI Account ID
 VHI_ACCID = '0013i00001600C3AAI'
+# Opps Record Type IDs
+OPPS_RECORD_TYPE = "', '".join([HEA_ID, RENTER_ID, CS_ID, ENERGY_ID, CFP_OPP_ID])
 # Unit number extension
 UNIT_NAMES = ['apt', 'unit', '#']
 # Address street extension
