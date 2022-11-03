@@ -109,5 +109,8 @@ config.env
 *.key
 *.pem
 
-#MacOS
+# MacOS
 .DS_Store
+
+# Vscode
+.vscode
