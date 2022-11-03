@@ -61,10 +61,10 @@ class SalesforceConnection:
 
     def __init__(self, username, consumer_key, privatekey_file):
         self.sf = Salesforce(username, consumer_key=consumer_key, privatekey_file=privatekey_file)
-        self.accId_to_oppIds = {}
-        self.email_to_accId = {}
-        self.phone_to_accId = {}
-        self.ids_to_oppId = {}
+        self.accId_to_oppIds = {} # the key is Account ID. Value is a list with opportunity record. details
+        self.email_to_accId = {} # the key is email. Value is Account ID assoiated with the email
+        self.phone_to_accId = {} # the key is phone. Value is Account ID assoiated with the phone
+        self.ids_to_oppId = {} # the key could AIE ID or ID from HPC. Value is Opportunity ID assoiated with the id
 
     def get_salesforce_table(self):
         '''
@@ -84,7 +84,7 @@ class SalesforceConnection:
         for opportunity in res['records']:
             if not opportunity['AccountId'] in self.accId_to_oppIds:
                 self.accId_to_oppIds[opportunity['AccountId']] = []
-            self.accId_to_oppIds[opportunity['AccountId']].append(opportunity['Id'])
+            self.accId_to_oppIds[opportunity['AccountId']].append(opportunity)
             self.ids_to_oppId[f"{opportunity['ID_from_HPC__c']}"] = opportunity['Id']
             # Extracting AIE ID
             aie_id = extractId(opportunity['All_In_Energy_ID__c'])
