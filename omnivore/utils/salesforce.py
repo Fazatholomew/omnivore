@@ -2,8 +2,9 @@ from simple_salesforce import Salesforce
 from dotenv import load_dotenv
 from os import getenv
 from .constants import PERSON_ACCOUNT_ID, HEA_ID, OPPS_RECORD_TYPE, CFP_ACCOUNT_ID
-from pickle import dump
-from random import sample
+from .aux import extractId, toSalesforceEmail, toSalesforcePhone
+# from pickle import dump
+# from random import sample
 
 # Opportunity columns to fetch
 OPPORTUNITY_COLUMNS = [
@@ -80,16 +81,17 @@ class SalesforceConnection:
         # res['records'] = dummy_data
         # with open('opportunity', 'wb') as opp_file:
         #   dump(res, opp_file)
-        if res['done']:
-            for opportunity in res['records']:
-                if not opportunity['AccountId'] in self.accId_to_oppIds:
-                    self.accId_to_oppIds[opportunity['AccountId']] = []
-                self.accId_to_oppIds[opportunity['AccountId']].append(opportunity['Id'])
-                self.ids_to_oppId[opportunity['ID_from_HPC__c']] = opportunity['Id']
-                # Extracting AIE ID
-                self.ids_to_oppId[opportunity['All_In_Energy_ID__c']] = opportunity['Id']
+        for opportunity in res['records']:
+            if not opportunity['AccountId'] in self.accId_to_oppIds:
+                self.accId_to_oppIds[opportunity['AccountId']] = []
+            self.accId_to_oppIds[opportunity['AccountId']].append(opportunity['Id'])
+            self.ids_to_oppId[f"{opportunity['ID_from_HPC__c']}"] = opportunity['Id']
+            # Extracting AIE ID
+            aie_id = extractId(opportunity['All_In_Energy_ID__c'])
+            if len(aie_id) > 0:
+              self.ids_to_oppId[aie_id[0]] = opportunity['Id']
         res = self.sf.query_all(
-            f"SELECT {', '.join(ACCOUNT_COLUMNS)} FROM Account WHERE RecordTypeID IN ('{PERSON_ACCOUNT_ID}', '{CFP_ACCOUNT_ID}')")
+        f"SELECT {', '.join(ACCOUNT_COLUMNS)} FROM Account WHERE RecordTypeID IN ('{PERSON_ACCOUNT_ID}', '{CFP_ACCOUNT_ID}')")
         # Generating Dummies
         # accs = []
         # current_accs = {}
@@ -101,8 +103,12 @@ class SalesforceConnection:
         # res['records'] = accs
         # with open('account', 'wb') as opp_file:
         #   dump(res, opp_file)
-        if res['done']:
-            for account in res['records']:
-                # Cleaning email and phone
-                self.email_to_accId[account['PersonEmail']] = account['Id']
-                self.phone_to_accId[account['Phone']] = account['Id']
+        for account in res['records']:
+            # Cleaning email and phone
+            cleaned_email = toSalesforceEmail(account['PersonEmail'])
+            if len(cleaned_email) > 0:
+              self.email_to_accId[cleaned_email] = account['Id']
+            
+            cleaned_phone = toSalesforcePhone(account['Phone'])
+            if len(cleaned_phone) > 0:
+              self.phone_to_accId[cleaned_phone] = account['Id']

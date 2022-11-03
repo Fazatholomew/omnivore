@@ -58,6 +58,10 @@ def test_extractId():
   # Return empty array when no id
   nothing = extractId('asdfasdfasdfsfsfsfsfsfsfsfsfsfsfsfsfsfsfsfsfsfsfsfsfsfsfsfsfsf')
   assert nothing == []
+
+  # ID shouldn't be less than 21 char
+  no_id = extractId('<|>333ffffsf')
+  assert no_id == []
   
   # Test extracting from encoded url
   decoded = extractId('%3C%7C%3E00Q3i00000E6fVKEAZ%3C%7C%3E%20test%20test%20%3C%7C%3E00Q3i00000E6fVKEAZ%3C%7C%3E')

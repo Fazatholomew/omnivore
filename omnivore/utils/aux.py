@@ -49,7 +49,7 @@ def extractId(input):
     # decode from URL string
     decoded = unquote_plus(f'{input}')
 
-    if len(decoded) < 4:
+    if len(decoded) < 21:
       return []
 
     # Keep only valid ID
