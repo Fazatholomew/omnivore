@@ -20,8 +20,12 @@ def test_get_salesforce_table(sf):
   assert sf.phone_to_accId['6172178302'] == '0018Z00002ifJUkQAM' 
   # Test 2 opps in 1 account      
   assert len(sf.accId_to_oppIds['0018Z00002ifJUkQAM']) == 2
+  # Test account presents
+  assert sf.accId_to_acc['0018Z00002ifJUkQAM']['Id'] == '0018Z00002ifJUkQAM'
+  # Test Opp presents
+  assert sf.oppId_to_opp['0068Z00001YqFDhQAN']['Id'] == '0068Z00001YqFDhQAN'
   # Test if opportunity has data
-  assert sf.accId_to_oppIds['0018Z00002ifJUkQAM'][0]['Id'] == '0068Z00001YqFDhQAN' 
+  assert sf.accId_to_oppIds['0018Z00002ifJUkQAM'][0] == '0068Z00001YqFDhQAN' 
   # Test All In Energy ID
   assert sf.ids_to_oppId['0063i00000ArTc7AAF'] == '0063i00000ArTc7AAF'
   # Test HPC ID

@@ -3,8 +3,8 @@ from dotenv import load_dotenv
 from os import getenv
 from .constants import PERSON_ACCOUNT_ID, HEA_ID, OPPS_RECORD_TYPE, CFP_ACCOUNT_ID
 from .aux import extractId, toSalesforceEmail, toSalesforcePhone
-from typing import Optional, TypedDict, NotRequired, Dict
-from dataclasses import dataclass
+from typing import TypedDict, NotRequired, Dict, cast
+
 # from pickle import dump
 # from random import sample
 
@@ -119,17 +119,19 @@ class SalesforceConnection:
 
     def __init__(self, username: str, consumer_key: str, privatekey_file: str):
         self.sf = Salesforce(username, consumer_key=consumer_key, privatekey_file=privatekey_file)
-        self.accId_to_oppIds: Dict[str, list[Opportunity]] = {} # the key is Account ID. Value is a list with opportunity record. details
+        self.accId_to_oppIds: Dict[str, list[str]] = {} # the key is Account ID. Value is a list with opportunity record. details
         self.email_to_accId: Dict[str, str] = {} # the key is email. Value is Account ID assoiated with the email
         self.phone_to_accId: Dict[str, str] = {} # the key is phone. Value is Account ID assoiated with the phone
         self.ids_to_oppId: Dict[str, str] = {} # the key could AIE ID or ID from HPC. Value is Opportunity ID assoiated with the id
+        self.oppId_to_opp: Dict[str, Opportunity] = {} # Where all opps are, indexed by Opportunity ID
+        self.accId_to_acc: Dict[str, Account] = {} # Where all Accounts are, indexed by Account ID 
 
     def get_salesforce_table(self):
         '''
           Create multiple look up table that reflect current SF Database
         '''
         # Querying all Opportunities
-        res = Query(self.sf.query_all(
+        res: Query = cast(Query, self.sf.query_all(
             f"SELECT {', '.join(OPPORTUNITY_COLUMNS)} FROM Opportunity WHERE RecordTypeID IN ('{OPPS_RECORD_TYPE}')"))
         # Generating dummies
         # dummy_data = sample(res['records'], 15)
@@ -140,15 +142,17 @@ class SalesforceConnection:
         # with open('opportunity', 'wb') as opp_file:
         #   dump(res, opp_file)
         for opportunity in res['records']:
+            opportunity = cast(Opportunity, opportunity)
             if not opportunity['AccountId'] in self.accId_to_oppIds:
                 self.accId_to_oppIds[opportunity['AccountId']] = []
-            self.accId_to_oppIds[opportunity['AccountId']].append(opportunity)
+            self.accId_to_oppIds[opportunity['AccountId']].append(opportunity['Id'])
             self.ids_to_oppId[f"{opportunity['ID_from_HPC__c']}"] = opportunity['Id']
             # Extracting AIE ID
             aie_id = extractId(opportunity['All_In_Energy_ID__c'])
             if len(aie_id) > 0:
               self.ids_to_oppId[aie_id[0]] = opportunity['Id']
-        res = Query(self.sf.query_all(
+            self.oppId_to_opp[opportunity['Id']] = opportunity
+        res: Query = cast(Query, self.sf.query_all(
         f"SELECT {', '.join(ACCOUNT_COLUMNS)} FROM Account WHERE RecordTypeID IN ('{PERSON_ACCOUNT_ID}', '{CFP_ACCOUNT_ID}')"))
         # Generating Dummies
         # accs = []
@@ -162,6 +166,7 @@ class SalesforceConnection:
         # with open('account', 'wb') as opp_file:
         #   dump(res, opp_file)
         for account in res['records']:
+            account = cast(Account, account)
             # Cleaning email and phone
             cleaned_email = toSalesforceEmail(account['PersonEmail'])
             if len(cleaned_email) > 0:
@@ -170,6 +175,13 @@ class SalesforceConnection:
             cleaned_phone = toSalesforcePhone(account['Phone'])
             if len(cleaned_phone) > 0:
               self.phone_to_accId[cleaned_phone] = account['Id']
-
-    def find_records(self, input: Record_Find_Info) -> list[Opportunity]:
-      return []
+            self.accId_to_acc[account['Id']] = account
+    def find_records(self, input_records: Record_Find_Info) -> list[Opportunity]:
+      '''
+        Match record in salesforce using Email, Phone, AIE ID, ID from HPC.
+        The input has phone and email to recognize which account the opportunities belong.
+      '''
+      found_opps: list[Opportunity] = []
+      # for opp in input_records['opps']:
+        
+      return found_opps
