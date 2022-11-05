@@ -182,6 +182,31 @@ class SalesforceConnection:
         The input has phone and email to recognize which account the opportunities belong.
       '''
       found_opps: list[Opportunity] = []
-      # for opp in input_records['opps']:
+      for opp in input_records['opps']:
+        # Search matched using AIE ID and ID from HPC
+        # If found, store new value in found_opps and continue the loop
+        if opp['All_In_Energy_ID__c'] in self.ids_to_oppId:
+          self.oppId_to_opp[self.ids_to_oppId[opp['All_In_Energy_ID__c']]].update(opp)
+          found_opps.append(self.oppId_to_opp[self.ids_to_oppId[opp['All_In_Energy_ID__c']]])
+          continue
+        if opp['ID_from_HPC__c'] in self.ids_to_oppId:
+          self.oppId_to_opp[self.ids_to_oppId[opp['ID_from_HPC__c']]].update(opp)
+          found_opps.append(self.oppId_to_opp[self.ids_to_oppId[opp['ID_from_HPC__c']]])
+          continue
+        # Search using Account ID
+        if len(found_opps) > 0:
+          # Check whether Opportunity already in SF
+          account_id: str = found_opps[0]['AccountId']
+          empty_oppIds: list[str] = [oppId for oppId in self.accId_to_oppIds[account_id] if not self.oppId_to_opp[oppId]['ID_from_HPC__c']]
+          if len(empty_oppIds) > 0:
+            # Assign one of the opportunity into current row
+            current_oppId = empty_oppIds[0]
+            self.oppId_to_opp[current_oppId].update(opp)
+            found_opps.append(self.oppId_to_opp[current_oppId])
+            continue
+          # This is new Opp, create a new one by flagging empty ID but with Account ID
+          opp['AccountId'] = account_id
+          continue
+        # No Account ID yet, search using email and phone
         
       return found_opps
