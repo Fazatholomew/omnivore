@@ -106,6 +106,11 @@ class Query(TypedDict):
   nextRecordsUrl: NotRequired[str]
   records: list[Opportunity | Account]
 
+class Record_Find_Info(TypedDict):
+  email: str
+  phone: str
+  opps: list[Opportunity]
+
 
 class SalesforceConnection:
     '''
@@ -166,5 +171,5 @@ class SalesforceConnection:
             if len(cleaned_phone) > 0:
               self.phone_to_accId[cleaned_phone] = account['Id']
 
-    def find_record(self, opps: list[Opportunity]):
-      pass
+    def find_records(self, input: Record_Find_Info) -> list[Opportunity]:
+      return []
