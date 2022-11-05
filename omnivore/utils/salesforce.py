@@ -3,6 +3,8 @@ from dotenv import load_dotenv
 from os import getenv
 from .constants import PERSON_ACCOUNT_ID, HEA_ID, OPPS_RECORD_TYPE, CFP_ACCOUNT_ID
 from .aux import extractId, toSalesforceEmail, toSalesforcePhone
+from typing import Optional, TypedDict, NotRequired, Dict
+from dataclasses import dataclass
 # from pickle import dump
 # from random import sample
 
@@ -53,26 +55,77 @@ ACCOUNT_COLUMNS = [
     'Field_Staff__c',
 ]
 
+class Opportunity(TypedDict):
+    Id: NotRequired[str]
+    Street__c: NotRequired[str]
+    Unit__c: NotRequired[str]
+    City__c: NotRequired[str]
+    State__c: NotRequired[str]
+    Zipcode__c: NotRequired[str]
+    Name: NotRequired[str]
+    HEA_Date_And_Time__c: NotRequired[str]
+    CloseDate: str
+    StageName: NotRequired[str]
+    Health_Safety_Barrier_Status__c: NotRequired[str]
+    Health_Safety_Barrier__c: NotRequired[str]
+    isVHEA__c: NotRequired[str]
+    Weatherization_Status__c: NotRequired[str]
+    Weatherization_Date_Time__c: NotRequired[str]
+    Contract_Amount__c: NotRequired[str]
+    Final_Contract_Amount__c: NotRequired[str]
+    AccountId: NotRequired[str]
+    RecordTypeId: NotRequired[str]
+    ID_from_HPC__c: NotRequired[str]
+    Owner_Renter__c: NotRequired[str]
+    All_In_Energy_ID__c: NotRequired[str]
+    Staff_acc__c: NotRequired[str]
+    Don_t_Omnivore__c: NotRequired[str]
+    Set_By__c: NotRequired[str]
+
+class Account(TypedDict):
+    Id: NotRequired[str]
+    BillingStreet: NotRequired[str]
+    BillingCity: NotRequired[str]
+    BillingState: NotRequired[str]
+    BillingPostalCode: NotRequired[str]
+    FirstName: NotRequired[str]
+    LastName: str
+    Phone: NotRequired[str]
+    PersonEmail: NotRequired[str]
+    Gas_Utility__c: NotRequired[str]
+    Electric_Utility__c: NotRequired[str]
+    RecordTypeId: NotRequired[str]
+    Owner_Renter__c: NotRequired[str]
+    All_In_Energy_ID__c: NotRequired[str]
+    Field_Staff__c: NotRequired[str]
+
+
+class Query(TypedDict):
+  totalSize: int
+  done: bool
+  nextRecordsUrl: NotRequired[str]
+  records: list[Opportunity | Account]
+
 
 class SalesforceConnection:
     '''
       Salesforce connection instance synchronously.
     '''
 
-    def __init__(self, username, consumer_key, privatekey_file):
+    def __init__(self, username: str, consumer_key: str, privatekey_file: str):
         self.sf = Salesforce(username, consumer_key=consumer_key, privatekey_file=privatekey_file)
-        self.accId_to_oppIds = {} # the key is Account ID. Value is a list with opportunity record. details
-        self.email_to_accId = {} # the key is email. Value is Account ID assoiated with the email
-        self.phone_to_accId = {} # the key is phone. Value is Account ID assoiated with the phone
-        self.ids_to_oppId = {} # the key could AIE ID or ID from HPC. Value is Opportunity ID assoiated with the id
+        self.accId_to_oppIds: Dict[str, list[Opportunity]] = {} # the key is Account ID. Value is a list with opportunity record. details
+        self.email_to_accId: Dict[str, str] = {} # the key is email. Value is Account ID assoiated with the email
+        self.phone_to_accId: Dict[str, str] = {} # the key is phone. Value is Account ID assoiated with the phone
+        self.ids_to_oppId: Dict[str, str] = {} # the key could AIE ID or ID from HPC. Value is Opportunity ID assoiated with the id
 
     def get_salesforce_table(self):
         '''
           Create multiple look up table that reflect current SF Database
         '''
         # Querying all Opportunities
-        res = self.sf.query_all(
-            f"SELECT {', '.join(OPPORTUNITY_COLUMNS)} FROM Opportunity WHERE RecordTypeID IN ('{OPPS_RECORD_TYPE}')")
+        res = Query(self.sf.query_all(
+            f"SELECT {', '.join(OPPORTUNITY_COLUMNS)} FROM Opportunity WHERE RecordTypeID IN ('{OPPS_RECORD_TYPE}')"))
         # Generating dummies
         # dummy_data = sample(res['records'], 15)
         # for opp in res['records']:
@@ -90,8 +143,8 @@ class SalesforceConnection:
             aie_id = extractId(opportunity['All_In_Energy_ID__c'])
             if len(aie_id) > 0:
               self.ids_to_oppId[aie_id[0]] = opportunity['Id']
-        res = self.sf.query_all(
-        f"SELECT {', '.join(ACCOUNT_COLUMNS)} FROM Account WHERE RecordTypeID IN ('{PERSON_ACCOUNT_ID}', '{CFP_ACCOUNT_ID}')")
+        res = Query(self.sf.query_all(
+        f"SELECT {', '.join(ACCOUNT_COLUMNS)} FROM Account WHERE RecordTypeID IN ('{PERSON_ACCOUNT_ID}', '{CFP_ACCOUNT_ID}')"))
         # Generating Dummies
         # accs = []
         # current_accs = {}
@@ -112,3 +165,6 @@ class SalesforceConnection:
             cleaned_phone = toSalesforcePhone(account['Phone'])
             if len(cleaned_phone) > 0:
               self.phone_to_accId[cleaned_phone] = account['Id']
+
+    def find_record(self, opps: list[Opportunity]):
+      pass
