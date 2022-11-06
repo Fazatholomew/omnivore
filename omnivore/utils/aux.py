@@ -1,9 +1,10 @@
 from re import sub, match
 from .constants import AIE_ID_SEPARATOR
 from urllib.parse import unquote_plus
+from typing import Any
 
 
-def toSalesforcePhone(input_data):
+def toSalesforcePhone(input_data: Any) -> str:
     '''
       Convert anything to phone number Will return empty string if didn't find anything.
     '''
@@ -22,7 +23,7 @@ def toSalesforcePhone(input_data):
     return cleaned_phone[0:10] if cleaned_phone[0] != '1' else cleaned_phone[1:11]
 
 
-def toSalesforceEmail(input_data):
+def toSalesforceEmail(input_data: Any) -> str:
     '''
       Clean and extract email from input_data
     '''
@@ -41,7 +42,7 @@ def toSalesforceEmail(input_data):
     return possible_email[0].lower() if len(possible_email) > 0 else ''
 
 
-def extractId(input_data):
+def extractId(input_data: Any) -> list[str]:
     '''
       Extract AIE IDs from a string
     '''

@@ -197,11 +197,15 @@ class SalesforceConnection:
         for opp in input_records['opps']:
             # Search matched using AIE ID and ID from HPC
             # If found, store new value in found_opps and continue the loop
-            if opp['All_In_Energy_ID__c'] in self.ids_to_oppId:
-                self.oppId_to_opp[self.ids_to_oppId[opp['All_In_Energy_ID__c']]].update(opp)
-                found_opps.append(self.oppId_to_opp[self.ids_to_oppId[opp['All_In_Energy_ID__c']]])
-                continue
-            if opp['ID_from_HPC__c'] in self.ids_to_oppId:
+            if 'All_In_Energy_ID__c' in opp:
+              aie_ids = extractId(opp['All_In_Energy_ID__c'])
+              if len(aie_ids) > 0:
+                aie_id = aie_ids[0]
+                if aie_id in self.ids_to_oppId:
+                  self.oppId_to_opp[self.ids_to_oppId[aie_id]].update(opp)
+                  found_opps.append(self.oppId_to_opp[self.ids_to_oppId[aie_id]])
+                  continue
+            if 'ID_from_HPC__c' in opp and opp['ID_from_HPC__c'] in self.ids_to_oppId:
                 self.oppId_to_opp[self.ids_to_oppId[opp['ID_from_HPC__c']]].update(opp)
                 found_opps.append(self.oppId_to_opp[self.ids_to_oppId[opp['ID_from_HPC__c']]])
                 continue
@@ -243,7 +247,7 @@ class SalesforceConnection:
                         continue
 
             if 'Phone' in input_records['acc']:
-                # Search using Email
+                # Search using Phone
                 if len(input_records['acc']['Phone']) > 0:
                     if input_records['acc']['Phone'] in self.phone_to_accId:
                         # Check whether Opportunity already in SF
