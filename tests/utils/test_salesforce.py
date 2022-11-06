@@ -45,6 +45,7 @@ def test_find_records_ids_search(sf: SalesforceConnection):
     assert output_data[0]['Id'] == '0063i00000CwA9NAAV'
     assert output_data[1]['Id'] == '0063i00000DEbCsAAL'
 
+
 def test_find_records_phone_search(sf: SalesforceConnection):
     # Find records using Phone and create a new Opp
     input_data = Record_Find_Info(acc=Account(LastName='Test', Phone='6172178302'), opps=[Opportunity(
@@ -52,6 +53,7 @@ def test_find_records_phone_search(sf: SalesforceConnection):
     output_data = sf.find_records(input_data)
     assert not 'Id' in output_data[0]
     assert output_data[1]['AccountId'] == '0018Z00002ifJUkQAM'
+
 
 def test_find_records_email_search(sf: SalesforceConnection):
     # Find records using email and create new opp
@@ -65,16 +67,18 @@ def test_find_records_email_search(sf: SalesforceConnection):
     assert not 'Id' in output_data[1]
     assert output_data[1]['AccountId'] == '0013i00002YLCJ0AAP'
 
+
 def test_find_records_no_Account():
-  with patch('omnivore.utils.salesforce.Salesforce') as MockSf:
+    # No Account found. create a new Account
+    with patch('omnivore.utils.salesforce.Salesforce') as MockSf:
         MockSf.return_value.query_all.side_effect = load_dummy_query_all
         MockSf.return_value.Account.create.return_value = Create(errors=[], id='new Account Id', success=True)
         sf = SalesforceConnection('', '', '')
         sf.get_salesforce_table()
         input_data = Record_Find_Info(acc=Account(LastName='Test', PersonEmail='jimmy@gmial.com'), opps=[Opportunity(
-        CloseDate='date', ID_from_HPC__c='testID'), Opportunity(CloseDate='date')])
+            CloseDate='date', ID_from_HPC__c='testID'), Opportunity(CloseDate='date')])
         output_data = sf.find_records(input_data)
-        MockSf.return_value.Account.create.assert_called_with(input_data['acc']) 
+        MockSf.return_value.Account.create.assert_called_with(input_data['acc'])
         assert output_data[0]['AccountId'] == 'new Account Id'
         assert output_data[1]['AccountId'] == 'new Account Id'
         assert not 'Id' in output_data[0]
