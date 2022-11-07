@@ -1,4 +1,5 @@
 import pandas as pd
+import re
 
 pd.set_option('display.max_columns', None)
 
@@ -184,6 +185,11 @@ neeeco_output['isVHEA__c'] = False
 neeeco_output.loc[neeeco_output['Related to'].str.contains('VHEA').fillna(False), 'isVHEA__c'] = True
 
 neeeco_output['HPC__c'] = '0013i00000AtGAvAAN'
+
+for i in neeeco_output['Phone'].index:
+    neeeco_output['Phone'][i] = re.sub(r'[^0-9]', '', str(neeeco_output['Phone'][i]))
+    if len(neeeco_output['Phone'][i])<10:
+      neeeco_output['Phone'][i]=''
 
 neeeco_output=neeeco_output.loc[:,['Street__c','Unit__c','City__c','State__c','Zipcode__c','Name',
                                    'HEA_Date_And_Time__c','CloseDate','StageName',

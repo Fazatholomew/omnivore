@@ -1,3 +1,4 @@
+import re
 import pandas as pd
 
 homeworks_input = pd.read_csv ('/content/CFP Communities Report - Homeworks Input.csv')
@@ -100,7 +101,16 @@ homeworks_output["Name"] = homeworks_output[
 homeworks_output['HPC__c'] = '0013i00000AtGGeAAN'
 
 for i in homeworks_output['Phone'].index:
-  homeworks_output['Phone']=homeworks_output['Phone'][i].replace('(','').replace(')','').replace('-','').replace(' ','')
+    homeworks_output['Phone'][i] = re.sub(r'[^0-9]', '', str(homeworks_output['Phone'][i]))
+    if len(homeworks_output['Phone'][i])<10:
+      homeworks_output['Phone'][i]=''
+
+for i in homeworks_output['PersonEmail'].index:
+    homeworks_output['PersonEmail'][i] = homeworks_output['PersonEmail'][i].lower()
+    regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+    if(re.fullmatch(regex, homeworks_output['PersonEmail'][i])):
+      homeworks_output['PersonEmail']
+    ''
 
 homeworks_output['PersonEmail']=homeworks_output['PersonEmail'].replace('na@hwe.com','NaN')
 
