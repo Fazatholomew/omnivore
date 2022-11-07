@@ -102,18 +102,18 @@ class Account(TypedDict, total=False):
     Field_Staff__c: str
 
 
-class Query(TypedDict):
+class Query(TypedDict, total=True):
     totalSize: int
     done: bool
     nextRecordsUrl: str
     records: list[Opportunity | Account]
 
 
-class Record_Find_Info(TypedDict):
+class Record_Find_Info(TypedDict, total=True):
     acc: Account
     opps: list[Opportunity]
 
-class Create(TypedDict):
+class Create(TypedDict, total=True):
   errors: list[str]
   id: str
   success: bool

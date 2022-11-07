@@ -1,4 +1,4 @@
-from omnivore.utils.aux import toSalesforcePhone, toSalesforceEmail, extractId
+from omnivore.utils.aux import toSalesforcePhone, toSalesforceEmail, extractId, extract_address
 
 def test_toSalesforcePhone():
   # Test extracting number
@@ -70,3 +70,6 @@ def test_extractId():
   # From a paragraph
   parag = extractId('test test \n \t \n <|>00Q3i00000E6fVKEAZ<|>sdfsdf this is just a test')
   assert parag == ['00Q3i00000E6fVKEAZ']
+
+def test_extract_address():
+  assert extract_address('696 Bennington St, Unit 1, East Boston MA 02128') == False

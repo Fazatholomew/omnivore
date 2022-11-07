@@ -6,9 +6,13 @@ from usaddress import tag
 
 class Address(TypedDict, total=False):
   street: str
+  unit: str
   city: str
   state: str
   zipcode: str
+
+street_keys = ['AddressNumber', 'StreetName' , 'StreetNamePostType']
+unit_keys = ['OccupancyType', 'OccupancyIdentifier']
 
 
 def toSalesforcePhone(input_data: Any) -> str:
@@ -68,5 +72,27 @@ def extractId(input_data: Any) -> list[str]:
     return possible_ids
 
 def extract_address(input_data: Any) -> Address:
-
-  return Address()
+  result = tag(f'{input_data}')
+  # If not enough data, return empty address
+  if result[1] == 'Ambiguous':
+    return Address()
+  extracted_address = Address()
+  # extracting street
+  street_words = []
+  for key in street_keys:
+    if key in result[0]:
+      street_words.append(result[0][key])
+  extracted_address['street'] = ' '.join(street_words)
+  # extrating unit
+  unit_words = []
+  for key in unit_keys:
+    if key in result[0]:
+      unit_words.append(result[0][key])
+  extracted_address['unit'] = ' '.join(unit_words)
+  # extracting city
+  if 'PlaceName' in result[0]:
+    extracted_address['city'] = result[0]['PlaceName']
+  # extrating zipcode
+  if 'ZipCode' in result[0]:
+    extracted_address['zipcode'] = result[0]['ZipCode']
+  return extracted_address
