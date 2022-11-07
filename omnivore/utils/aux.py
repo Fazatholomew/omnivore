@@ -11,7 +11,7 @@ class Address(TypedDict, total=False):
   state: str
   zipcode: str
 
-street_keys = ['AddressNumber', 'StreetName' , 'StreetNamePostType']
+street_keys = ['AddressNumber', 'AddressNumberSuffix', 'StreetNamePreDirectional', 'StreetName' , 'StreetNamePostType']
 unit_keys = ['OccupancyType', 'OccupancyIdentifier']
 
 
@@ -72,10 +72,12 @@ def extractId(input_data: Any) -> list[str]:
     return possible_ids
 
 def extract_address(input_data: Any) -> Address:
-  result = tag(f'{input_data}')
+  result = tag(f'{input_data}'.replace('\n', ' ').replace('\t', ' '))
   # If not enough data, return empty address
   if result[1] == 'Ambiguous':
     return Address()
+  if 'Mason' in result[0]['StreetName']:
+    print(result[0])
   extracted_address = Address()
   # extracting street
   street_words = []
