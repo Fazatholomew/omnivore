@@ -1,7 +1,14 @@
 from re import sub, match
 from .constants import AIE_ID_SEPARATOR
 from urllib.parse import unquote_plus
-from typing import Any
+from typing import Any, TypedDict
+from usaddress import tag
+
+class Address(TypedDict, total=False):
+  street: str
+  city: str
+  state: str
+  zipcode: str
 
 
 def toSalesforcePhone(input_data: Any) -> str:
@@ -59,3 +66,7 @@ def extractId(input_data: Any) -> list[str]:
     possible_ids = [possible_id for possible_id in decoded.split(AIE_ID_SEPARATOR) if not '^' in sub(r'[&/\\#,+()$~%.\'":*?<>{} ]', '^', possible_id) and (len(possible_id) == 15 or len(possible_id) == 18)]
 
     return possible_ids
+
+def extract_address(input_data: Any) -> Address:
+
+  return Address()
