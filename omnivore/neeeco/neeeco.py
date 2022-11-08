@@ -1,4 +1,5 @@
 import pandas as pd
+import re
 
 pd.set_option('display.max_columns', None)
 
@@ -185,21 +186,17 @@ neeeco_output.loc[neeeco_output['Related to'].str.contains('VHEA').fillna(False)
 
 neeeco_output['HPC__c'] = '0013i00000AtGAvAAN'
 
+for i in neeeco_output['Phone'].index:
+    neeeco_output['Phone'][i] = re.sub(r'[^0-9]', '', str(neeeco_output['Phone'][i]))
+    if len(neeeco_output['Phone'][i])<10:
+      neeeco_output['Phone'][i]=''
+
 neeeco_output=neeeco_output.loc[:,['Street__c','Unit__c','City__c','State__c','Zipcode__c','Name',
                                    'HEA_Date_And_Time__c','CloseDate','StageName',
-                                  #  'Date of Audit','Lead Status','HEA Status','Insulation Project Status_x','Insulation Project Status_y','Insulation Project Status','Health & Safety Status',
                                    'Health_Safety_Barrier_Status__c','Health_Safety_Barrier__c',
-                                  #  'Health & Safety Status_x','Health & Safety Status_y',
                                    'isVHEA__c','Weatherization_Status__c','Weatherization_Date_Time__c',
                                    'Contract_Amount__c','Final_Contract_Amount__c','ID_from_HPC__c',
                                    'Cancelation_Reason_s__c','HPC__c', 'Phone']]
-
-output=output.loc[:,['Street__c','Unit__c','City__c','State__c','Zipcode__c','Name',
-                                   'HEA_Date_And_Time__c','CloseDate','StageName',
-                                   'Health_Safety_Barrier_Status__c','Health_Safety_Barrier__c',
-                                   'isVHEA__c','Weatherization_Status__c','Weatherization_Date_Time__c',
-                                   'Contract_Amount__c','Final_Contract_Amount__c','ID_from_HPC__c',
-                                   'Cancelation_Reason_s__c','HPC__c']]
 
 # print(neeeco_output.head(30))
 
