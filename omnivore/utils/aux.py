@@ -76,8 +76,6 @@ def extract_address(input_data: Any) -> Address:
   # If not enough data, return empty address
   if result[1] == 'Ambiguous':
     return Address()
-  if 'Mason' in result[0]['StreetName']:
-    print(result[0])
   extracted_address = Address()
   # extracting street
   street_words = []
