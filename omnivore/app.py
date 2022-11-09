@@ -2,8 +2,8 @@ from .utils.salesforce import SalesforceConnection
 from dotenv import load_dotenv
 from os import getenv
 
-import neeeco
-import homeworks
+from .neeeco import neeeco
+from .homeworks import homeworks
 
 # Load environment variable from .env
 load_dotenv()
