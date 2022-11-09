@@ -195,6 +195,3 @@ def neeeco(neeeco_input,neeeco_wx_input):
                                     'Cancelation_Reason_s__c','HPC__c', 'Phone']]
 
     return neeeco_output
-
-if __name__ == '__main__':
-   neeeco_output = neeeco(neeeco_input,neeeco_wx_input)
