@@ -186,6 +186,8 @@ def neeeco(neeeco_input,neeeco_wx_input):
         neeeco_output['Phone'][i] = re.sub(r'[^0-9]', '', str(neeeco_output['Phone'][i]))
         if len(neeeco_output['Phone'][i])<10:
             neeeco_output['Phone'][i]=''
+        if len(neeeco_output['Phone'][i])>10:
+            neeeco_output['Phone'][i]=neeeco_output['Phone'][i][0:10]
 
     neeeco_output=neeeco_output.loc[:,['Street__c','Unit__c','City__c','State__c','Zipcode__c','Name',
                                     'HEA_Date_And_Time__c','CloseDate','StageName',
