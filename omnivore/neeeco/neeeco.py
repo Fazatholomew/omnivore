@@ -144,8 +144,6 @@ def neeeco(neeeco_input,neeeco_wx_input):
 
     #       // Wx Jobs Statuses
     neeeco_output['Weatherization_Status__c'] = ''
-    neeeco_output.loc[neeeco_output['StageName'] == 'Signed Contracts', 
-                    'Weatherization_Status__c'] = 'Not Yet Scheduled'
 
     neeeco_output['Insulation Project Installation Date'] = pd.to_datetime(
         neeeco_output['Insulation Project Installation Date'])
@@ -158,12 +156,13 @@ def neeeco(neeeco_input,neeeco_wx_input):
     neeeco_output.loc[neeeco_output['Weatherization_Date_Time__c'] == 'nanT00:00:00.000-07:00', 
                     'Weatherization_Date_Time__c'] = ''
 
-    neeeco_output.loc[(neeeco_output['StageName'] == 'Signed Contracts') & 
-                    (neeeco_output['Weatherization_Date_Time__c'].notnull()), 
-                    'Weatherization_Status__c'] = 'Scheduled'
-    neeeco_output.loc[(neeeco_output['StageName'] == 'Signed Contracts') & 
-                    (neeeco_output['Final_Contract_Amount__c'].notnull()), 
-                    'Weatherization_Status__c'] = 'Completed'
+    for i in neeeco_output.index:
+      if neeeco_output['StageName'][i] == 'Signed Contracts':
+        neeeco_output['Weatherization_Status__c'][i]='Completed'
+        if neeeco_output['Weatherization_Date_Time__c'][i]=='':
+          neeeco_output['Weatherization_Status__c'][i]='Scheduled'
+        if neeeco_output['Final_Contract_Amount__c'][i]=='':
+          neeeco_output['Weatherization_Status__c'][i]='Not Yet Scheduled'
 
     # // No cancel reason, default it to No Reason
     neeeco_output.loc[(neeeco_output['StageName'] == 'Canceled') & 
@@ -195,5 +194,6 @@ def neeeco(neeeco_input,neeeco_wx_input):
                                     'isVHEA__c','Weatherization_Status__c','Weatherization_Date_Time__c',
                                     'Contract_Amount__c','Final_Contract_Amount__c','ID_from_HPC__c',
                                     'Cancelation_Reason_s__c','HPC__c', 'Phone']]
+    output = pd.read_json ('Neeeco Output.json')
 
     return neeeco_output
