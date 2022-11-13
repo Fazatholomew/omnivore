@@ -2,7 +2,7 @@ import re
 import pandas as pd
 import numpy as np
 
-def homeworks(homeworks_input):
+def homeworks(homeworks_input: pd.DataFrame):
     homeworks_output = homeworks_input
     
     stageMapper = {
@@ -124,6 +124,3 @@ def homeworks(homeworks_input):
     return homeworks_output
 
     # print(homeworks_output[homeworks_output["ID_from_HPC__c"].isin(['a0o4X00000Kp5pHQAR','a0o4X00000L7XIJQA3','a0o4X00000JxemSQAR'])])
-
-if __name__ == '__main__':
-  homeworks_output = homeworks(homeworks_input)

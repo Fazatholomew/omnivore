@@ -1,7 +1,7 @@
 import pandas as pd
 import re
 
-def neeeco(neeeco_input,neeeco_wx_input):
+def neeeco(neeeco_input: pd.DataFrame ,neeeco_wx_input: pd.DataFrame):
     neeeco_output = pd.merge(left=neeeco_input, right=neeeco_wx_input, 
                             how='left', left_on='Related to', right_on='HEA - Last, First, Address')
 
@@ -195,6 +195,3 @@ def neeeco(neeeco_input,neeeco_wx_input):
                                     'Cancelation_Reason_s__c','HPC__c', 'Phone']]
 
     return neeeco_output
-
-if __name__ == '__main__':
-   neeeco_output = neeeco(neeeco_input,neeeco_wx_input)
