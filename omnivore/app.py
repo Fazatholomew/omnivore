@@ -1,19 +1,20 @@
-from .utils.salesforce import SalesforceConnection
-from dotenv import load_dotenv
 from os import getenv
 from pickle import load, dump
 from typing import cast, Any
 from pandas import DataFrame
 
-from .neeeco.neeeco import neeeco
+import pandas as pd
+from dotenv import load_dotenv
+
 from .homeworks.homeworks import homeworks
+from .neeeco.neeeco import neeeco
+from .utils.salesforce import SalesforceConnection
 
 # Load environment variable from .env
 load_dotenv()
 
 
 class Blueprint:
-
     def __init__(self) -> None:
         if getenv('EMAIL'):
             self.sf = SalesforceConnection(username=getenv('EMAIL'), consumer_key=getenv(  # type:ignore

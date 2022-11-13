@@ -103,6 +103,8 @@ def homeworks(homeworks_input: pd.DataFrame):
         homeworks_output['Phone'][i] = re.sub(r'[^0-9]', '', str(homeworks_output['Phone'][i]))
         if len(homeworks_output['Phone'][i])<10:
           homeworks_output['Phone'][i]=''
+        if len(homeworks_output['Phone'][i])>10:
+            homeworks_output['Phone'][i]=homeworks_output['Phone'][i][0:10]
 
     for i in homeworks_output['PersonEmail'].index:
         homeworks_output['PersonEmail'][i] = homeworks_output['PersonEmail'][i].lower()
