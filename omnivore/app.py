@@ -22,32 +22,32 @@ class Blueprint:
             self.sf.get_salesforce_table()
         self.load_processed_rows()
 
-    def load_processed_rows(self, fileName = './processed_row') -> None:
-      '''
-        Load already processed rows from pickled file
-      '''
-      with open(fileName, 'rb') as file_blob:
-        self.processed_rows = cast(set[str] ,load(file_blob))
-    
-    def save_processed_rows(self, fileName = './processed_row') -> None:
-      '''
-        Save processed rows into pickled file
-      '''
-      with open(fileName, 'wb') as file_blob:
-        dump(self.processed_rows, file_blob)
+    def load_processed_rows(self, fileName='./processed_row') -> None:
+        '''
+          Load already processed rows from pickled file
+        '''
+        with open(fileName, 'rb') as file_blob:
+            self.processed_rows = cast(set[str], load(file_blob))
+
+    def save_processed_rows(self, fileName='./processed_row') -> None:
+        '''
+          Save processed rows into pickled file
+        '''
+        with open(fileName, 'wb') as file_blob:
+            dump(self.processed_rows, file_blob)
 
     def remove_already_processed_row(self, data: DataFrame) -> DataFrame:
-      '''
-        Remove rows that already processed and no changes occures
-      '''
-      return data[data[data.columns].T.agg(''.join).str.lower().isin(self.processed_rows)].copy()
+        '''
+          Remove rows that already processed and no changes occures
+        '''
+        return data[data[data.columns].T.agg(''.join).str.lower().isin(self.processed_rows)].copy()
 
     def add_row_to_processed_row(self, data: list[Any]) -> None:
-      '''
-        Add already processed row into the set
-      '''
-      self.processed_rows.add(''.join(data).lower())
-    
+        '''
+          Add already processed row into the set
+        '''
+        self.processed_rows.add(''.join(data).lower())
+
     @staticmethod
     def run():
         pass

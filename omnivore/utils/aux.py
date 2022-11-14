@@ -3,6 +3,8 @@ from .constants import AIE_ID_SEPARATOR
 from urllib.parse import unquote_plus
 from typing import Any, TypedDict
 from usaddress import tag
+from pandas import DataFrame, isna
+from .salesforce import Record_Find_Info, Account, Opportunity
 
 class Address(TypedDict, total=False):
   street: str
@@ -96,3 +98,83 @@ def extract_address(input_data: Any) -> Address:
   if 'ZipCode' in result[0]:
     extracted_address['zipcode'] = result[0]['ZipCode']
   return extracted_address
+
+def to_account_and_opportunities(data: DataFrame) -> list[Record_Find_Info]:
+  '''
+    Group row with each other that has the same contact information or account
+  '''
+  # data_ids = {}
+  # combined_data = {}
+  # processed_ids = set()
+  # for row in data.itertuples():
+  #   email = ''
+  #   phone = ''
+  #   # check email
+  #   if hasattr(row, 'PersonEmail'):
+  #     if not isna(getattr(row, 'PersonEmail')):
+  #       email = getattr(row, 'PersonEmail')
+  #       if not ('email', email) in data_ids:
+  #         data_ids[('email', email)] = {
+  #           'rows': set(),
+  #           'another_key': ''
+  #         }
+  #   # check phone
+  #   if hasattr(row, 'Phone'):
+  #     if not isna(getattr(row, 'Phone')):
+  #       phone = getattr(row, 'Phone')
+  #       if not ('phone', phone) in data_ids:
+  #         data_ids[('phone', phone)] = {
+  #           'rows': set(),
+  #           'another_key': ''
+  #         }
+  #   # set email
+  #   if len(email) > 0:
+  #     data_ids[('email', email)]['rows'].add(row)
+  #     data_ids[('email', email)]['another_key'] = ('phone', phone)
+    
+  #   # set phone
+  #   if len(phone) > 0:
+  #     data_ids[('phone', phone)]['rows'].add(row)
+  #     data_ids[('phone', phone)]['another_key'] = ('email', email)
+
+  #   for key, value in data_ids.items():
+  #     # combine email and phone
+  #     if key in processed_ids:
+  #       continue
+  #     if len(value['another_key']) == 0:
+  #       combined_data[(key,)] = value['rows']
+  #       processed_ids.add(key)
+  #     else:
+  #       combined_data[(key, value['another_key'])] = value['rows'].union(data_ids[value['another_key']]['rows'])
+  #       processed_ids.add(key)
+  #       processed_ids.add(value['another_key'])
+    
+  #   # Transform in account and opps
+  #   for key, value in combined_data.items():
+  #     account = Account()
+  #     opps: list[Opportunity] = []
+  #     for id in key:
+  #       if id[0] == 'phone':
+  #         account['Phone'] = id[1]
+        
+  #       if id[0] == 'email':
+  #         account['PersonEmail'] = id[1]
+  #     for opp in value:
+  #       new_opp = Opportunity()
+  #       # Extracting Name
+  #       if not isna(opp.FirstName):
+  #         account['FirstName'] = opp.FirstName
+        
+  #       if not isna(opp.LastName):
+  #         account['LastName'] = opp.LastName
+        
+  #       # Extracting Address
+  #       if not isna(opp.Street__c):
+  #         extracted_address = extract_address(opp.Street__c)
+  #         account['BillingStreet'] = extracted_address['street'] if not 'BillingStreet' in account else account['BillingStreet']
+  #         account['BillingCity'] = extracted_address['city'] if not 'BillingCity' in account else account['BillingCity']
+  #         account['BillingPostalCode'] = extracted_address['zipcode'] if not 'BillingPostalCode' in account else account['BillingPostalCode']
+
+
+
+  return []
