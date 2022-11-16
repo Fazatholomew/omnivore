@@ -14,6 +14,7 @@ load_dotenv()
 
 class Blueprint:
     def __init__(self) -> None:
+        print(getenv('EMAIL'))
         if getenv('EMAIL'):
             self.sf = SalesforceConnection(username=getenv('EMAIL'), consumer_key=getenv(  # type:ignore
                 'CONSUMER_KEY'), privatekey_file=getenv('PRIVATEKEY_FILE'))  # type:ignore

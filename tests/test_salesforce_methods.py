@@ -27,6 +27,7 @@ def test_remove_processed_row(dataframe, mocking_open):
         # Test Removing row that already processed
         assert len(dataframe) == 2
         removed = omni.remove_already_processed_row(dataframe)
+        assert 'tempId' in removed.columns
         assert len(removed) == 1
         assert removed.iloc[0]['Name'] == 'Testy Test'
         # if row changes, keep it
