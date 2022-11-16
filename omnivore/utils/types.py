@@ -26,7 +26,8 @@ class Opportunity(TypedDict, total=False):
     Staff_acc__c: str
     Don_t_Omnivore__c: str
     Set_By__c: str
-
+    tempId: str
+    HPC__c: str
 
 class Account(TypedDict, total=False):
     Id: str

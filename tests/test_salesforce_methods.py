@@ -35,12 +35,3 @@ def test_remove_processed_row(dataframe, mocking_open):
         not_removed = omni.remove_already_processed_row(dataframe)
         assert len(not_removed) == 2
 
-def test_add_row_to_alreadyproccessed_row(dataframe, mocking_open):
-    with patch('omnivore.app.load') as MockSf:
-        dummy_processed = set()
-        MockSf.return_value = dummy_processed
-        omni = Blueprint()
-        assert not 'jimmy dummyscheduled' in omni.processed_rows
-        omni.add_row_to_processed_row(dataframe.values.tolist()[0])
-        assert 'jimmy dummyscheduled' in omni.processed_rows
-
