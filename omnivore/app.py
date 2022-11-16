@@ -41,8 +41,11 @@ class Blueprint:
     def remove_already_processed_row(self, data: DataFrame) -> DataFrame:
         '''
           Remove rows that already processed and no changes occures
+          Add temp id for processed row detection
         '''
-        return data[data[data.columns].T.agg(''.join).str.lower().isin(self.processed_rows)].copy()
+        result = data.copy()
+        result['tempId'] = result[result.columns].T.agg(''.join).str.lower()
+        return result[~result['tempId'].isin(self.processed_rows)]
 
     def add_row_to_processed_row(self, data: list[Any]) -> None:
         '''

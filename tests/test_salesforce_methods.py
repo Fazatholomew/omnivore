@@ -28,6 +28,11 @@ def test_remove_processed_row(dataframe, mocking_open):
         assert len(dataframe) == 2
         removed = omni.remove_already_processed_row(dataframe)
         assert len(removed) == 1
+        assert removed.iloc[0]['Name'] == 'Testy Test'
+        # if row changes, keep it
+        dataframe.iloc[0]['HEA Status'] = 'Completed'
+        not_removed = omni.remove_already_processed_row(dataframe)
+        assert len(not_removed) == 2
 
 def test_add_row_to_alreadyproccessed_row(dataframe, mocking_open):
     with patch('omnivore.app.load') as MockSf:
