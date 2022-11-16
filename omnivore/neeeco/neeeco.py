@@ -194,6 +194,6 @@ def neeeco(neeeco_input: pd.DataFrame ,neeeco_wx_input: pd.DataFrame):
                                     'isVHEA__c','Weatherization_Status__c','Weatherization_Date_Time__c',
                                     'Contract_Amount__c','Final_Contract_Amount__c','ID_from_HPC__c',
                                     'Cancelation_Reason_s__c','HPC__c', 'Phone']]
-    output = pd.read_json ('Neeeco Output.json')
+    # output = pd.read_json ('Neeeco Output.json')
 
     return neeeco_output
