@@ -11,6 +11,7 @@ def dataframe():
 @pytest.fixture()
 def mocking_open():
   with patch('omnivore.app.open', mock_open()) as MockSf:
+    print('mocking open')
     yield MockSf
 
 def test_remove_processed_row(dataframe, mocking_open):
@@ -33,6 +34,7 @@ def test_add_row_to_alreadyproccessed_row(dataframe, mocking_open):
         dummy_processed = set()
         MockSf.return_value = dummy_processed
         omni = Blueprint()
+        assert not 'jimmy dummyscheduled' in omni.processed_rows
         omni.add_row_to_processed_row(dataframe.values.tolist()[0])
         assert 'jimmy dummyscheduled' in omni.processed_rows
 

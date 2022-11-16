@@ -1,6 +1,6 @@
 from omnivore.utils.aux import toSalesforcePhone, toSalesforceEmail, extractId, extract_address, Address, to_account_and_opportunities
 from pandas import DataFrame
-
+from numpy import NaN
 
 def assert_partial_dict(dict_1, dict_2):
     for key in dict_2:
@@ -132,6 +132,21 @@ def test_to_account_and_opp():
                      'test'], 'FirstName': ['Jimmy', 'not Jimmy', 'yes Jimmy'], 'LastName': ['last', 'last', 'last'], 'ID_from_HPC__c': ['sdfasf', 'asdffffff', 'fffff']})
     result = to_account_and_opportunities(data)
     assert len(result) == 2
-    assert result[0]['acc']['PersonEmail'] == 'test@gmail.com'
-    assert len(result[0]['opps']) == 2
-    assert result[1]['opps'][0]['ID_from_HPC__c'] == 'asdffffff'
+    assert result[1]['acc']['PersonEmail'] == 'test@gmail.com'
+    assert len(result[1]['opps']) == 2
+    assert result[0]['opps'][0]['ID_from_HPC__c'] == 'asdffffff'
+    # Two contact info
+    data = DataFrame({'Phone': ['9163308234', '11111111', '9163308234'], 'PersonEmail': ['test@gmail.com', 'test1@gmail.com', NaN], 'Street__c': ['test', 'test',
+                     'test'], 'FirstName': ['Jimmy', 'not Jimmy', 'yes Jimmy'], 'LastName': ['last', 'last', 'last'], 'ID_from_HPC__c': ['sdfasf', 'asdffffff', 'fffff']})
+    result = to_account_and_opportunities(data)
+    assert len(result) == 2
+    assert result[1]['acc']['PersonEmail'] == 'test@gmail.com'
+    assert len(result[1]['opps']) == 2
+    assert result[0]['opps'][0]['ID_from_HPC__c'] == 'asdffffff'
+    data = DataFrame({'Phone': [NaN, '11111111', '9163308234'], 'PersonEmail': ['test@gmail.com', 'test1@gmail.com', 'test@gmail.com'], 'Street__c': ['test', 'test',
+                     'test'], 'FirstName': ['Jimmy', 'not Jimmy', 'yes Jimmy'], 'LastName': ['last', 'last', 'last'], 'ID_from_HPC__c': ['sdfasf', 'asdffffff', 'fffff']})
+    result = to_account_and_opportunities(data)
+    assert len(result) == 2
+    assert result[1]['acc']['PersonEmail'] == 'test@gmail.com'
+    assert len(result[1]['opps']) == 2
+    assert result[0]['opps'][0]['ID_from_HPC__c'] == 'asdffffff'

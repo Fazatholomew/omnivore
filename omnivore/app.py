@@ -2,13 +2,11 @@ from os import getenv
 from pickle import load, dump
 from typing import cast, Any
 from pandas import DataFrame
-
-import pandas as pd
 from dotenv import load_dotenv
 
 from .homeworks.homeworks import homeworks
 from .neeeco.neeeco import neeeco
-from .utils.salesforce import SalesforceConnection
+from .utils.salesforce import SalesforceConnection, Create
 
 # Load environment variable from .env
 load_dotenv()
@@ -26,8 +24,12 @@ class Blueprint:
         '''
           Load already processed rows from pickled file
         '''
-        with open(fileName, 'rb') as file_blob:
-            self.processed_rows = cast(set[str], load(file_blob))
+        try:
+          with open(fileName, 'rb') as file_blob:
+              self.processed_rows = cast(set[str], load(file_blob))
+        except FileNotFoundError:
+          print('No File Found')
+          self.processed_rows = set()
 
     def save_processed_rows(self, fileName='./processed_row') -> None:
         '''
@@ -48,6 +50,5 @@ class Blueprint:
         '''
         self.processed_rows.add(''.join(data).lower())
 
-    @staticmethod
-    def run():
+    def run(self):
         pass

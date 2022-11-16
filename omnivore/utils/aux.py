@@ -1,10 +1,10 @@
 from re import sub, match
-from .constants import AIE_ID_SEPARATOR
+from .constants import AIE_ID_SEPARATOR, OPPORTUNITY_COLUMNS, ACCOUNT_COLUMNS
 from urllib.parse import unquote_plus
 from typing import Any, TypedDict, cast
 from usaddress import tag
 from pandas import DataFrame
-from .salesforce import Record_Find_Info, Account, Opportunity, OPPORTUNITY_COLUMNS, ACCOUNT_COLUMNS
+from .types import Record_Find_Info, Account, Opportunity
 
 class Address(TypedDict, total=False):
   street: str
@@ -15,6 +15,12 @@ class Address(TypedDict, total=False):
 
 street_keys = ['AddressNumber', 'AddressNumberSuffix', 'StreetNamePreDirectional', 'StreetName' , 'StreetNamePostType']
 unit_keys = ['OccupancyType', 'OccupancyIdentifier']
+address_keys = {
+  'street': ['Street__c', 'BillingStreet'],
+  'city': ['City__c', 'BillingCity'],
+  'zipcode': ['Zipcode__c', 'BillingPostalCode'],
+  'unit': ['Unit__c']
+}
 
 
 def toSalesforcePhone(input_data: Any) -> str:
@@ -31,6 +37,9 @@ def toSalesforcePhone(input_data: Any) -> str:
 
     # Extract number from a string
     cleaned_phone = sub(r'[^0-9]', '', text_input)
+    
+    if len(cleaned_phone) == 0:
+      return ''
 
     # Remove 1 area code
     return cleaned_phone[0:10] if cleaned_phone[0] != '1' else cleaned_phone[1:11]
@@ -103,18 +112,17 @@ def to_account_and_opportunities(data: DataFrame) -> list[Record_Find_Info]:
   '''
     Group row with each other that has the same contact information or account
   '''
-  data = data.fillna('')
-  available_columns = [column for column in ['PersonEmail', 'Phone'] if column in data.columns]
+  available_columns = [column for column in ['Phone', 'PersonEmail'] if column in data.columns]
   length_of_available_columns = len(available_columns)
-  sorted_data = data.sort_values(available_columns)
-  if length_of_available_columns == 0:
+  if length_of_available_columns == 0 or len(data) == 0:
     # No contact info, don't proccess it
     return []
   if length_of_available_columns == 1:
+    sorted_data = data.sort_values(available_columns, na_position='first')
     result: list[Record_Find_Info] = []
     contact_column = available_columns[0]
     current_account = Account()
-    current_account[contact_column] = sorted_data.loc[0, contact_column]
+    current_account[contact_column] = sorted_data.iloc[0][contact_column]
     current_opps: list[Opportunity] = []
     for row in sorted_data.itertuples():
       current_opp = Opportunity()
@@ -132,14 +140,11 @@ def to_account_and_opportunities(data: DataFrame) -> list[Record_Find_Info]:
         extracted_address = extract_address(getattr(row, 'Street__c'))
         # Set Account address if not set yet
         if not 'BillingStreet' in current_account:
-          current_account['BillingStreet'] = extracted_address['street'] if not 'BillingStreet' in current_account else current_account['BillingStreet']
-          current_account['BillingCity'] = extracted_address['city'] if not 'BillingCity' in current_account else current_account['BillingCity']
-          current_account['BillingPostalCode'] = extracted_address['zipcode'] if not 'BillingPostalCode' in current_account else current_account['BillingPostalCode']
-        
-        current_opp['Street__c'] = extracted_address['street']
-        current_opp['City__c'] = extracted_address['city']
-        current_opp['Zipcode__c'] = extracted_address['zipcode']
-        current_opp['Unit__c'] = extracted_address['unit'] 
+          for key, value in address_keys.items():
+            if key in extracted_address:
+              current_opp[value[0]] = extracted_address[key]
+              if key != 'unit':
+                current_account[value[1]] = extracted_address[key]
 
       # Name
       full_name = []
@@ -173,13 +178,16 @@ def to_account_and_opportunities(data: DataFrame) -> list[Record_Find_Info]:
 
   if len(available_columns) == 2:
     # If more than one contact information are used, use the sorting method
+    data['PersonEmail'] = data['PersonEmail'].fillna(data['Phone'])
+    data['Phone'] = data['Phone'].fillna(data['PersonEmail'])
+    sorted_data = data.sort_values(available_columns, na_position='first')
     result: list[Record_Find_Info] = []
-    current_account = Account(PersonEmail = cast(str, sorted_data.loc[0, 'PersonEmail']), Phone=cast(str,sorted_data.loc[0, 'Phone']))
+    current_account = Account(PersonEmail = toSalesforceEmail(sorted_data.iloc[0]['PersonEmail']), Phone= toSalesforcePhone(sorted_data.iloc[0]['Phone']))
     current_opps: list[Opportunity] = []
     for row in sorted_data.itertuples():
       current_opp = Opportunity()
-      email = getattr(row, 'PersonEmail')
-      phone = getattr(row, 'Phone')
+      email = toSalesforceEmail(getattr(row, 'PersonEmail'))
+      phone = toSalesforcePhone(getattr(row, 'Phone'))
       # check if both contact info are different
       if email != current_account['PersonEmail'] and phone != current_account['Phone']:
         # already different account, append the current account
@@ -200,14 +208,19 @@ def to_account_and_opportunities(data: DataFrame) -> list[Record_Find_Info]:
         extracted_address = extract_address(getattr(row, 'Street__c'))
         # Set Account address if not set yet
         if not 'BillingStreet' in current_account:
-          current_account['BillingStreet'] = extracted_address['street'] if not 'BillingStreet' in current_account else current_account['BillingStreet']
-          current_account['BillingCity'] = extracted_address['city'] if not 'BillingCity' in current_account else current_account['BillingCity']
-          current_account['BillingPostalCode'] = extracted_address['zipcode'] if not 'BillingPostalCode' in current_account else current_account['BillingPostalCode']
+          for key, value in address_keys.items():
+            if key in extracted_address:
+              current_opp[value[0]] = extracted_address[key]
+              if key != 'unit':
+                current_account[value[1]] = extracted_address[key]
+        #   current_account['BillingStreet'] = extracted_address['street'] if not 'BillingStreet' in current_account else current_account['BillingStreet']
+        #   current_account['BillingCity'] = extracted_address['city'] if not 'BillingCity' in current_account else current_account['BillingCity']
+        #   current_account['BillingPostalCode'] = extracted_address['zipcode'] if not 'BillingPostalCode' in current_account else current_account['BillingPostalCode']
         
-        current_opp['Street__c'] = extracted_address['street']
-        current_opp['City__c'] = extracted_address['city']
-        current_opp['Zipcode__c'] = extracted_address['zipcode']
-        current_opp['Unit__c'] = extracted_address['unit'] 
+        # current_opp['Street__c'] = extracted_address['street']
+        # current_opp['City__c'] = extracted_address['city']
+        # current_opp['Zipcode__c'] = extracted_address['zipcode']
+        # current_opp['Unit__c'] = extracted_address['unit'] 
 
       # Name
       full_name = []
