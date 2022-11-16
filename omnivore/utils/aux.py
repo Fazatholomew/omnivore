@@ -1,10 +1,10 @@
 from re import sub, match
 from .constants import AIE_ID_SEPARATOR
 from urllib.parse import unquote_plus
-from typing import Any, TypedDict
+from typing import Any, TypedDict, cast
 from usaddress import tag
-from pandas import DataFrame, isna
-from .salesforce import Record_Find_Info, Account, Opportunity
+from pandas import DataFrame
+from .salesforce import Record_Find_Info, Account, Opportunity, OPPORTUNITY_COLUMNS, ACCOUNT_COLUMNS
 
 class Address(TypedDict, total=False):
   street: str
@@ -103,6 +103,145 @@ def to_account_and_opportunities(data: DataFrame) -> list[Record_Find_Info]:
   '''
     Group row with each other that has the same contact information or account
   '''
+  data = data.fillna('')
+  available_columns = [column for column in ['PersonEmail', 'Phone'] if column in data.columns]
+  length_of_available_columns = len(available_columns)
+  sorted_data = data.sort_values(available_columns)
+  if length_of_available_columns == 0:
+    # No contact info, don't proccess it
+    return []
+  if length_of_available_columns == 1:
+    result: list[Record_Find_Info] = []
+    contact_column = available_columns[0]
+    current_account = Account()
+    current_account[contact_column] = sorted_data.loc[0, contact_column]
+    current_opps: list[Opportunity] = []
+    for row in sorted_data.itertuples():
+      current_opp = Opportunity()
+      contact_info = getattr(row, contact_column)
+      # check if both contact info are different
+      if contact_info != current_account[contact_column]:
+        # already different account, append the current account
+        result.append(Record_Find_Info(acc=current_account, opps=current_opps))
+        current_account = Account()
+        current_account[contact_column] = contact_info
+        current_opps: list[Opportunity] = []
+      
+      # Clean address
+      if hasattr(row, 'Street__c'):
+        extracted_address = extract_address(getattr(row, 'Street__c'))
+        # Set Account address if not set yet
+        if not 'BillingStreet' in current_account:
+          current_account['BillingStreet'] = extracted_address['street'] if not 'BillingStreet' in current_account else current_account['BillingStreet']
+          current_account['BillingCity'] = extracted_address['city'] if not 'BillingCity' in current_account else current_account['BillingCity']
+          current_account['BillingPostalCode'] = extracted_address['zipcode'] if not 'BillingPostalCode' in current_account else current_account['BillingPostalCode']
+        
+        current_opp['Street__c'] = extracted_address['street']
+        current_opp['City__c'] = extracted_address['city']
+        current_opp['Zipcode__c'] = extracted_address['zipcode']
+        current_opp['Unit__c'] = extracted_address['unit'] 
+
+      # Name
+      full_name = []
+      # First Name Last Name for Account
+      if hasattr(row, 'FirstName') and not 'FirstName' in current_account:
+        first_name = getattr(row, 'FirstName')
+        current_account['FirstName'] = first_name
+        full_name.append(first_name)
+      
+      if hasattr(row, 'LastName') and not 'LastName' in current_account:
+        last_name = getattr(row, 'LastName')
+        current_account['LastName'] = last_name
+        full_name.append(last_name)
+      
+      # Name for Opp
+      # current_opp['Name'] =  ' '.join(full_name) if len(current_opps) == 0 else f"{' '.join(full_name)} unit {len(current_opps)}"
+
+      # Rest of data
+      for column in OPPORTUNITY_COLUMNS:
+        if hasattr(row, column) and not column in current_opp:
+          current_opp[column] = getattr(row, column)
+      
+      for column in ACCOUNT_COLUMNS:
+        if hasattr(row, column) and not column in current_account:
+          current_account[column] = getattr(row, column)
+
+      current_opps.append(current_opp)
+    
+    result.append(Record_Find_Info(acc=current_account, opps=current_opps)) 
+    return result
+
+  if len(available_columns) == 2:
+    # If more than one contact information are used, use the sorting method
+    result: list[Record_Find_Info] = []
+    current_account = Account(PersonEmail = cast(str, sorted_data.loc[0, 'PersonEmail']), Phone=cast(str,sorted_data.loc[0, 'Phone']))
+    current_opps: list[Opportunity] = []
+    for row in sorted_data.itertuples():
+      current_opp = Opportunity()
+      email = getattr(row, 'PersonEmail')
+      phone = getattr(row, 'Phone')
+      # check if both contact info are different
+      if email != current_account['PersonEmail'] and phone != current_account['Phone']:
+        # already different account, append the current account
+        result.append(Record_Find_Info(acc=current_account, opps=current_opps))
+        current_account = Account(PersonEmail=email, Phone=phone)
+        current_opps = []
+      
+      # If account doesn't have email yet, fill it up
+      if len(email) > 0 and len(current_account['PersonEmail']) == 0:
+        current_account['PersonEmail'] = email 
+      
+      # If account doesn't have phone yet, fill it up
+      if len(phone) > 0 and len(current_account['Phone']) == 0:
+        current_account['Phone'] = phone 
+      
+      # Clean address
+      if hasattr(row, 'Street__c'):
+        extracted_address = extract_address(getattr(row, 'Street__c'))
+        # Set Account address if not set yet
+        if not 'BillingStreet' in current_account:
+          current_account['BillingStreet'] = extracted_address['street'] if not 'BillingStreet' in current_account else current_account['BillingStreet']
+          current_account['BillingCity'] = extracted_address['city'] if not 'BillingCity' in current_account else current_account['BillingCity']
+          current_account['BillingPostalCode'] = extracted_address['zipcode'] if not 'BillingPostalCode' in current_account else current_account['BillingPostalCode']
+        
+        current_opp['Street__c'] = extracted_address['street']
+        current_opp['City__c'] = extracted_address['city']
+        current_opp['Zipcode__c'] = extracted_address['zipcode']
+        current_opp['Unit__c'] = extracted_address['unit'] 
+
+      # Name
+      full_name = []
+      # First Name Last Name for Account
+      if hasattr(row, 'FirstName') and not 'FirstName' in current_account:
+        first_name = getattr(row, 'FirstName')
+        current_account['FirstName'] = first_name
+        full_name.append(first_name)
+      
+      if hasattr(row, 'LastName') and not 'LastName' in current_account:
+        last_name = getattr(row, 'LastName')
+        current_account['LastName'] = last_name
+        full_name.append(last_name)
+      
+      # Name for Opp
+      current_opp['Name'] =  ' '.join(full_name) if len(current_opps) == 0 else f"{' '.join(full_name)} unit {len(current_opps)}"
+
+      # Rest of data
+      for column in OPPORTUNITY_COLUMNS:
+        if hasattr(row, column) and not column in current_opp:
+          current_opp[column] = getattr(row, column)
+      
+      for column in ACCOUNT_COLUMNS:
+        if hasattr(row, column) and not column in current_account:
+          current_account[column] = getattr(row, column)
+
+      current_opps.append(current_opp)
+    
+    result.append(Record_Find_Info(acc=current_account, opps=current_opps)) 
+    return result
+  
+  return []
+
+
   # data_ids = {}
   # combined_data = {}
   # processed_ids = set()
@@ -174,7 +313,3 @@ def to_account_and_opportunities(data: DataFrame) -> list[Record_Find_Info]:
   #         account['BillingStreet'] = extracted_address['street'] if not 'BillingStreet' in account else account['BillingStreet']
   #         account['BillingCity'] = extracted_address['city'] if not 'BillingCity' in account else account['BillingCity']
   #         account['BillingPostalCode'] = extracted_address['zipcode'] if not 'BillingPostalCode' in account else account['BillingPostalCode']
-
-
-
-  return []

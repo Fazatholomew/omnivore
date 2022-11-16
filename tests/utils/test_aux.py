@@ -1,4 +1,5 @@
-from omnivore.utils.aux import toSalesforcePhone, toSalesforceEmail, extractId, extract_address, Address
+from omnivore.utils.aux import toSalesforcePhone, toSalesforceEmail, extractId, extract_address, Address, to_account_and_opportunities
+from pandas import DataFrame
 
 
 def assert_partial_dict(dict_1, dict_2):
@@ -100,24 +101,37 @@ def test_extract_address():
 
     # Homeworks
     assert assert_partial_dict(extract_address("(Unit 1) 117 Malden Street"),
-                              Address(street='117 Malden Street', unit='(Unit 1)'))
+                               Address(street='117 Malden Street', unit='(Unit 1)'))
     assert assert_partial_dict(extract_address("212 Webster St Malden unit 2"),
-                              Address(street='212 Webster St', unit='unit 2'))
+                               Address(street='212 Webster St', unit='unit 2'))
     assert assert_partial_dict(extract_address("(Unit B) 1084 Washington Street"),
-                              Address(street='1084 Washington Street', unit='(Unit B)'))
+                               Address(street='1084 Washington Street', unit='(Unit B)'))
     assert assert_partial_dict(extract_address('202 1/2 Bridge Street'), Address(street='202 1/2 Bridge Street'))
     assert assert_partial_dict(extract_address("Unit(2) 36 Lothrop Street"), Address(
         street='36 Lothrop Street', unit='Unit (2)'))
     assert assert_partial_dict(extract_address('153 Mount Vernon Street'),
-                              Address(street='153 Mount Vernon Street'))
+                               Address(street='153 Mount Vernon Street'))
     assert assert_partial_dict(extract_address('(Unit 15 (1)) 15 Pierce Avenue'),
-                              Address(street='15 Pierce Avenue', unit='(Unit 15 (1))'))
+                               Address(street='15 Pierce Avenue', unit='(Unit 15 (1))'))
 # VHI
     assert assert_partial_dict(extract_address("99 Ferry St #3,"),
-                              Address(street='99 Ferry St', unit='# 3'))
+                               Address(street='99 Ferry St', unit='# 3'))
     assert assert_partial_dict(extract_address("6 Nollet Drive AnDOVER"),
-                              Address(street='6 Nollet Drive', city='AnDOVER'))
+                               Address(street='6 Nollet Drive', city='AnDOVER'))
     assert assert_partial_dict(extract_address("3 Pearl Avenue, unit 2"),
-                              Address(street='3 Pearl Avenue', unit='unit 2'))
+                               Address(street='3 Pearl Avenue', unit='unit 2'))
     assert assert_partial_dict(extract_address('28 BUSWELL ST FL 2,'), Address(street='28 BUSWELL ST', unit='FL 2'))
 # Revise
+
+
+def test_to_account_and_opp():
+    # One Contact info
+    data = DataFrame({'PersonEmail': [], 'Street__c': [], 'FirstName': [], 'LastName': []})
+    assert to_account_and_opportunities(data) == []
+    data = DataFrame({'PersonEmail': ['test@gmail.com', 'test1@gmail.com', 'test@gmail.com'], 'Street__c': ['test', 'test',
+                     'test'], 'FirstName': ['Jimmy', 'not Jimmy', 'yes Jimmy'], 'LastName': ['last', 'last', 'last'], 'ID_from_HPC__c': ['sdfasf', 'asdffffff', 'fffff']})
+    result = to_account_and_opportunities(data)
+    assert len(result) == 2
+    assert result[0]['acc']['PersonEmail'] == 'test@gmail.com'
+    assert len(result[0]['opps']) == 2
+    assert result[1]['opps'][0]['ID_from_HPC__c'] == 'asdffffff'

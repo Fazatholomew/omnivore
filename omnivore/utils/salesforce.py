@@ -1,6 +1,4 @@
 from simple_salesforce import Salesforce
-from dotenv import load_dotenv
-from os import getenv
 from .constants import PERSON_ACCOUNT_ID, HEA_ID, OPPS_RECORD_TYPE, CFP_ACCOUNT_ID
 from .aux import extractId, toSalesforceEmail, toSalesforcePhone
 from typing import TypedDict, Dict, cast
