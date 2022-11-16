@@ -1,7 +1,7 @@
 import pandas as pd
 import re
-
-def neeeco(neeeco_input: pd.DataFrame ,neeeco_wx_input: pd.DataFrame):
+pd.set_option('display.max_columns', 1000); 
+def neeeco(neeeco_input,neeeco_wx_input):
     neeeco_output = pd.merge(left=neeeco_input, right=neeeco_wx_input, 
                             how='left', left_on='Related to', right_on='HEA - Last, First, Address')
 
@@ -194,6 +194,6 @@ def neeeco(neeeco_input: pd.DataFrame ,neeeco_wx_input: pd.DataFrame):
                                     'isVHEA__c','Weatherization_Status__c','Weatherization_Date_Time__c',
                                     'Contract_Amount__c','Final_Contract_Amount__c','ID_from_HPC__c',
                                     'Cancelation_Reason_s__c','HPC__c', 'Phone']]
-    # output = pd.read_json ('Neeeco Output.json')
+    output = pd.read_json ('Neeeco Output.json')
 
     return neeeco_output
