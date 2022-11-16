@@ -53,7 +53,7 @@ class Blueprint:
         '''
         result = data.copy()
         result['tempId'] = result[result.columns].T.agg(''.join).str.lower()
-        return result[~result['tempId'].isin(self.processed_rows)]
+        return result[~result['tempId'].isin(self.processed_rows)].copy()
 
     def upload_to_salesforce(self, data: Record_Find_Info, HPC_ID):
         '''
@@ -106,5 +106,4 @@ class Blueprint:
         run(self.start_upload_to_salesforce(grouped_opps, NEEECO_ACCID))
 
     def run(self):
-        print(self.sf.sf.Lead.update('00Q8Z00001lisEfUAI', {'LastName': "testy hehe"}))  # type:ignore
         pass
