@@ -67,16 +67,17 @@ def neeeco(neeeco_input,neeeco_wx_input):
 
     #       // Skip Empty Row
     neeeco_output = neeeco_output[neeeco_output['ID_from_HPC__c'].notnull()]
+    neeeco_output["Street__c"] = neeeco_output["Full Address including zip"]
 
-    neeeco_output["Street__c"] = neeeco_output[
-        "Full Address including zip"].str.extract(r'([a-zA-Z]\w{2,} \w{1,})')
-    neeeco_output["Unit__c"] = neeeco_output[
-        "Full Address including zip"].str.extract(r'^(\d{1,})')
-    neeeco_output["City__c"] = neeeco_output[
-        "Full Address including zip"].str.extract(r'((?<=:\s|,\s)\b\w+\s*\w{2}\b)')
-    neeeco_output["State__c"] = neeeco_output["Full Address including zip"].str.extract(r"([A-Z]{2})")
-    neeeco_output["Zipcode__c"] = neeeco_output["Full Address including zip"].str.extract(r"([0-9]{5,6}$)")
-    neeeco_output['Name'] = neeeco_output['Name'].str.replace('(\d+\w{1}$)', '')
+    # neeeco_output["Street__c"] = neeeco_output[
+    #     "Full Address including zip"].str.extract(r'([a-zA-Z]\w{2,} \w{1,})')
+    # neeeco_output["Unit__c"] = neeeco_output[
+    #     "Full Address including zip"].str.extract(r'^(\d{1,})')
+    # neeeco_output["City__c"] = neeeco_output[
+    #     "Full Address including zip"].str.extract(r'((?<=:\s|,\s)\b\w+\s*\w{2}\b)')
+    # neeeco_output["State__c"] = neeeco_output["Full Address including zip"].str.extract(r"([A-Z]{2})")
+    # neeeco_output["Zipcode__c"] = neeeco_output["Full Address including zip"].str.extract(r"([0-9]{5,6}$)")
+    # neeeco_output['Name'] = neeeco_output['Name'].str.replace('(\d+\w{1}$)', '')
 
     neeeco_output['Date of Audit'] = pd.to_datetime(neeeco_output['Date of Audit'])
     neeeco_output['Date of Audit'] = neeeco_output['Date of Audit'].dt.strftime('%Y-%m-%d')
@@ -180,6 +181,8 @@ def neeeco(neeeco_input,neeeco_wx_input):
     neeeco_output.loc[neeeco_output['Related to'].str.contains('VHEA').fillna(False), 'isVHEA__c'] = True
 
     neeeco_output['HPC__c'] = '0013i00000AtGAvAAN'
+    neeeco_output['FirstName'] = neeeco_output['Name'].str.extract(r'^(?P<first>[\w]+)')
+    neeeco_output['LastName'] = neeeco_output['Name'].str.extract(r'( \w+)')
 
     for i in neeeco_output['Phone'].index:
         neeeco_output['Phone'][i] = re.sub(r'[^0-9]', '', str(neeeco_output['Phone'][i]))
@@ -188,8 +191,8 @@ def neeeco(neeeco_input,neeeco_wx_input):
         if len(neeeco_output['Phone'][i])>10:
             neeeco_output['Phone'][i]=neeeco_output['Phone'][i][0:10]
 
-    neeeco_output=neeeco_output.loc[:,['Street__c','Unit__c','City__c','State__c','Zipcode__c','Name',
-                                    'HEA_Date_And_Time__c','CloseDate','StageName',
+    neeeco_output=neeeco_output.loc[:,['Street__c','FirstName',
+                                    'LastName','HEA_Date_And_Time__c','CloseDate','StageName',
                                     'Health_Safety_Barrier_Status__c','Health_Safety_Barrier__c',
                                     'isVHEA__c','Weatherization_Status__c','Weatherization_Date_Time__c',
                                     'Contract_Amount__c','Final_Contract_Amount__c','ID_from_HPC__c',
