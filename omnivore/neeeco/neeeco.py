@@ -77,7 +77,7 @@ def neeeco(neeeco_input,neeeco_wx_input):
     #     "Full Address including zip"].str.extract(r'((?<=:\s|,\s)\b\w+\s*\w{2}\b)')
     # neeeco_output["State__c"] = neeeco_output["Full Address including zip"].str.extract(r"([A-Z]{2})")
     # neeeco_output["Zipcode__c"] = neeeco_output["Full Address including zip"].str.extract(r"([0-9]{5,6}$)")
-    # neeeco_output['Name'] = neeeco_output['Name'].str.replace('(\d+\w{1}$)', '')
+    neeeco_output['Name'] = neeeco_output['Name'].str.replace('( \d\w{1}$| \d)', '')
 
     neeeco_output['Date of Audit'] = pd.to_datetime(neeeco_output['Date of Audit'])
     neeeco_output['Date of Audit'] = neeeco_output['Date of Audit'].dt.strftime('%Y-%m-%d')
@@ -117,7 +117,7 @@ def neeeco(neeeco_input,neeeco_wx_input):
 
     neeeco_output['Health_Safety_Barrier_Status__c'] = neeeco_output[
         'Health & Safety Status'].map(hsStageMapper)
-    neeeco_output['Health_Safety_Barrier_Status__c']=neeeco_output['Health_Safety_Barrier_Status__c'].fillna('')
+    # neeeco_output['Health_Safety_Barrier_Status__c']=neeeco_output['Health_Safety_Barrier_Status__c'].repacr('')
 
         
     neeeco_output['Health & Safety Issue']=neeeco_output['Health & Safety Issue'].fillna('')
@@ -182,8 +182,10 @@ def neeeco(neeeco_input,neeeco_wx_input):
 
     neeeco_output['HPC__c'] = '0013i00000AtGAvAAN'
     neeeco_output['FirstName'] = neeeco_output['Name'].str.extract(r'^(?P<first>[\w]+)')
-    neeeco_output['LastName'] = neeeco_output['Name'].str.extract(r'( \w+)')
-
+    neeeco_output['LastName'] = neeeco_output['Name'].str.extract(r'( \w+)$')
+    neeeco_output['LastName'] = neeeco_output['LastName'].str.replace(' ', '')
+    neeeco_output['Name'].str.split(expand=True)
+    
     for i in neeeco_output['Phone'].index:
         neeeco_output['Phone'][i] = re.sub(r'[^0-9]', '', str(neeeco_output['Phone'][i]))
         if len(neeeco_output['Phone'][i])<10:
@@ -191,12 +193,11 @@ def neeeco(neeeco_input,neeeco_wx_input):
         if len(neeeco_output['Phone'][i])>10:
             neeeco_output['Phone'][i]=neeeco_output['Phone'][i][0:10]
 
-    neeeco_output=neeeco_output.loc[:,['Street__c','FirstName',
+    neeeco_output=neeeco_output.loc[:,['Street__c','Name','FirstName',
                                     'LastName','HEA_Date_And_Time__c','CloseDate','StageName',
                                     'Health_Safety_Barrier_Status__c','Health_Safety_Barrier__c',
                                     'isVHEA__c','Weatherization_Status__c','Weatherization_Date_Time__c',
                                     'Contract_Amount__c','Final_Contract_Amount__c','ID_from_HPC__c',
                                     'Cancelation_Reason_s__c','HPC__c', 'Phone']]
-    output = pd.read_json ('Neeeco Output.json')
 
     return neeeco_output
