@@ -1,13 +1,13 @@
 Street__c,FirstName,LastName,HEA_Date_And_Time__c,Phone,CloseDate,StageName,Health_Safety_Barrier_Status__c,Health_Safety_Barrier__c,isVHEA__c,Weatherization_Status__c,Weatherization_Date_Time__c,Contract_Amount__c,Final_Contract_Amount__c,ID_from_HPC__c,Cancelation_Reason_s__c
-"696 Bennington St, Unit 1, East Boston MA 02128",Abraham,Bustillo,2022-01-18T05:00:00.000-07:00,8575230079,2021-12-07T05:00:00.000-07:00,Signed Contracts,,Other,FALSE,Completed,2022-02-09T05:00:00.000-07:00,"8,685.95","8,492.81",258602497,
-"696 Bennington St, Unit 2, East Boston, MA 02128",Abraham,Bustillo,2022-01-18T05:00:00.000-07:00,8575230080,2021-12-07T05:00:00.000-07:00,Signed Contracts,,Other,FALSE,Completed,2022-02-09T05:00:00.000-07:00,818.58,818.58,264723523,
-"80 Bellingham St, Unit 1, Chelsea, MA 02150",Amarilys (Amy),Rodriguez,,7818310691,2021-04-06T04:00:00.000-07:00,Canceled,,Other,TRUE,,,,,257048632,Unresponsive
-"4 Intervale Rd, Arlington, MA 02474",Amy & Victor,Martins,2020-11-05T05:00:00.000-07:00,5616769560,2020-11-02T05:00:00.000-07:00,No Opportunity,,Other,TRUE,,,,,251024675,
-"64 Reservation Rd, Andover, MA 01810",Evelyn,Retelle,,9784754412,2021-07-13T04:00:00.000-07:00,Canceled,,Other,FALSE,,,,,260118657,Not Interested
-"12 Riverview Ave Methuen, MA 01844",Gloria,Vallera,,9786976073,2020-09-09T04:00:00.000-07:00,Canceled,,Other,TRUE,,,,,250373222,Not Interested
-"161 Central St, Unit 1, Framingham, MA 01701",James,Marious,2022-02-15T05:00:00.000-07:00,6176100189,2022-01-04T05:00:00.000-07:00,Signed Contracts,Barrier Removed,Other,FALSE,Not Yet Scheduled,,"2,742.58",,265074847,
-"121 Cottage Street, Unit 2, Chelsea, MA 02150",Julia Ruiz,Libran,,,2022-01-11T05:00:00.000-07:00,Canceled,,Other,FALSE,,,,,265685621,Low Income
-19 Desmond Rd. Mattapan MA 02126,Louis,Carter,2019-03-05T05:00:00.000-07:00,6172962673,2019-02-19T05:00:00.000-07:00,Recommended - Unsigned,,Other,FALSE,,,"2,872.90",,226303672,
-"16 Crescent St, Weston, MA 02493",Ran,Jing,,6073791706,2021-11-08T05:00:00.000-07:00,Canceled,,Other,FALSE,,,,,263919758,No Reason
-"172 School Street, Framingham, MA 01701",Stephen,Keefe,2021-06-07T04:00:00.000-07:00,5082940537,2021-05-18T04:00:00.000-07:00,Health & Safety Barrier,Not Attempted,Other,FALSE,,,,,258438371,
-"46 William St, Cambridge, MA 02139",Theresa,Betancourt,2020-11-04T05:00:00.000-07:00,6173352535,2020-10-06T04:00:00.000-07:00,No Opportunity,Barrier Removed,Other,TRUE,,,,,251131858,
+"696 Bennington St, Unit 1, East Boston MA 02128",Abraham,Bustillo,2022-01-18T00:00:00.000-07:00,8575230079,2021-12-07T00:00:00.000-07:00,Signed Contracts,,,FALSE,Completed,2022-02-09T05:00:00.000-07:00,"8,685.95","8,492.81",258602497,
+"696 Bennington St, Unit 2, East Boston, MA 02128",Abraham,Bustillo,2022-01-18T00:00:00.000-07:00,8575230080,2021-12-07T00:00:00.000-07:00,Signed Contracts,,,FALSE,Completed,2022-02-09T05:00:00.000-07:00,818.58,818.58,264723523,
+"80 Bellingham St, Unit 1, Chelsea, MA 02150",Amarilys (Amy),Rodriguez,,7818310691,2021-04-06T00:00:00.000-07:00,Canceled,,,TRUE,,,,,257048632,Unresponsive
+"4 Intervale Rd, Arlington, MA 02474",Amy & Victor,Martins,2020-11-05T05:00:00.000-07:00,5616769560,2020-11-02T00:00:00.000-07:00,No Opportunity,,,TRUE,,,,,251024675,
+"64 Reservation Rd, Andover, MA 01810",Evelyn,Retelle,,9784754412,2021-07-13T00:00:00.000-07:00,Canceled,,,FALSE,,,,,260118657,Not Interested
+"12 Riverview Ave Methuen, MA 01844",Gloria,Vallera,,9786976073,2020-09-09T00:00:00.000-07:00,Canceled,,,TRUE,,,,,250373222,Not Interested
+"161 Central St, Unit 1, Framingham, MA 01701",James,Marious,2022-02-15T00:00:00.000-07:00,6176100189,2022-01-04T00:00:00.000-07:00,Signed Contracts,Barrier Removed,Knob & Tube (Major),FALSE,Not Yet Scheduled,,"2,742.58",,265074847,
+"121 Cottage Street, Unit 2, Chelsea, MA 02150",Julia Ruiz,Libran,,,2022-01-11T00:00:00.000-07:00,Canceled,,,FALSE,,,,,265685621,Low Income
+19 Desmond Rd. Mattapan MA 02126,Louis,Carter,2019-03-05T05:00:00.000-07:00,6172962673,2019-02-19T00:00:00.000-07:00,Recommended - Unsigned,,,FALSE,,,"2,872.90",,226303672,
+"16 Crescent St, Weston, MA 02493",Ran,Jing,,6073791706,2021-11-08T00:00:00.000-07:00,Canceled,,,FALSE,,,,,263919758,No Reason
+"172 School Street, Framingham, MA 01701",Stephen,Keefe,2021-06-07T00:00:00.000-07:00,5082940537,2021-05-18T00:00:00.000-07:00,Health & Safety Barrier,Not Attempted,Knob & Tube (Major); Mold/Moisture; Asbestos,FALSE,,,,,258438371,
+"46 William St, Cambridge, MA 02139",Theresa,Betancourt,2020-11-04T00:00:00.000-07:00,6173352535,2020-10-06T00:00:00.000-07:00,No Opportunity,Barrier Removed,,TRUE,,,,,251131858,
