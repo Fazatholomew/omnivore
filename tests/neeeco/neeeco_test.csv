@@ -1,5 +1,5 @@
 Street__c,FirstName,LastName,HEA_Date_And_Time__c,Phone,CloseDate,StageName,Health_Safety_Barrier_Status__c,Health_Safety_Barrier__c,isVHEA__c,Weatherization_Status__c,Weatherization_Date_Time__c,Contract_Amount__c,Final_Contract_Amount__c,ID_from_HPC__c,Cancelation_Reason_s__c
-"696 Bennington St, Unit 1, East Boston MA 02128",Abraham,Bustillo,2022-01-18T00:00:00.000-07:00,8575230079,2021-12-07T00:00:00.000-07:00,Signed Contracts,, ,FALSE,Completed,2022-02-09T05:00:00.000-07:00,"8,685.95","8,492.81",258602497,
+"696 Bennington St, Unit 1, East Boston MA 02128",Abraham,Bustillo,2022-01-18T00:00:00.000-07:00,8575230079,2021-12-07T00:00:00.000-07:00,Signed Contracts,,,FALSE,Completed,2022-02-09T05:00:00.000-07:00,"8,685.95","8,492.81",258602497,
 "696 Bennington St, Unit 2, East Boston, MA 02128",Abraham,Bustillo,2022-01-18T00:00:00.000-07:00,8575230080,2021-12-07T00:00:00.000-07:00,Signed Contracts,,,FALSE,Completed,2022-02-09T05:00:00.000-07:00,818.58,818.58,264723523,
 "80 Bellingham St, Unit 1, Chelsea, MA 02150",Amarilys (Amy),Rodriguez,,7818310691,2021-04-06T00:00:00.000-07:00,Canceled,,,TRUE,,,,,257048632,Unresponsive
 "4 Intervale Rd, Arlington, MA 02474",Amy & Victor,Martins,2020-11-05T05:00:00.000-07:00,5616769560,2020-11-02T00:00:00.000-07:00,No Opportunity,,,TRUE,,,,,251024675,
