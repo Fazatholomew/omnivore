@@ -24,7 +24,7 @@ class Opportunity(TypedDict, total=False):
     Owner_Renter__c: str
     All_In_Energy_ID__c: str
     Staff_acc__c: str
-    Don_t_Omnivore__c: str
+    Don_t_Omnivore__c: bool
     Set_By__c: str
     tempId: str
     HPC__c: str

@@ -31,6 +31,7 @@ class SalesforceConnection:
           Create multiple look up table that reflect current SF Database
         '''
         # Querying all Opportunities
+        print(self.sf)
         res: Query = cast(Query, self.sf.query_all(
             f"SELECT {', '.join(OPPORTUNITY_COLUMNS)} FROM Opportunity WHERE RecordTypeID IN ('{OPPS_RECORD_TYPE}')"))
         # Generating dummies
@@ -157,7 +158,8 @@ class SalesforceConnection:
             break
         if len(found_opps) == 0:
           # Account not found create a new account
-          res: Create = cast(Create, self.sf.Account.create(input_records['acc'])) # type:ignore
+          payload = {key: input_records['acc'][key] for key in ACCOUNT_COLUMNS if key in input_records['acc']}
+          res: Create = cast(Create, self.sf.Account.create(payload)) # type:ignore
           if res['success']:
             for opp in input_records['opps']:
               opp['AccountId'] = res['id']

@@ -9,20 +9,18 @@ from .neeeco.neeeco import neeeco
 from .utils.salesforce import SalesforceConnection, Create
 from .utils.aux import to_account_and_opportunities
 from .utils.types import Record_Find_Info
-from .utils.constants import NEEECO_ACCID
+from .utils.constants import NEEECO_ACCID, OPPORTUNITY_COLUMNS
 
 from asyncio import run, gather, get_event_loop
 
 # Load environment variable from .env
 if getenv('ENV') != 'test':
-  load_dotenv('.env.production')
-
+    load_dotenv('.env.production')
 
 
 class Blueprint:
     def __init__(self) -> None:
-        print(getenv('EMAIL'))
-        if getenv('EMAIL'):
+        if getenv('EMAIL') or getenv('ENV') == 'test':
             self.sf = SalesforceConnection(username=getenv('EMAIL'), consumer_key=getenv(  # type:ignore
                 'CONSUMER_KEY'), privatekey_file=getenv('PRIVATEKEY_FILE'))  # type:ignore
             self.sf.get_salesforce_table()
@@ -70,21 +68,28 @@ class Blueprint:
                     continue
             opp['HPC__c'] = HPC_ID
             if 'Id' in opp:
+                print('there id')
                 if len(opp['Id']) > 3:
+                    print('updating')
                     try:
-                        res = self.sf.sf.Opportunity.update(opp['Id'], opp)  # type:ignore
-                        if res == 204:
+                        payload = {key: opp[key] for key in OPPORTUNITY_COLUMNS if key in opp}
+                        res = self.sf.sf.Opportunity.update(opp['Id'], payload)  # type:ignore
+                        if cast(int, res) > 200:
                             self.processed_rows.add(processed_row_id)
                             # Reporting
                     except:
+                        print('error updating')
                         continue
             else:
                 try:
-                    res: Create = self.sf.sf.Opportunity.create(opp)  # type:ignore
+                    print('creating')
+                    payload = {key: opp[key] for key in OPPORTUNITY_COLUMNS if key in opp}
+                    res: Create = self.sf.sf.Opportunity.create(payload)  # type:ignore
                     if res['success']:
                         self.processed_rows.add(processed_row_id)
                         # Reporting
                 except:
+                    print('error creating')
                     continue
 
     async def start_upload_to_salesforce(self, data: list[Record_Find_Info], HPC_ID: str) -> None:
