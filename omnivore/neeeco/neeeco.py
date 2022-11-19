@@ -1,3 +1,4 @@
+import numpy
 import pandas as pd
 import re
 pd.set_option('display.max_columns', 1000); 
@@ -29,7 +30,8 @@ def neeeco(neeeco_input,neeeco_wx_input):
     'Bad Data': 'Bad Data',
     'No Account Info': 'Bad Data',
     'Scheduling Conflict': 'Reschedule Request',
-    '': 'No Reason'
+    '': 'No Reason',
+    numpy.nan:'No Reason'
     }
 
     # // Health And Safety Issues
@@ -177,12 +179,13 @@ def neeeco(neeeco_input,neeeco_wx_input):
     neeeco_output.loc[neeeco_output['Date of Audit'] > pd.to_datetime("today"), 'StageName'] = 'Scheduled'
 
     #       // VHEA detection
-    neeeco_output['isVHEA__c'] = False
-    neeeco_output.loc[neeeco_output['Related to'].str.contains('VHEA').fillna(False), 'isVHEA__c'] = True
+    neeeco_output['isVHEA__c'] = 'FALSE'
+    neeeco_output.loc[neeeco_output['Related to'].str.contains('VHEA').fillna(False), 'isVHEA__c'] = 'TRUE'
 
     neeeco_output['HPC__c'] = '0013i00000AtGAvAAN'
-    neeeco_output['FirstName'] = neeeco_output['Name'].str.extract(r'^(?P<first>[\w]+)')
+    neeeco_output['FirstName'] = neeeco_output['Name'].str.extract(r'(.*?(?=[\wäöüß]+$))')
     neeeco_output['LastName'] = neeeco_output['Name'].str.extract(r'( \w+)$')
+    neeeco_output['FirstName'] = neeeco_output['FirstName'].str.replace(r'( )$', '')
     neeeco_output['LastName'] = neeeco_output['LastName'].str.replace(' ', '')
     neeeco_output['Name'].str.split(expand=True)
     
@@ -193,6 +196,7 @@ def neeeco(neeeco_input,neeeco_wx_input):
         if len(neeeco_output['Phone'][i])>10:
             neeeco_output['Phone'][i]=neeeco_output['Phone'][i][0:10]
 
+    neeeco_output=neeeco_output.replace('', numpy.nan)
     neeeco_output=neeeco_output.loc[:,['Street__c','Name','FirstName',
                                     'LastName','HEA_Date_And_Time__c','CloseDate','StageName',
                                     'Health_Safety_Barrier_Status__c','Health_Safety_Barrier__c',
