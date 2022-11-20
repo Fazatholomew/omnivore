@@ -1,6 +1,7 @@
 import pytest
 from unittest.mock import patch, mock_open
 from omnivore.app import Blueprint
+from omnivore.utils.constants import HEA_ID
 from .neeeco.neeeco_data import output_data
 from datetime import datetime
 
@@ -31,8 +32,21 @@ def test_creating_records(start_app):
     Test integration with salesforce by creating and querying record.
     Assume empty sandbox
   '''
+  # creating Account
   res = start_app.sf.sf.Account.create({
     'LastName': 'test test'
   })
-  print(res['id'])
-  assert False
+  assert res['success']
+  # creating opp
+  res_opp = start_app.sf.sf.Opportunity.create({
+    'CloseDate': datetime.now().astimezone().strftime('%Y-%m-%dT%H:%M:%S.000%z'),
+    'RecordTypeId': HEA_ID,
+    'AccountId': res['id'],
+    'Name': 'Test opportunity',
+    'StageName': 'Scheduled'
+  })
+  assert res_opp['success']
+  # querying
+  res_query = start_app.sf.sf.query_all(f"SELECT Id, AccountId from Opportunity WHERE RecordTypeId = '{HEA_ID}'")
+  assert res_query['records'][0]['Id'] == res_opp['id']
+  assert res_query['records'][0]['AccountId'] == res['id']
