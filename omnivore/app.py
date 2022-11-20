@@ -70,7 +70,6 @@ class Blueprint:
             if 'Id' in opp:
                 print('there id')
                 if len(opp['Id']) > 3:
-                    print('updating')
                     try:
                         payload = {key: opp[key] for key in OPPORTUNITY_COLUMNS if key in opp}
                         res = self.sf.sf.Opportunity.update(opp['Id'], payload)  # type:ignore
@@ -78,18 +77,15 @@ class Blueprint:
                             self.processed_rows.add(processed_row_id)
                             # Reporting
                     except:
-                        print('error updating')
                         continue
             else:
                 try:
-                    print('creating')
                     payload = {key: opp[key] for key in OPPORTUNITY_COLUMNS if key in opp}
                     res: Create = self.sf.sf.Opportunity.create(payload)  # type:ignore
                     if res['success']:
                         self.processed_rows.add(processed_row_id)
                         # Reporting
                 except:
-                    print('error creating')
                     continue
 
     async def start_upload_to_salesforce(self, data: list[Record_Find_Info], HPC_ID: str) -> None:

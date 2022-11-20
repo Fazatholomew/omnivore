@@ -20,7 +20,10 @@ run:
 	@python -m $(MODULE)
 
 test:
-	@pytest
+	@pytest -m "not staging" --envfile .env.test
+
+staging:
+	@pytest -m staging --envfile .env.staging
 
 lint:
 	@echo "\n${BLUE}Running Pylint against source and test files...${NC}\n"

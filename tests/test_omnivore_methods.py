@@ -26,7 +26,6 @@ def dataframe():
 @pytest.fixture()
 def mocking_open():
   with patch('omnivore.app.open', mock_open()) as MockSf:
-    print('mocking open')
     yield MockSf
 
 @pytest.fixture()
@@ -83,6 +82,16 @@ async def test_upload_to_salesforce(sf):
   data: list[Record_Find_Info] = [Record_Find_Info(acc=Account(PersonEmail='aldoglean@gmail.com'), opps=[Opportunity(ID_from_HPC__c='259292911', tempId='test test', StageName='Completed', Don_t_Omnivore__c=False)])]
   await omni.start_upload_to_salesforce(data, NEEECO_ACCID)
   assert sf.return_value.Opportunity.create.call_args_list[0][0][0]['StageName'] == 'Completed'
+  assert 'test test' in omni.processed_rows
 
-
-
+def test_saving_processed_row():
+  with patch('omnivore.utils.salesforce.Salesforce'):
+    with patch('omnivore.app.open', mock_open()) as mocked_open:
+      with patch('omnivore.app.load') as mock_load:
+        with patch('omnivore.app.dump') as mock_dump:
+          mock_load.return_value = set()
+          omni = Blueprint()
+          omni.processed_rows.add('test test')
+          omni.save_processed_rows()
+          mocked_open.assert_called_with('./processed_row', 'wb')
+          mock_dump.assert_called_with(set(['test test']), mocked_open.return_value)

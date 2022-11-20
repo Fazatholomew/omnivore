@@ -3,6 +3,7 @@ from .constants import PERSON_ACCOUNT_ID, HEA_ID, OPPS_RECORD_TYPE, CFP_ACCOUNT_
 from .aux import extractId, toSalesforceEmail, toSalesforcePhone
 from typing import Dict, cast
 from .types import Account, Opportunity, Record_Find_Info, Query, Create
+from os import getenv
 
 # from pickle import dump
 # from random import sample
@@ -16,7 +17,7 @@ class SalesforceConnection:
     '''
 
     def __init__(self, username: str, consumer_key: str, privatekey_file: str):
-        self.sf = Salesforce(username, consumer_key=consumer_key, privatekey_file=privatekey_file)
+        self.sf = Salesforce(username, consumer_key=consumer_key, privatekey_file=privatekey_file, domain='test' if getenv('ENV') == 'staging' else None)
         # the key is Account ID. Value is a list with opportunity record. details
         self.accId_to_oppIds: Dict[str, list[str]] = {}
         self.email_to_accId: Dict[str, str] = {}  # the key is email. Value is Account ID assoiated with the email
@@ -31,7 +32,6 @@ class SalesforceConnection:
           Create multiple look up table that reflect current SF Database
         '''
         # Querying all Opportunities
-        print(self.sf)
         res: Query = cast(Query, self.sf.query_all(
             f"SELECT {', '.join(OPPORTUNITY_COLUMNS)} FROM Opportunity WHERE RecordTypeID IN ('{OPPS_RECORD_TYPE}')"))
         # Generating dummies
