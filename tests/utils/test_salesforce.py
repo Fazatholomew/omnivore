@@ -78,6 +78,7 @@ def test_find_records_no_Account():
         input_data = Record_Find_Info(acc=Account(LastName='Test', PersonEmail='jimmy@gmial.com'), opps=[Opportunity(
             CloseDate='date', ID_from_HPC__c='testID'), Opportunity(CloseDate='date')])
         output_data = sf.find_records(input_data)
+        input_data['acc'].update({'RecordTypeId': '0123i000000YGesAAG'})
         MockSf.return_value.Account.create.assert_called_with(input_data['acc'])
         assert output_data[0]['AccountId'] == 'new Account Id'
         assert output_data[1]['AccountId'] == 'new Account Id'

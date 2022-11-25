@@ -92,6 +92,7 @@ OPPORTUNITY_COLUMNS = [
     'Staff_acc__c',
     'Don_t_Omnivore__c',
     'Set_By__c',
+    'Cancelation_Reason_s__c',
 ]
 # Account columns to fetch
 ACCOUNT_COLUMNS = [
@@ -111,3 +112,38 @@ ACCOUNT_COLUMNS = [
     'All_In_Energy_ID__c',
     'Field_Staff__c',
 ]
+
+# CFP Town Dict
+
+CFP_TOWS = {
+    "williamstown": "7013i000000i5vMAAQ",
+    "boston": "7013i000000i5vRAAQ",
+    "pittsfield": "7013i000000i5vWAAQ",
+    "springfield": "7013i000000i5vWAAQ",
+    "west springfield": "7013i000000i5vWAAQ",
+    "framingham": "7013i000000i5vbAAA",
+    "natick": "7013i000000i5vbAAA",
+    "gloucester": "7013i000000i5vgAAA",
+    "andover": "7013i000000i5vNAAQ",
+    "north andover": "7013i000000i5vNAAQ",
+    "lawrence": "7013i000000i5vNAAQ",
+    "haverhill": "7013i000000i5vNAAQ",
+    "methuen": "7013i000000i5vNAAQ",
+    "lowell": "7013i000000i5vlAAA",
+    "malden": "7013i000000i5vXAAQ",
+    "melrose": "7013i000000i5vYAAQ",
+    "chelsea": "7013i000000i5vqAAA",
+    "revere": "7013i000000i5vqAAA",
+    "winthrop": "7013i000000i5vqAAA",
+    "norwood": "7013i000000i5vrAAA",
+    "sharon": "7013i000000i5vrAAA",
+    "walpole": "7013i000000i5vrAAA",
+    "salem": "7013i000000i5vOAAQ",
+    "beverly": "7013i000000i5vOAAQ",
+    "shelburne falls": "7013i000000i5vPAAQ",
+    "wareham": "7013i000000i5vsAAA",
+    "westborough": "7013i000000i5vmAAA",
+    "quincy": "7013i000000i5vZAAQ",
+    "randolph": "7013i000000i5vZAAQ",
+    "cambridge": "7013i000000i5vCAAQ"
+}

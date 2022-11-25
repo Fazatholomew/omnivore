@@ -1,10 +1,11 @@
 from re import sub, match
-from .constants import AIE_ID_SEPARATOR, OPPORTUNITY_COLUMNS, ACCOUNT_COLUMNS
+from .constants import AIE_ID_SEPARATOR, OPPORTUNITY_COLUMNS, ACCOUNT_COLUMNS, CFP_TOWS, HEA_ID
 from urllib.parse import unquote_plus
-from typing import Any, TypedDict, cast
+from typing import TypedDict, Dict, Any
 from usaddress import tag
-from pandas import DataFrame
+from pandas import DataFrame, isna
 from .types import Record_Find_Info, Account, Opportunity
+from datetime import datetime
 
 class Address(TypedDict, total=False):
   street: str
@@ -166,6 +167,10 @@ def to_account_and_opportunities(data: DataFrame) -> list[Record_Find_Info]:
       for column in OPPORTUNITY_COLUMNS:
         if hasattr(row, column) and not column in current_opp:
           current_opp[column] = getattr(row, column)
+
+      # Add tempId
+      if hasattr(row, 'tempId'):
+        current_opp['tempId'] = getattr(row, 'tempId')
       
       for column in ACCOUNT_COLUMNS:
         if hasattr(row, column) and not column in current_account:
@@ -243,6 +248,10 @@ def to_account_and_opportunities(data: DataFrame) -> list[Record_Find_Info]:
         if hasattr(row, column) and not column in current_opp:
           current_opp[column] = getattr(row, column)
       
+      # Add tempId
+      if hasattr(row, 'tempId'):
+        current_opp['tempId'] = getattr(row, 'tempId')
+      
       for column in ACCOUNT_COLUMNS:
         if hasattr(row, column) and not column in current_account:
           current_account[column] = getattr(row, column)
@@ -253,6 +262,68 @@ def to_account_and_opportunities(data: DataFrame) -> list[Record_Find_Info]:
     return result
   
   return []
+
+def to_sf_payload(data: Dict[str, Any] | Opportunity | Account, object_type: str = 'Account') -> Dict[str, Any]:
+  '''
+    Transform payload to only include SF Field.
+  '''
+  columns = OPPORTUNITY_COLUMNS if object_type == 'Opportunity' else ACCOUNT_COLUMNS
+  return {key: sanitize_data_for_sf(data[key]) for key in columns if key in data and not isna(data[key])}
+
+def find_cfp_campaign(data: Opportunity) -> str:
+  '''
+    Return respected CFP Campaign
+  '''
+  if not 'City__c' in data:
+    return ''
+  if isna(data['City__c']):
+    return ''
+  return CFP_TOWS[data['City__c'].lower()] if data['City__c'].lower() in CFP_TOWS else ''
+
+def is_float(num: Any) -> bool:
+  '''
+    Helper function to check whether a string is a float
+  '''
+  if isinstance(num, int) or isinstance(num, float):
+    return True
+  if isinstance(num, str):
+    try:
+      float(num)
+      return True
+    except ValueError:
+      return False
+  
+  return False
+  
+
+def sanitize_data_for_sf(data: Any):
+  '''
+    Convert any type of data into salesforce format
+  '''
+  if isinstance(data, list):
+    return ';'.join([f'{el}' for el in data])
+
+  if isna(data):
+    return ''
+  
+  if isinstance(data, datetime):
+    return data.astimezone().strftime('%Y-%m-%dT%H:%M:%S.000%z')
+  
+  data = f"{data}"
+  
+  if data.isdigit():
+    return int(data)
+  
+  if is_float(data):
+    return float(data)
+  
+  if data.lower() == 'true':
+    return True
+  
+  if data.lower() == 'false':
+    return False
+  
+  return data
 
 
   # data_ids = {}

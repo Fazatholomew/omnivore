@@ -6,7 +6,7 @@ from .neeeco.neeeco_data import output_data
 from datetime import datetime
 
 @pytest.fixture
-def start_app():
+def init_app():
   '''
     Initialize app as if the script is executed. Still use mock for reading and
     writing
@@ -27,18 +27,18 @@ def start_app():
           omni.sf.sf.Account.delete(acc['Id']) #type:ignore
 
 @pytest.mark.staging
-def test_creating_records(start_app):
+def test_connecting_to_salesforce(init_app):
   '''
     Test integration with salesforce by creating and querying record.
     Assume empty sandbox
   '''
   # creating Account
-  res = start_app.sf.sf.Account.create({
+  res = init_app.sf.sf.Account.create({
     'LastName': 'test test'
   })
   assert res['success']
   # creating opp
-  res_opp = start_app.sf.sf.Opportunity.create({
+  res_opp = init_app.sf.sf.Opportunity.create({
     'CloseDate': datetime.now().astimezone().strftime('%Y-%m-%dT%H:%M:%S.000%z'),
     'RecordTypeId': HEA_ID,
     'AccountId': res['id'],
@@ -47,6 +47,23 @@ def test_creating_records(start_app):
   })
   assert res_opp['success']
   # querying
-  res_query = start_app.sf.sf.query_all(f"SELECT Id, AccountId from Opportunity WHERE RecordTypeId = '{HEA_ID}'")
+  res_query = init_app.sf.sf.query_all(f"SELECT Id, AccountId from Opportunity WHERE RecordTypeId = '{HEA_ID}'")
   assert res_query['records'][0]['Id'] == res_opp['id']
   assert res_query['records'][0]['AccountId'] == res['id']
+
+@pytest.mark.staging
+def test_app_using_neeeco(init_app):
+  '''
+    Testing whole app functionility including:
+    - Connecting to SF and query current Database
+    - Fetch Data from GAS
+    - Process data for specific HPC (Neeeco)
+    - Upload the data to SF
+  '''
+  init_app.run_neeeco()
+  unique_ids = output_data['ID_from_HPC__c'].unique().tolist()
+  joined = "', '".join(unique_ids)
+  res = init_app.sf.sf.query_all(f"SELECT ID_from_HPC__c from Opportunity WHERE ID_from_HPC__c IN ('{joined}')")
+  assert len(res['records']) == len(unique_ids)
+  for opp in res['records']:
+    assert opp['ID_from_HPC__c'] in unique_ids

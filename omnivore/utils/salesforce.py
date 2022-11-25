@@ -1,14 +1,13 @@
 from simple_salesforce import Salesforce
 from .constants import PERSON_ACCOUNT_ID, HEA_ID, OPPS_RECORD_TYPE, CFP_ACCOUNT_ID, OPPORTUNITY_COLUMNS, ACCOUNT_COLUMNS
-from .aux import extractId, toSalesforceEmail, toSalesforcePhone
+from .aux import extractId, toSalesforceEmail, toSalesforcePhone, to_sf_payload
 from typing import Dict, cast
 from .types import Account, Opportunity, Record_Find_Info, Query, Create
 from os import getenv
+from pandas import isna
 
 # from pickle import dump
 # from random import sample
-
-
 
 
 class SalesforceConnection:
@@ -17,7 +16,8 @@ class SalesforceConnection:
     '''
 
     def __init__(self, username: str, consumer_key: str, privatekey_file: str):
-        self.sf = Salesforce(username, consumer_key=consumer_key, privatekey_file=privatekey_file, domain='test' if getenv('ENV') == 'staging' else None)
+        self.sf = Salesforce(username, consumer_key=consumer_key, privatekey_file=privatekey_file,
+                             domain='test' if getenv('ENV') == 'staging' else None)
         # the key is Account ID. Value is a list with opportunity record. details
         self.accId_to_oppIds: Dict[str, list[str]] = {}
         self.email_to_accId: Dict[str, str] = {}  # the key is email. Value is Account ID assoiated with the email
@@ -88,13 +88,13 @@ class SalesforceConnection:
             # Search matched using AIE ID and ID from HPC
             # If found, store new value in found_opps and continue the loop
             if 'All_In_Energy_ID__c' in opp:
-              aie_ids = extractId(opp['All_In_Energy_ID__c'])
-              if len(aie_ids) > 0:
-                aie_id = aie_ids[0]
-                if aie_id in self.ids_to_oppId:
-                  self.oppId_to_opp[self.ids_to_oppId[aie_id]].update(opp)
-                  found_opps.append(self.oppId_to_opp[self.ids_to_oppId[aie_id]])
-                  continue
+                aie_ids = extractId(opp['All_In_Energy_ID__c'])
+                if len(aie_ids) > 0:
+                    aie_id = aie_ids[0]
+                    if aie_id in self.ids_to_oppId:
+                        self.oppId_to_opp[self.ids_to_oppId[aie_id]].update(opp)
+                        found_opps.append(self.oppId_to_opp[self.ids_to_oppId[aie_id]])
+                        continue
             if 'ID_from_HPC__c' in opp and opp['ID_from_HPC__c'] in self.ids_to_oppId:
                 self.oppId_to_opp[self.ids_to_oppId[opp['ID_from_HPC__c']]].update(opp)
                 found_opps.append(self.oppId_to_opp[self.ids_to_oppId[opp['ID_from_HPC__c']]])
@@ -119,49 +119,52 @@ class SalesforceConnection:
             # No Account ID yet, search using email and phone
             if 'PersonEmail' in input_records['acc']:
                 # Search using Email
-                if len(input_records['acc']['PersonEmail']) > 0:
-                    if input_records['acc']['PersonEmail'] in self.email_to_accId:
-                        # Check whether Opportunity already in SF
-                        account_id: str = self.email_to_accId[input_records['acc']['PersonEmail']]
-                        empty_oppIds: list[str] = [oppId for oppId in self.accId_to_oppIds[account_id]
-                                                   if not self.oppId_to_opp[oppId]['ID_from_HPC__c']]
-                        if len(empty_oppIds) > 0:
-                            # Assign one of the opportunity into current row
-                            current_oppId = empty_oppIds[0]
-                            self.oppId_to_opp[current_oppId].update(opp)
-                            found_opps.append(self.oppId_to_opp[current_oppId])
+                if not isna(input_records['acc']['PersonEmail']):
+                    if len(input_records['acc']['PersonEmail']) > 0:  # type:ignore
+                        if input_records['acc']['PersonEmail'] in self.email_to_accId:
+                            # Check whether Opportunity already in SF
+                            account_id: str = self.email_to_accId[input_records['acc']['PersonEmail']]
+                            empty_oppIds: list[str] = [oppId for oppId in self.accId_to_oppIds[account_id]
+                                                       if not self.oppId_to_opp[oppId]['ID_from_HPC__c']]
+                            if len(empty_oppIds) > 0:
+                                # Assign one of the opportunity into current row
+                                current_oppId = empty_oppIds[0]
+                                self.oppId_to_opp[current_oppId].update(opp)
+                                found_opps.append(self.oppId_to_opp[current_oppId])
+                                continue
+                            # This is new Opp, create a new one by flagging empty ID but with Account ID
+                            opp['AccountId'] = account_id
+                            found_opps.append(opp)
                             continue
-                        # This is new Opp, create a new one by flagging empty ID but with Account ID
-                        opp['AccountId'] = account_id
-                        found_opps.append(opp)
-                        continue
 
             if 'Phone' in input_records['acc']:
                 # Search using Phone
-                if len(input_records['acc']['Phone']) > 0:
-                    if input_records['acc']['Phone'] in self.phone_to_accId:
-                        # Check whether Opportunity already in SF
-                        account_id: str = self.phone_to_accId[input_records['acc']['Phone']]
-                        empty_oppIds: list[str] = [oppId for oppId in self.accId_to_oppIds[account_id]
-                                                   if not self.oppId_to_opp[oppId]['ID_from_HPC__c']]
-                        if len(empty_oppIds) > 0:
-                            # Assign one of the opportunity into current row
-                            current_oppId = empty_oppIds[0]
-                            self.oppId_to_opp[current_oppId].update(opp)
-                            found_opps.append(self.oppId_to_opp[current_oppId])
+                if not isna(input_records['acc']['Phone']):
+                    if len(input_records['acc']['Phone']) > 0:
+                        if input_records['acc']['Phone'] in self.phone_to_accId:
+                            # Check whether Opportunity already in SF
+                            account_id: str = self.phone_to_accId[input_records['acc']['Phone']]
+                            empty_oppIds: list[str] = [oppId for oppId in self.accId_to_oppIds[account_id]
+                                                       if not self.oppId_to_opp[oppId]['ID_from_HPC__c']]
+                            if len(empty_oppIds) > 0:
+                                # Assign one of the opportunity into current row
+                                current_oppId = empty_oppIds[0]
+                                self.oppId_to_opp[current_oppId].update(opp)
+                                found_opps.append(self.oppId_to_opp[current_oppId])
+                                continue
+                            # This is new Opp, create a new one by flagging empty ID but with Account ID
+                            opp['AccountId'] = account_id
+                            found_opps.append(opp)
                             continue
-                        # This is new Opp, create a new one by flagging empty ID but with Account ID
-                        opp['AccountId'] = account_id
-                        found_opps.append(opp)
-                        continue
             # Account Not found break
             break
         if len(found_opps) == 0:
-          # Account not found create a new account
-          payload = {key: input_records['acc'][key] for key in ACCOUNT_COLUMNS if key in input_records['acc']}
-          res: Create = cast(Create, self.sf.Account.create(payload)) # type:ignore
-          if res['success']:
-            for opp in input_records['opps']:
-              opp['AccountId'] = res['id']
-              found_opps.append(opp)
+            # Account not found create a new account
+            payload = to_sf_payload(input_records['acc'])
+            payload['RecordTypeId'] = PERSON_ACCOUNT_ID
+            res: Create = cast(Create, self.sf.Account.create(payload))  # type:ignore
+            if res['success']:
+                for opp in input_records['opps']:
+                    opp['AccountId'] = res['id']
+                    found_opps.append(opp)
         return found_opps

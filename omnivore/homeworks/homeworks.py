@@ -117,11 +117,11 @@ def homeworks(homeworks_input: pd.DataFrame):
 
     homeworks_output['Prefered_Lan__c']=homeworks_output['Prefered_Lan__c'].replace('-',np.nan)
 
-    homeworks_output=homeworks_output.loc[:,['FirstName', 'LastName', 'Street__c', 'City__c', 'Name',
+    homeworks_output=homeworks_output.loc[:,[col for col in ['FirstName', 'LastName', 'Street__c', 'City__c', 'Name',
           'HEA_Date_And_Time__c', 'Weatherization_Date_Time__c', 'CloseDate',
           'StageName', 'Weatherization_Status__c', 'ID_from_HPC__c',
           'HPC__c', 'Prefered_Lan__c',
-          'Owner_Renter__c', 'Phone', 'PersonEmail']]
+          'Owner_Renter__c', 'Phone', 'PersonEmail', 'tempId'] if col in homeworks_output.columns]]
 
     return homeworks_output
 

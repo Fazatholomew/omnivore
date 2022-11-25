@@ -28,6 +28,8 @@ class Opportunity(TypedDict, total=False):
     Set_By__c: str
     tempId: str
     HPC__c: str
+    CampaignId: str
+    Cancelation_Reason_s__c: str
 
 class Account(TypedDict, total=False):
     Id: str

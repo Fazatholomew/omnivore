@@ -1,6 +1,9 @@
-from omnivore.utils.aux import toSalesforcePhone, toSalesforceEmail, extractId, extract_address, Address, to_account_and_opportunities
+from omnivore.utils.aux import toSalesforcePhone, toSalesforceEmail, extractId, extract_address, Address, to_account_and_opportunities, to_sf_payload, find_cfp_campaign, is_float, sanitize_data_for_sf
 from pandas import DataFrame
 from numpy import NaN
+from omnivore.utils.constants import HEA_ID
+from datetime import datetime
+
 
 def assert_partial_dict(dict_1, dict_2):
     for key in dict_2:
@@ -150,3 +153,45 @@ def test_to_account_and_opp():
     assert result[1]['acc']['PersonEmail'] == 'test@gmail.com'
     assert len(result[1]['opps']) == 2
     assert result[0]['opps'][0]['ID_from_HPC__c'] == 'asdffffff'
+
+
+def test_to_sf_payload():
+    # Account
+    # Remove all data not a SF Field
+    assert to_sf_payload({'Name': 'test', 'asdfasdfasdf': '123123123', 'FirstName': 'HEHEH',
+                         'LastName': 'Test'}) == {'FirstName': 'HEHEH', 'LastName': 'Test'}
+    # Remove NaN
+    assert to_sf_payload({'Name': 'test', 'asdfasdfasdf': '123123123',
+                         'FirstName': NaN, 'LastName': 'Test'}) == {'LastName': 'Test'}
+    # Doesn't touch number
+    assert to_sf_payload({'Phone': 12345678}) == {'Phone': 12345678}
+
+    # Opportunity
+    assert to_sf_payload({'Name': 'test', 'asdfasdfasdf': '123123123', 'FirstName': 'HEHEH',
+                         'LastName': 'Test'}, 'Opportunity') == {'Name': 'test'}
+
+
+def test_find_cfp_campaign():
+  # No city
+  assert find_cfp_campaign({'City__c': ''}) == '' 
+  assert find_cfp_campaign({'City__c': NaN}) == '' #type:ignore
+  # find lower city
+  assert find_cfp_campaign({'City__c': 'beVErLy'}) == "7013i000000i5vOAAQ"
+
+def test_is_float():
+  assert is_float('1213.6')
+  assert not is_float('234324.6 sdfsdf')
+  assert not is_float('asdfasdf')
+  assert not is_float([])
+  assert is_float(1.23123)
+
+def test_sanitize_data_for_sf():
+  assert sanitize_data_for_sf('true')
+  assert not sanitize_data_for_sf('FalSE')
+  assert sanitize_data_for_sf('123') == 123
+  assert sanitize_data_for_sf(NaN) == ''
+  assert sanitize_data_for_sf([123, '123']) == '123;123'
+  assert sanitize_data_for_sf('asdfasdf') == 'asdfasdf'
+  now = datetime.now()
+  assert sanitize_data_for_sf(now) == now.astimezone().strftime('%Y-%m-%dT%H:%M:%S.000%z')
+   
