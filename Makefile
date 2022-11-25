@@ -33,6 +33,9 @@ lint:
 	@echo "\n${BLUE}Running Bandit against source files...${NC}\n"
 	@bandit -r --ini setup.cfg
 
+build:
+	@pex -r requirements.txt -m $(MODULE) -o "./dist/$(MODULE).pex"
+
 # Example: make build-prod VERSION=1.0.0
 build-prod:
 	@echo "\n${BLUE}Building Production image with labels:\n"

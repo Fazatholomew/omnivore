@@ -14,8 +14,11 @@ from .utils.constants import NEEECO_ACCID, OPPORTUNITY_COLUMNS, HEA_ID, CFP_OPP_
 from asyncio import run, gather, get_event_loop
 
 # Load environment variable from .env
-if getenv('ENV') != 'test':
+if getenv('ENV') == 'production':
     load_dotenv('.env.production')
+
+if not getenv('ENV'):
+  load_dotenv()
 
 
 class Blueprint:

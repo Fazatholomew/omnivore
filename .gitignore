@@ -114,3 +114,5 @@ config.env
 
 # Vscode
 .vscode
+
+dist/
