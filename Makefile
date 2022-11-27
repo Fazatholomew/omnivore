@@ -34,7 +34,7 @@ lint:
 	@bandit -r --ini setup.cfg
 
 build:
-	@pex -r requirements.txt -m $(MODULE) -o "./dist/$(MODULE).pex"
+	@pex . -v -m $(MODULE) -o "./dist/$(MODULE).pex" --disable-cache
 
 # Example: make build-prod VERSION=1.0.0
 build-prod:

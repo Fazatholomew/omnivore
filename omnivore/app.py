@@ -1,25 +1,15 @@
 from os import getenv
 from pickle import load, dump
 from typing import cast
-from pandas import DataFrame, read_csv, isna
-from dotenv import load_dotenv
+from pandas import DataFrame, read_csv
+from asyncio import run, gather, get_event_loop
 
 from .homeworks.homeworks import homeworks
 from .neeeco.neeeco import neeeco
 from .utils.salesforce import SalesforceConnection, Create
 from .utils.aux import to_account_and_opportunities, to_sf_payload, find_cfp_campaign
 from .utils.types import Record_Find_Info
-from .utils.constants import NEEECO_ACCID, OPPORTUNITY_COLUMNS, HEA_ID, CFP_OPP_ID
-
-from asyncio import run, gather, get_event_loop
-
-# Load environment variable from .env
-if getenv('ENV') == 'production':
-    load_dotenv('.env.production')
-
-if not getenv('ENV'):
-  load_dotenv()
-
+from .utils.constants import NEEECO_ACCID, HEA_ID, CFP_OPP_ID
 
 class Blueprint:
     def __init__(self) -> None:
@@ -60,8 +50,8 @@ class Blueprint:
           Find and match opportunity then upload them
         '''
         if len(data['opps']) == 0:
-          # No need to process if empty opp
-          return
+            # No need to process if empty opp
+            return
         found_records = self.sf.find_records(data)
         for opp in found_records:
             # Remove and keep tempId for processed row
@@ -84,8 +74,8 @@ class Blueprint:
                             # Reporting
                     except Exception as err:
                         if (getenv('ENV') == 'staging'):
-                          print(opp)
-                          raise err
+                            print(opp)
+                            raise err
                         continue
             else:
                 try:
@@ -96,8 +86,8 @@ class Blueprint:
                         # Reporting
                 except Exception as err:
                     if (getenv('ENV') == 'staging'):
-                      print(opp)
-                      raise err
+                        print(opp)
+                        raise err
                     continue
 
     async def start_upload_to_salesforce(self, data: list[Record_Find_Info], HPC_ID: str) -> None:
@@ -111,13 +101,15 @@ class Blueprint:
         '''
           Run neeeco process
         '''
+        print('Running Neeeco')
+        print(getenv('NEEECO_DATA_URL'))
         raw_data = read_csv(cast(str, getenv('NEEECO_DATA_URL')), dtype='object')
         wx_data = read_csv(cast(str, getenv('NEEECO_WX_DATA_URL')), dtype='object')
         processed_row_removed = self.remove_already_processed_row(raw_data)
         processed_row = neeeco(processed_row_removed, wx_data)
         grouped_opps = to_account_and_opportunities(processed_row)
         run(self.start_upload_to_salesforce(grouped_opps, NEEECO_ACCID))
-    
+
     def run(self) -> None:
-      self.run_neeeco()
-      self.save_processed_rows()
+        self.run_neeeco()
+        self.save_processed_rows()
