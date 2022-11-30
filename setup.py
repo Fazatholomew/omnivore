@@ -8,7 +8,6 @@ setup(
         'usaddress',
         'pandas',
         'numpy',
-        'pex',
         'simple-salesforce',
         'python-dotenv',
     ],

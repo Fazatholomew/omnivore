@@ -9,7 +9,8 @@ from .neeeco.neeeco import neeeco
 from .utils.salesforce import SalesforceConnection, Create
 from .utils.aux import to_account_and_opportunities, to_sf_payload, find_cfp_campaign
 from .utils.types import Record_Find_Info
-from .utils.constants import NEEECO_ACCID, HEA_ID, CFP_OPP_ID
+from .utils.constants import NEEECO_ACCID, HEA_ID, CFP_OPP_ID, HOMEWORKS_ACCID
+
 
 class Blueprint:
     def __init__(self) -> None:
@@ -101,8 +102,6 @@ class Blueprint:
         '''
           Run neeeco process
         '''
-        print('Running Neeeco')
-        print(getenv('NEEECO_DATA_URL'))
         raw_data = read_csv(cast(str, getenv('NEEECO_DATA_URL')), dtype='object')
         wx_data = read_csv(cast(str, getenv('NEEECO_WX_DATA_URL')), dtype='object')
         processed_row_removed = self.remove_already_processed_row(raw_data)
@@ -110,6 +109,19 @@ class Blueprint:
         grouped_opps = to_account_and_opportunities(processed_row)
         run(self.start_upload_to_salesforce(grouped_opps, NEEECO_ACCID))
 
+    def run_homeworks(self) -> None:
+        '''
+          Run Homeworks process
+        '''
+        raw_data = read_csv(cast(str, getenv('HOMEWORKS_DATA_URL')), dtype='object')
+        wx_data = read_csv(cast(str, getenv('HOMEWORKS_COMPLETED_DATA_URL')), dtype='object')
+        processed_row_removed = self.remove_already_processed_row(raw_data)
+        processed_row = homeworks(processed_row_removed)
+        grouped_opps = to_account_and_opportunities(processed_row)
+        run(self.start_upload_to_salesforce(grouped_opps, HOMEWORKS_ACCID))
+
     def run(self) -> None:
         self.run_neeeco()
+        self.save_processed_rows()
+        self.run_homeworks()
         self.save_processed_rows()
