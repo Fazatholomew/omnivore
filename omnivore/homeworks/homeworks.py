@@ -1,23 +1,73 @@
 import re
 import pandas as pd
 import numpy as np
-
-def homeworks(homeworks_input: pd.DataFrame):
+pd.set_option('display.max_columns', 1000); 
+def homeworks(homeworks_input):
     homeworks_output = homeworks_input
     
     stageMapper = {
+      'Approval - Customer Unresponsive': 'Canceled',
+      'Approval / Task Not Completed in Time': 'Canceled',
+      'Cancel At Door': 'Canceled',
+      'Closed Lost': 'Signed Contracts',
       'Closed Won': 'Signed Contracts',
       'Closed Won - Pending QC': 'Signed Contracts',
+      'Covid Related': 'Canceled',
+      'Customer Cancel Request': 'Canceled',
+      'Customer Cancellation Request': 'Canceled',
+      'Customer No-Show': 'Canceled',
+      'Customer Reschedule Request': 'Canceled',
+      'HEA Not Approved': 'Canceled',
+      'HES Cancel': 'Canceled',
       'High Probability': 'Recommended - Unsigned',
       'High Probability - Pending QC': 'Recommended - Unsigned',
-      'ICW Fixed- Pending Review': 'Signed Contracts',
-      'Incorrectly Closed Won': 'Recommended - Unsigned',
+      'HWE Cancel': 'Canceled',
+      'ICW Fixed- Pending Review': 'Recommended - Unsigned',
+      'Incorrectly Closed Won': 'No Opportunity',
       'Low Probability': 'Recommended - Unsigned',
-      'Not in EM Home': 'Signed Contracts',
+      'Not approved - Mileage': 'Canceled',
+      'Not in EM Home': 'No Opportunity',
+      'Office Cancel': 'Canceled',
+      'Overbooking Cancel': 'Canceled',
+      'Overbooking Reschedule': 'Canceled',
       'PreWeatherization Barrier': 'Health & Safety Barrier',
       'PreWeatherization Barrier - Pending QC': 'Health & Safety Barrier',
       'Qualified Out': 'No Opportunity',
-      'Closed Lost': 'Signed Contracts'
+      'Scheduling Error': 'Canceled',
+      'Unqualified - 5+ Units': 'Canceled',
+      'Unqualified - Had Previous Assessment': 'Canceled',
+      'Unqualified - Low Income': 'Canceled',
+      'Unqualified - Other': 'Canceled',
+      'Unqualified (5+ Units)': 'Canceled',
+      'Visit Not Confirmed': 'Canceled',
+      '': 'Scheduled',
+      np.nan:'Scheduled'
+    }
+
+    # Cancel Reason
+    cancelMapper = {
+        'Approval - Customer Unresponsive' : 'Unresponsive',
+        'Scheduling Error' : 'By Office',
+        'Customer Reschedule Request' : 'Reschedule Request',
+        'Approval / Task Not Completed in Time' : 'By Office',
+        'Cancel At Door' : 'By Customer',
+        'Overbooking Cancel' : 'By Office',
+        'Customer No-Show' : 'Customer No Show',
+        'Office Cancel' : 'By Office',
+        'Customer Cancellation Request' : 'Reschedule Request',
+        'HEA not Approved' : 'By Office',
+        'Impromptu' : 'By Customer',
+        'HWE Cancel' : 'By Office',
+        'Covid Related' : 'Reschedule Request',
+        'Overbooking Reschedule' : 'By Office',
+        'Unqualified - Low Income' : 'Low Income',
+        'Other' : 'No reason',
+        'Unqualified - Had Previous Assessment' : 'Had HEA within 2 years',
+        'HES cancel' : 'By Office',
+        'Unqualified - Other' : 'No reason',
+        'Unqualified (5+ Units)' : '5+ units',
+        'Unqualified - 5+ Units' : '5+ units',
+        'Visit Not Confirmed' : 'By Office'
     }
 
     # // Weatherization Status
@@ -25,15 +75,18 @@ def homeworks(homeworks_input: pd.DataFrame):
       '1st Scheduling Attempt': 'Not Yet Scheduled',
       '2nd Scheduling Attempt': 'Not Yet Scheduled',
       '3rd Scheduling Attempt': 'Not Yet Scheduled',
+      '4th Scheduling Attempt': 'Not Yet Scheduled',
       '5th Scheduling Attempt': 'Not Yet Scheduled',
       "6th Attempt - Next Attempt is Final": 'Not Yet Scheduled',
-      "Cancelled [Declined Work When We Attempted To Schedule]": "Canceled",
+      "Cancelled [Declined Work When We Attempted To Schedule]": "Not Yet Scheduled",
+      "Confirm Schedule Date 1st Attempt Completed": "Scheduled",
       "Confirm Schedule Date 2nd Attempt Completed": "Scheduled",
       "Confirm Schedule Date 3rd Attempt Completed": "Scheduled",
-      "Dead [Couldn't Get In Contact With The Customer]": "Canceled",
+      "Dead [Couldn't Get In Contact With The Customer]": "Not Yet Scheduled",
       "Installed and Invoiced": "Completed",
       "Installed- NOT Invoiced": "Completed",
       "Needs to be rescheduled - Permit Denied": "Not Yet Scheduled",
+      'Needs to be rescheduled- HWE Canceled': "Not Yet Scheduled",
       "Needs to be Rescheduled- Unable to Confirm Scheduled Date": "Not Yet Scheduled",
       "Not Ready for Scheduling": "Not Yet Scheduled",
       "Ready for Scheduling": "Not Yet Scheduled",
@@ -45,7 +98,10 @@ def homeworks(homeworks_input: pd.DataFrame):
       "Wx Scheduling Case": "Not Yet Scheduled",
       "Installed - Docs Uploaded": "Completed",
       "Needs to be rescheduled - customer request/customer no show": 'Not Yet Scheduled',
+      '2nd Scheduling Attempt': 'Not Yet Scheduled',
+      '3rd Scheduling Attempt': 'Not Yet Scheduled',
       '4th Scheduling Attempt': 'Not Yet Scheduled',
+      'Sent to Installer': "Scheduled",
       "Needs to be rescheduled - Robocall": 'Not Yet Scheduled',
       "Partial Complete": "Completed"
     }
@@ -58,24 +114,26 @@ def homeworks(homeworks_input: pd.DataFrame):
       'Tenant': 'Renter'
     }
 
-    homeworks_output=homeworks_output.rename(columns={"Customer First Name": "FirstName",
-                                                      "Customer Last Name":"LastName",
-                                                      "Day Phone":"Phone",
-                                                      "Email":"PersonEmail",
-                                                      "HEA Visit Result Detail":"StageName",
-                                                      "Landlord, Owner, Tenant":"Owner_Renter__c",
-                                                      "Operations: Scheduled Insulation Start Date (DT)":
-                                                      "Weatherization_Date_Time__c",
+    homeworks_output=homeworks_output.rename(columns={"Account: Primary Contact: First Name": "FirstName",
+                                                      "Account: Primary Contact: Last Name":"LastName",
+                                                      "Phone Number":"Phone",
+                                                      "Customer Email":"PersonEmail",
+                                                      "Account: Deal: HEA Visit Result Detail":"StageName",
+                                                      "Operations: Account: Landlord, Owner, Tenant":"Owner_Renter__c",
+                                                      "Operations: Completion/Walk Date": "Weatherization_Date_Time__c",
                                                       "Operations: Unique ID":"ID_from_HPC__c",
-                                                      "Preferred Language":"Prefered_Lan__c",
-                                                      "Time Stamp HEA Performed":"HEA_Date_And_Time__c",
-                                                      "Time Stamp HEA Performed":"CloseDate",
-                                                      "Wx Job Status":"Weatherization_Status__c",
-                                                      "Billing City": "City__c",
-                                                      "Account Name": "Name"})
+                                                      "Operations: Job Status":"Weatherization_Status__c",
+                                                      "Operations: Billing Town": "City__c",
+                                                      "Account: Account Name":"Street__c",
+                                                      "Operations: Last Scheduled HEA Date": "HEA_Date_And_Time__c",
+                                                      "Operations: Last Scheduled HEA Date": "CloseDate",
+                                                      "Reason for Canceled": "Cancelation_Reason_s__c"})
 
     homeworks_output['StageName'] = homeworks_output[
         'StageName'].map(stageMapper)
+
+    homeworks_output['Cancelation_Reason_s__c'] = homeworks_output[
+        'Cancelation_Reason_s__c'].map(cancelMapper)
 
     homeworks_output['Weatherization_Status__c'] = homeworks_output[
         'Weatherization_Status__c'].map(wxMapper)
@@ -92,10 +150,10 @@ def homeworks(homeworks_input: pd.DataFrame):
     homeworks_output['Weatherization_Date_Time__c'] = homeworks_output['Weatherization_Date_Time__c'].dt.strftime('%Y-%m-%d'+'T'+'%H:%M:%S'+'.000-07:00')
 
     homeworks_output["Street__c"] = homeworks_output[
-        "Name"].str.extract(r'(\d+ [a-zA-Z]\w{2,} \w{1,})')
+        "Street__c"].str.extract(r'(\d+ [a-zA-Z]\w{2,} \w{1,})')
 
-    homeworks_output["Name"] = homeworks_output[
-        "Name"].str.extract(r'(^[a-zA-Z]\w{2,} \w{1,})')
+    # homeworks_output["Name"] = homeworks_output[
+    #     "Name"].str.extract(r'(^[a-zA-Z]\w{2,} \w{1,})')
 
     homeworks_output['HPC__c'] = '0013i00000AtGGeAAN'
 
@@ -103,8 +161,6 @@ def homeworks(homeworks_input: pd.DataFrame):
         homeworks_output['Phone'][i] = re.sub(r'[^0-9]', '', str(homeworks_output['Phone'][i]))
         if len(homeworks_output['Phone'][i])<10:
           homeworks_output['Phone'][i]=''
-        if len(homeworks_output['Phone'][i])>10:
-            homeworks_output['Phone'][i]=homeworks_output['Phone'][i][0:10]
 
     for i in homeworks_output['PersonEmail'].index:
         homeworks_output['PersonEmail'][i] = homeworks_output['PersonEmail'][i].lower()
@@ -115,14 +171,14 @@ def homeworks(homeworks_input: pd.DataFrame):
 
     homeworks_output['PersonEmail']=homeworks_output['PersonEmail'].replace('na@hwe.com',np.nan)
 
-    homeworks_output['Prefered_Lan__c']=homeworks_output['Prefered_Lan__c'].replace('-',np.nan)
-
-    homeworks_output=homeworks_output.loc[:,[col for col in ['FirstName', 'LastName', 'Street__c', 'City__c', 'Name',
-          'HEA_Date_And_Time__c', 'Weatherization_Date_Time__c', 'CloseDate',
-          'StageName', 'Weatherization_Status__c', 'ID_from_HPC__c',
-          'HPC__c', 'Prefered_Lan__c',
-          'Owner_Renter__c', 'Phone', 'PersonEmail', 'tempId'] if col in homeworks_output.columns]]
+    homeworks_output=homeworks_output.loc[:,['FirstName', 'LastName', 'Street__c', 'City__c',
+          'Weatherization_Date_Time__c', 'Weatherization_Status__c', 'Cancelation_Reason_s__c',
+          'StageName', 'ID_from_HPC__c', 'HEA_Date_And_Time__c', 'CloseDate',
+          'Owner_Renter__c', 'Phone', 'PersonEmail']]
 
     return homeworks_output
 
-    # print(homeworks_output[homeworks_output["ID_from_HPC__c"].isin(['a0o4X00000Kp5pHQAR','a0o4X00000L7XIJQA3','a0o4X00000JxemSQAR'])])
+if __name__ == '__main__':
+  output=pd.read_csv('/content/CFP Communities Report - Output.csv')
+  homeworks_input=pd.read_csv('/content/CFP Communities Report - Homeworks Input.csv', encoding = "ISO-8859-1")
+  homeworks_output = homeworks(homeworks_input)
