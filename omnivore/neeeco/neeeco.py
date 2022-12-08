@@ -1,7 +1,8 @@
 import numpy
 import pandas as pd
 import re
-pd.set_option('display.max_columns', 1000); 
+pd.set_option('display.max_columns', 1000);
+# pd.options.mode.chained_assignment = None
 def neeeco(neeeco_input,neeeco_wx_input):
     neeeco_output = pd.merge(left=neeeco_input, right=neeeco_wx_input, 
                             how='left', left_on='Related to', right_on='HEA - Last, First, Address')
@@ -71,15 +72,7 @@ def neeeco(neeeco_input,neeeco_wx_input):
     neeeco_output = neeeco_output[neeeco_output['ID_from_HPC__c'].notnull()]
     neeeco_output["Street__c"] = neeeco_output["Full Address including zip"]
 
-    # neeeco_output["Street__c"] = neeeco_output[
-    #     "Full Address including zip"].str.extract(r'([a-zA-Z]\w{2,} \w{1,})')
-    # neeeco_output["Unit__c"] = neeeco_output[
-    #     "Full Address including zip"].str.extract(r'^(\d{1,})')
-    # neeeco_output["City__c"] = neeeco_output[
-    #     "Full Address including zip"].str.extract(r'((?<=:\s|,\s)\b\w+\s*\w{2}\b)')
-    # neeeco_output["State__c"] = neeeco_output["Full Address including zip"].str.extract(r"([A-Z]{2})")
-    # neeeco_output["Zipcode__c"] = neeeco_output["Full Address including zip"].str.extract(r"([0-9]{5,6}$)")
-    neeeco_output['Name'] = neeeco_output['Name'].str.replace('( \d\w{1}$| \d)', '')
+    neeeco_output['Name'] = neeeco_output['Name'].str.replace('( \d\w{1}$| \d)', '', regex=True)
 
     neeeco_output['Date of Audit'] = pd.to_datetime(neeeco_output['Date of Audit'])
     neeeco_output['Date of Audit'] = neeeco_output['Date of Audit'].dt.strftime('%Y-%m-%d')
@@ -185,7 +178,7 @@ def neeeco(neeeco_input,neeeco_wx_input):
     neeeco_output['HPC__c'] = '0013i00000AtGAvAAN'
     neeeco_output['FirstName'] = neeeco_output['Name'].str.extract(r'(.*?(?=[\wäöüß]+$))')
     neeeco_output['LastName'] = neeeco_output['Name'].str.extract(r'( \w+)$')
-    neeeco_output['FirstName'] = neeeco_output['FirstName'].str.replace(r'( )$', '')
+    neeeco_output['FirstName'] = neeeco_output['FirstName'].str.replace(r'( )$', '', regex=True)
     neeeco_output['LastName'] = neeeco_output['LastName'].str.replace(' ', '')
     neeeco_output['Name'].str.split(expand=True)
     
