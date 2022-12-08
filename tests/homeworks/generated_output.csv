@@ -1,0 +1,21 @@
+,FirstName,LastName,Street__c,City__c,Weatherization_Date_Time__c,Weatherization_Status__c,Cancelation_Reason_s__c,StageName,ID_from_HPC__c,HEA_Date_And_Time__c,CloseDate,Owner_Renter__c,Phone,PersonEmail
+18,Ernest,Sole,10 Blaine Avenue,Beverly,,Not Yet Scheduled,,Scheduled,a0o4X00000LToABQA1,2022-12-05T11:00:00.000-07:00,2022-12-05T11:00:00.000-07:00,Owner,9789693064,hellhay676@yahoo.com
+31,Holly,Sullivan,10 Adeline Road,Beverly,,Scheduled,By Office,Signed Contracts,a0o4X00000IoRrMQAV,2022-11-29T11:00:00.000-07:00,2022-11-29T11:00:00.000-07:00,Owner,7815769992,sullivanhg@gmail.com
+37,Janice,Mallard,12 Wilson Street,Beverly,2022-11-17T00:00:00.000-07:00,Completed,Reschedule Request,Recommended - Unsigned,a0o4X00000LQ0qYQAT,2022-10-12T11:00:00.000-07:00,2022-10-12T11:00:00.000-07:00,Owner,9783379566,mallardjan@comcast.net
+43,Bryan,Haley,44 Hathaway Avenue,Beverly,,Not Yet Scheduled,Reschedule Request,Recommended - Unsigned,a0o4X00000LC4CsQAL,2022-10-17T08:00:00.000-07:00,2022-10-17T08:00:00.000-07:00,,9783174033,bhaley@endicott.edu
+63,Edward,Millar,37 Bridge Street,Beverly,,Not Yet Scheduled,Reschedule Request,Canceled,a0o4X00000KgwspQAB,2022-08-11T08:00:00.000-07:00,2022-08-11T08:00:00.000-07:00,Owner,9789210202,edmillar50@gmail.com
+67,Maria,Simon,84 Kernwood Avenue,Beverly,2022-11-07T00:00:00.000-07:00,Completed,Reschedule Request,Signed Contracts,a0o4X00000Kgr2qQAB,2022-08-08T14:00:00.000-07:00,2022-08-08T14:00:00.000-07:00,,9784736096,messyri@gmail.com
+68,Maria,Simon,84 Kernwood Avenue,Beverly,2022-11-07T00:00:00.000-07:00,Completed,By Office,Signed Contracts,a0o4X00000Kgr2qQAB,2022-08-08T14:00:00.000-07:00,2022-08-08T14:00:00.000-07:00,,9784736096,messyri@gmail.com
+86,John,Hall,7 Temi Road,Beverly,,Not Yet Scheduled,Reschedule Request,Canceled,a0o4X00000L654NQAR,2022-07-15T14:00:00.000-07:00,2022-07-15T14:00:00.000-07:00,Owner,8572721660,hallfinefinishes@gmail.com
+100,Pamela,Johnson,19 Thorndike Street,Beverly,,Not Yet Scheduled,,Health & Safety Barrier,a0o4X00000Ip65bQAB,2022-11-15T11:00:00.000-07:00,2022-11-15T11:00:00.000-07:00,Owner,5089322509,
+114,Beverly,Wiley,16 High Street,Beverly,,Not Yet Scheduled,,Health & Safety Barrier,a0o4X00000IoRj8QAF,2022-11-01T11:00:00.000-07:00,2022-11-01T11:00:00.000-07:00,Owner,9784731606,bevwiley@comcast.net
+125,Pete,Rye,13 Arbella Drive,Beverly,,Not Yet Scheduled,,Recommended - Unsigned,a0o4X00000IoqHEQAZ,2022-10-13T14:00:00.000-07:00,2022-10-13T14:00:00.000-07:00,Owner,6173884869,peter.t.rye@gmail.com
+156,Bryan,Haley,44 Hathaway Avenue,Beverly,,Not Yet Scheduled,Reschedule Request,Recommended - Unsigned,a0o4X00000LC4CsQAL,2022-10-17T08:00:00.000-07:00,2022-10-17T08:00:00.000-07:00,,9783174033,bhaley@endicott.edu
+280,Jacqueline,Mahan,18 Summit Avenue,Beverly,,Scheduled,Reschedule Request,Signed Contracts,a0o4X00000L7YSfQAN,2022-10-08T11:00:00.000-07:00,2022-10-08T11:00:00.000-07:00,,9783374036,jmahan916@yahoo.com
+310,Holly,Sullivan,10 Adeline Road,Beverly,,Scheduled,,Signed Contracts,a0o4X00000IoRrMQAV,2022-11-29T11:00:00.000-07:00,2022-11-29T11:00:00.000-07:00,Owner,7815769992,sullivanhg@gmail.com
+546,Pamela,Johnson,19 Thorndike Street,Beverly,,Not Yet Scheduled,Reschedule Request,Health & Safety Barrier,a0o4X00000Ip65bQAB,2022-11-15T11:00:00.000-07:00,2022-11-15T11:00:00.000-07:00,Owner,5089322509,
+807,Bryan,Haley,44 Hathaway Avenue,Beverly,,Not Yet Scheduled,,Recommended - Unsigned,a0o4X00000LC4CsQAL,2022-10-17T08:00:00.000-07:00,2022-10-17T08:00:00.000-07:00,,9783174033,bhaley@endicott.edu
+858,Maria,Simon,84 Kernwood Avenue,Beverly,2022-11-07T00:00:00.000-07:00,Completed,,Signed Contracts,a0o4X00000Kgr2qQAB,2022-08-08T14:00:00.000-07:00,2022-08-08T14:00:00.000-07:00,,9784736096,messyri@gmail.com
+899,Jacqueline,Mahan,18 Summit Avenue,Beverly,,Scheduled,,Signed Contracts,a0o4X00000L7YSfQAN,2022-10-08T11:00:00.000-07:00,2022-10-08T11:00:00.000-07:00,,9783374036,jmahan916@yahoo.com
+959,Janice,Mallard,12 Wilson Street,Beverly,2022-11-17T00:00:00.000-07:00,Completed,,Recommended - Unsigned,a0o4X00000LQ0qYQAT,2022-10-12T11:00:00.000-07:00,2022-10-12T11:00:00.000-07:00,Owner,9783379566,mallardjan@comcast.net
+977,Jacqueline,Mahan,18 Summit Avenue,Beverly,,Scheduled,Reschedule Request,Signed Contracts,a0o4X00000L7YSfQAN,2022-10-08T11:00:00.000-07:00,2022-10-08T11:00:00.000-07:00,,9783374036,jmahan916@yahoo.com
