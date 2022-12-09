@@ -1,8 +1,9 @@
 import numpy
 import pandas as pd
 import re
-pd.set_option('display.max_columns', 1000);
-# pd.options.mode.chained_assignment = None
+
+pd.options.mode.chained_assignment = None
+
 def neeeco(neeeco_input,neeeco_wx_input):
     neeeco_output = pd.merge(left=neeeco_input, right=neeeco_wx_input, 
                             how='left', left_on='Related to', right_on='HEA - Last, First, Address')

@@ -1,7 +1,9 @@
 import re
 import pandas as pd
 import numpy as np
-pd.set_option('display.max_columns', 1000); 
+
+pd.options.mode.chained_assignment = None
+
 def homeworks(homeworks_input):
     homeworks_output = homeworks_input
     
