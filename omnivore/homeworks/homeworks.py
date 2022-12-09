@@ -1,12 +1,9 @@
 import re
 import pandas as pd
 import numpy as np
-
+pd.set_option('display.max_columns', 1000);
 pd.options.mode.chained_assignment = None
-
-def homeworks(homeworks_input):
-    homeworks_output = homeworks_input
-    
+def homeworks(homeworks_old_input, homeworks_new_input):
     stageMapper = {
       'Approval - Customer Unresponsive': 'Canceled',
       'Approval / Task Not Completed in Time': 'Canceled',
@@ -116,7 +113,7 @@ def homeworks(homeworks_input):
       'Tenant': 'Renter'
     }
 
-    homeworks_output=homeworks_output.rename(columns={"Account: Primary Contact: First Name": "FirstName",
+    homeworks_new_input=homeworks_new_input.rename(columns={"Account: Primary Contact: First Name": "FirstName",
                                                       "Account: Primary Contact: Last Name":"LastName",
                                                       "Phone Number":"Phone",
                                                       "Customer Email":"PersonEmail",
@@ -130,6 +127,49 @@ def homeworks(homeworks_input):
                                                       "Operations: Last Scheduled HEA Date": "HEA_Date_And_Time__c",
                                                       "Operations: Last Scheduled HEA Date": "CloseDate",
                                                       "Reason for Canceled": "Cancelation_Reason_s__c"})
+    
+    homeworks_old_input=homeworks_old_input.rename(columns={"Customer First Name": "FirstName",
+                                                          "Customer Last Name":"LastName",
+                                                          "Day Phone":"Phone",
+                                                          "Email":"PersonEmail",
+                                                          "HEA Visit Result Detail":"StageName",
+                                                          "Landlord, Owner, Tenant":"Owner_Renter__c",
+                                                          "Operations: Scheduled Insulation Start Date (DT)":
+                                                          "Weatherization_Date_Time__c",
+                                                          "Operations: Unique ID":"ID_from_HPC__c",
+                                                          "Preferred Language":"Prefered_Lan__c",
+                                                          "Time Stamp HEA Performed":"HEA_Date_And_Time__c",
+                                                          "Time Stamp HEA Performed":"CloseDate",
+                                                          "Wx Job Status":"Weatherization_Status__c",
+                                                          "Billing City": "City__c",
+                                                          "Account Name": "Name"})
+
+    homeworks_output = pd.merge(left=homeworks_new_input, right=homeworks_old_input, 
+                                how='left', on='ID_from_HPC__c')
+
+    #     // Combine both data
+    homeworks_output['FirstName']=homeworks_output[
+        'FirstName_x'].combine_first(homeworks_output['FirstName_y'])
+    homeworks_output['LastName']=homeworks_output[
+        'LastName_x'].combine_first(homeworks_output['LastName_y'])
+    homeworks_output['StageName']=homeworks_output[
+        'StageName_x'].combine_first(homeworks_output['StageName_y'])
+    homeworks_output['CloseDate']=homeworks_output[
+        'CloseDate_x'].combine_first(homeworks_output['CloseDate_y'])
+    homeworks_output['Phone']=homeworks_output[
+        'Phone_x'].combine_first(homeworks_output['Phone_y'])
+    homeworks_output['PersonEmail']=homeworks_output[
+        'PersonEmail_x'].combine_first(homeworks_output['PersonEmail_y'])
+    homeworks_output['HEA Visit Result']=homeworks_output[
+        'HEA Visit Result_x'].combine_first(homeworks_output['HEA Visit Result_y'])
+    homeworks_output['City__c']=homeworks_output[
+        'City__c_x'].combine_first(homeworks_output['City__c_y'])
+    homeworks_output['Weatherization_Status__c']=homeworks_output[
+        'Weatherization_Status__c_x'].combine_first(homeworks_output['Weatherization_Status__c_y'])
+    homeworks_output['Weatherization_Date_Time__c']=homeworks_output[
+        'Weatherization_Date_Time__c_x'].combine_first(homeworks_output['Weatherization_Date_Time__c_y'])
+    homeworks_output['Owner_Renter__c']=homeworks_output[
+        'Owner_Renter__c_x'].combine_first(homeworks_output['Owner_Renter__c_y'])
 
     homeworks_output['StageName'] = homeworks_output[
         'StageName'].map(stageMapper)
@@ -154,8 +194,6 @@ def homeworks(homeworks_input):
     homeworks_output["Street__c"] = homeworks_output[
         "Street__c"].str.extract(r'(\d+ [a-zA-Z]\w{2,} \w{1,})')
 
-    # homeworks_output["Name"] = homeworks_output[
-    #     "Name"].str.extract(r'(^[a-zA-Z]\w{2,} \w{1,})')
 
     homeworks_output['HPC__c'] = '0013i00000AtGGeAAN'
 
@@ -173,14 +211,16 @@ def homeworks(homeworks_input):
 
     homeworks_output['PersonEmail']=homeworks_output['PersonEmail'].replace('na@hwe.com',np.nan)
 
-    homeworks_output=homeworks_output.loc[:,['FirstName', 'LastName', 'Street__c', 'City__c',
-          'Weatherization_Date_Time__c', 'Weatherization_Status__c', 'Cancelation_Reason_s__c',
-          'StageName', 'ID_from_HPC__c', 'HEA_Date_And_Time__c', 'CloseDate',
-          'Owner_Renter__c', 'Phone', 'PersonEmail']]
+    homeworks_output=homeworks_output.loc[:,[col for col in ['PersonEmail','FirstName',
+                                        'LastName','HEA_Date_And_Time__c','CloseDate','StageName',
+                                        'Owner_Renter__c','Street__c','City__c','ID_from_HPC__c',
+                                        'Weatherization_Status__c','Weatherization_Date_Time__c',
+                                        'Cancelation_Reason_s__c', 'Phone'] if col in homeworks_output.columns]]
 
     return homeworks_output
 
 if __name__ == '__main__':
   output=pd.read_csv('/content/CFP Communities Report - Output.csv')
-  homeworks_input=pd.read_csv('/content/CFP Communities Report - Homeworks Input.csv', encoding = "ISO-8859-1")
-  homeworks_output = homeworks(homeworks_input)
+  homeworks_old_input=pd.read_csv('/content/Old Data.csv', encoding = "ISO-8859-1")
+  homeworks_new_input=pd.read_csv('/content/CFP Communities Report - Homeworks Input.csv', encoding = "ISO-8859-1")
+  homeworks_output = homeworks(homeworks_old_input, homeworks_new_input)
