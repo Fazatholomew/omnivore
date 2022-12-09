@@ -145,7 +145,7 @@ def homeworks(homeworks_old_input, homeworks_new_input):
                                                           "Account Name": "Name"})
 
     homeworks_output = pd.merge(left=homeworks_new_input, right=homeworks_old_input, 
-                                how='left', on='ID_from_HPC__c')
+                                how='outer', on='ID_from_HPC__c').drop_duplicates(subset='ID_from_HPC__c')
 
     #     // Combine both data
     homeworks_output['FirstName']=homeworks_output[
