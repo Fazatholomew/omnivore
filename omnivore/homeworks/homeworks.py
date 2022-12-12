@@ -145,10 +145,7 @@ def homeworks(homeworks_old_input, homeworks_new_input):
                                                           "Wx Job Status":"Weatherization_Status__c",
                                                           "Billing City": "City__c",
                                                           "Account Name": "Name"})
-    print(homeworks_new_input.columns)
-    homeworks_output = pd.merge(left=homeworks_new_input, right=homeworks_old_input, 
-                                how='left', on='ID_from_HPC__c')
-    print(homeworks_output.columns)
+    homeworks_output = pd.merge(left=homeworks_new_input, right=homeworks_old_input, how='left', on='ID_from_HPC__c')
 
     #     // Combine both data
     homeworks_output['FirstName']=homeworks_output[
