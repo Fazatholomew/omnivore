@@ -113,8 +113,6 @@ def homeworks(homeworks_old_input, homeworks_new_input):
       'Tenant': 'Renter'
     }
 
-    print(homeworks_new_input.columns)
-
     homeworks_new_input=homeworks_new_input.rename(columns={"Account: Primary Contact: First Name": "FirstName",
                                                       "Account: Primary Contact: Last Name":"LastName",
                                                       "Phone Number":"Phone",
