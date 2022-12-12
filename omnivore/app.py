@@ -116,7 +116,7 @@ class Blueprint:
         raw_data = read_csv(cast(str, getenv('HOMEWORKS_DATA_URL')), dtype='object')
         wx_data = read_csv(cast(str, getenv('HOMEWORKS_COMPLETED_DATA_URL')), dtype='object')
         processed_row_removed = self.remove_already_processed_row(raw_data)
-        processed_row = homeworks(processed_row_removed)
+        processed_row = homeworks(wx_data, processed_row_removed)
         grouped_opps = to_account_and_opportunities(processed_row)
         run(self.start_upload_to_salesforce(grouped_opps, HOMEWORKS_ACCID))
 

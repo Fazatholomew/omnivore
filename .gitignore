@@ -116,3 +116,6 @@ config.env
 .vscode
 
 dist/
+
+# Pickle
+*.pkl

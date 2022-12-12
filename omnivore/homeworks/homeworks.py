@@ -2,7 +2,7 @@ import re
 import pandas as pd
 import numpy as np
 pd.set_option('display.max_columns', 1000);
-pd.options.mode.chained_assignment = None
+pd.options.mode.chained_assignment = None # type:ignore
 def homeworks(homeworks_old_input, homeworks_new_input):
     stageMapper = {
       'Approval - Customer Unresponsive': 'Canceled',
@@ -113,6 +113,8 @@ def homeworks(homeworks_old_input, homeworks_new_input):
       'Tenant': 'Renter'
     }
 
+    print(homeworks_new_input.columns)
+
     homeworks_new_input=homeworks_new_input.rename(columns={"Account: Primary Contact: First Name": "FirstName",
                                                       "Account: Primary Contact: Last Name":"LastName",
                                                       "Phone Number":"Phone",
@@ -143,9 +145,10 @@ def homeworks(homeworks_old_input, homeworks_new_input):
                                                           "Wx Job Status":"Weatherization_Status__c",
                                                           "Billing City": "City__c",
                                                           "Account Name": "Name"})
-
+    print(homeworks_new_input.columns)
     homeworks_output = pd.merge(left=homeworks_new_input, right=homeworks_old_input, 
                                 how='left', on='ID_from_HPC__c')
+    print(homeworks_output.columns)
 
     #     // Combine both data
     homeworks_output['FirstName']=homeworks_output[
@@ -205,7 +208,7 @@ def homeworks(homeworks_old_input, homeworks_new_input):
     for i in homeworks_output['PersonEmail'].index:
         homeworks_output['PersonEmail'][i] = homeworks_output['PersonEmail'][i].lower()
         regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
-        if(re.fullmatch(regex, homeworks_output['PersonEmail'][i])):
+        if(re.fullmatch(regex, homeworks_output['PersonEmail'][i])): #type:ignore
           homeworks_output['PersonEmail']
         ''
 
