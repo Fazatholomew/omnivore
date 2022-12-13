@@ -68,8 +68,9 @@ class Blueprint:
             if 'Id' in opp:
                 if len(opp['Id']) > 3:
                     payload = to_sf_payload(opp, 'Opportunity')
+                    current_id = payload.pop('Id')
                     try:
-                        res = self.sf.sf.Opportunity.update(opp['Id'], payload)  # type:ignore
+                        res = self.sf.sf.Opportunity.update(current_id, payload)  # type:ignore
                         if cast(int, res) > 200:
                             self.processed_rows.add(processed_row_id)
                             # Reporting
