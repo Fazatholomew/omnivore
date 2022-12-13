@@ -34,7 +34,11 @@ def neeeco(neeeco_input, neeeco_wx_input):
         'No Account Info': 'Bad Data',
         'Scheduling Conflict': 'Reschedule Request',
         '': 'No Reason',
-        numpy.nan: 'No Reason'
+        numpy.nan: 'No Reason',
+        "Outside of our territory": "By Office",
+        "Under Construction": "By Office",
+        "Commercial Property": "5+ units",
+        "Do Not Contact": "Not Interested",
     }
 
     # // Health And Safety Issues
@@ -164,7 +168,12 @@ def neeeco(neeeco_input, neeeco_wx_input):
 
     # // No cancel reason, default it to No Reason
     neeeco_output.loc[(neeeco_output['StageName'] == 'Canceled') &
-                      (neeeco_output['Cancelation_Reason_s__c'] == ''),
+                      (neeeco_output['Cancelation_Reason_s__c']).isna(),
+                      'Cancelation_Reason_s__c'] = 'No Reason'
+    
+    # // No cancel reason, default it to No Reason
+    neeeco_output.loc[(neeeco_output['StageName'] == 'Canceled') &
+                      (neeeco_output['Cancelation_Reason_s__c']) == '',
                       'Cancelation_Reason_s__c'] = 'No Reason'
 
     #         // If date is still in the future, stage is scheduled
