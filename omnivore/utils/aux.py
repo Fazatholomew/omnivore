@@ -2,10 +2,11 @@ from re import sub, match
 from .constants import AIE_ID_SEPARATOR, OPPORTUNITY_COLUMNS, ACCOUNT_COLUMNS, CFP_TOWS, HEA_ID
 from urllib.parse import unquote_plus
 from typing import TypedDict, Dict, Any
-from usaddress import tag
+from usaddress import tag, RepeatedLabelError
 from pandas import DataFrame, isna
 from .types import Record_Find_Info, Account, Opportunity
 from datetime import datetime
+from collections import OrderedDict
 
 class Address(TypedDict, total=False):
   street: str
@@ -84,7 +85,16 @@ def extractId(input_data: Any) -> list[str]:
     return possible_ids
 
 def extract_address(input_data: Any) -> Address:
-  result = tag(f'{input_data}'.replace('\n', ' ').replace('\t', ' '))
+  try:
+    result = tag(f'{input_data}'.replace('\n', ' ').replace('\t', ' '))
+  except RepeatedLabelError as e:
+    parsed = OrderedDict()
+    for value, key in e.parsed_string:
+      if key in parsed:
+        continue
+      parsed[key] = value
+    print(parsed)
+    result = [parsed, 'Street Address']
   # If not enough data, return empty address
   if result[1] == 'Ambiguous':
     return Address()

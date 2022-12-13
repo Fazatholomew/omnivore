@@ -30,6 +30,7 @@ class Opportunity(TypedDict, total=False):
     HPC__c: str
     CampaignId: str
     Cancelation_Reason_s__c: str
+    Legacy_Post_Assessment_Notes__c: str
 
 class Account(TypedDict, total=False):
     Id: str

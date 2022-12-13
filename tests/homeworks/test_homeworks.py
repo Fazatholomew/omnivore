@@ -5,11 +5,11 @@ from typing import cast
 from os import getenv
 import pytest
 
-def test_homeworks_processing_function():
-    raw_data = read_csv(cast(str, getenv('HOMEWORKS_DATA_URL')), dtype='object')
-    wx_data = read_csv(cast(str, getenv('HOMEWORKS_COMPLETED_DATA_URL')), dtype='object')
-    result = homeworks(raw_data, wx_data)
-    result.to_pickle('./homeworks processed dec 10.pkl')
+# def test_homeworks_processing_function():
+#     raw_data = read_csv(cast(str, getenv('HOMEWORKS_DATA_URL')), dtype='object')
+#     wx_data = read_csv(cast(str, getenv('HOMEWORKS_COMPLETED_DATA_URL')), dtype='object')
+#     result = homeworks(raw_data, wx_data)
+#     result.to_pickle('./homeworks processed dec 10.pkl')
     # for i in range(len(output_data) - 1):
     #   for column in output_data.columns:
     #     expected_value = output_data.iloc[i][column]

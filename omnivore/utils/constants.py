@@ -93,6 +93,7 @@ OPPORTUNITY_COLUMNS = [
     'Don_t_Omnivore__c',
     'Set_By__c',
     'Cancelation_Reason_s__c',
+    'Legacy_Post_Assessment_Notes__c'
 ]
 # Account columns to fetch
 ACCOUNT_COLUMNS = [

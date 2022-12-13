@@ -9,6 +9,7 @@ def assert_partial_dict(dict_1, dict_2):
     for key in dict_2:
         if dict_1[key] != dict_2[key]:
             print(f'dict_1 {key} = {dict_1[key]} dict_2 {key} = {dict_2[key]}')
+            print(dict_1)
             return False
     return True
 
@@ -101,6 +102,9 @@ def test_extract_address():
         street='22 Saxonia Ave', unit='Unit 1', city='Lawrence', zipcode='01841'))
     assert assert_partial_dict(extract_address('696 Bennington St, Unit 1, East Boston MA 02128'),
                                Address(street='696 Bennington St', unit='Unit 1', zipcode='02128'))
+    # Error when address has phone number
+    assert assert_partial_dict(extract_address('1 Riverview Blvd 6-201 Methuen MA 01844  800-594-7277'),
+                               Address(street='1 Riverview Blvd', city='Methuen', zipcode='01844', unit='6-201'))
 
     # Homeworks
     assert assert_partial_dict(extract_address("(Unit 1) 117 Malden Street"),
@@ -172,26 +176,27 @@ def test_to_sf_payload():
 
 
 def test_find_cfp_campaign():
-  # No city
-  assert find_cfp_campaign({'City__c': ''}) == '' 
-  assert find_cfp_campaign({'City__c': NaN}) == '' #type:ignore
-  # find lower city
-  assert find_cfp_campaign({'City__c': 'beVErLy'}) == "7013i000000i5vOAAQ"
+    # No city
+    assert find_cfp_campaign({'City__c': ''}) == ''
+    assert find_cfp_campaign({'City__c': NaN}) == ''  # type:ignore
+    # find lower city
+    assert find_cfp_campaign({'City__c': 'beVErLy'}) == "7013i000000i5vOAAQ"
+
 
 def test_is_float():
-  assert is_float('1213.6')
-  assert not is_float('234324.6 sdfsdf')
-  assert not is_float('asdfasdf')
-  assert not is_float([])
-  assert is_float(1.23123)
+    assert is_float('1213.6')
+    assert not is_float('234324.6 sdfsdf')
+    assert not is_float('asdfasdf')
+    assert not is_float([])
+    assert is_float(1.23123)
+
 
 def test_sanitize_data_for_sf():
-  assert sanitize_data_for_sf('true')
-  assert not sanitize_data_for_sf('FalSE')
-  assert sanitize_data_for_sf('123') == 123
-  assert sanitize_data_for_sf(NaN) == ''
-  assert sanitize_data_for_sf([123, '123']) == '123;123'
-  assert sanitize_data_for_sf('asdfasdf') == 'asdfasdf'
-  now = datetime.now()
-  assert sanitize_data_for_sf(now) == now.astimezone().strftime('%Y-%m-%dT%H:%M:%S.000%z')
-   
+    assert sanitize_data_for_sf('true')
+    assert not sanitize_data_for_sf('FalSE')
+    assert sanitize_data_for_sf('123') == 123
+    assert sanitize_data_for_sf(NaN) == ''
+    assert sanitize_data_for_sf([123, '123']) == '123;123'
+    assert sanitize_data_for_sf('asdfasdf') == 'asdfasdf'
+    now = datetime.now()
+    assert sanitize_data_for_sf(now) == now.astimezone().strftime('%Y-%m-%dT%H:%M:%S.000%z')
