@@ -5,6 +5,7 @@ from typing import Dict, cast
 from .types import Account, Opportunity, Record_Find_Info, Query, Create
 from os import getenv
 from pandas import isna
+from simple_salesforce.exceptions import SalesforceMalformedRequest
 
 # from pickle import dump
 # from random import sample
@@ -162,9 +163,18 @@ class SalesforceConnection:
             # Account not found create a new account
             payload = to_sf_payload(input_records['acc'])
             payload['RecordTypeId'] = PERSON_ACCOUNT_ID
-            res: Create = cast(Create, self.sf.Account.create(payload))  # type:ignore
-            if res['success']:
+            try:
+              res: Create = cast(Create, self.sf.Account.create(payload))  # type:ignore
+              if res['success']:
+                  for opp in input_records['opps']:
+                      opp['AccountId'] = res['id']
+                      found_opps.append(opp)
+            except SalesforceMalformedRequest as e:
+              if e.content[0]['errorCode'] == "DUPLICATES_DETECTED":
+                current_id = e.content[0]['duplicateResut']['matchResults'][0]['matchRecords'][0]['record']['Id']
                 for opp in input_records['opps']:
-                    opp['AccountId'] = res['id']
-                    found_opps.append(opp)
+                  opp['AccountId'] = current_id
+                  found_opps.append(opp) 
+              else:
+                raise e
         return found_opps

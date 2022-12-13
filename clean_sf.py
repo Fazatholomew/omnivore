@@ -1,13 +1,17 @@
 from simple_salesforce import Salesforce
 from dotenv import load_dotenv
 from os import getenv
+from asyncio import get_event_loop, gather, run
+
+
+async def start_deleting(fun, ids):
+    loop = get_event_loop()
+    await gather(*[loop.run_in_executor(None, fun, current_id) for current_id in ids])
 
 load_dotenv('./.env.staging')
 sf = Salesforce(username=getenv('EMAIL'), consumer_key=getenv(  # type:ignore
                 'CONSUMER_KEY'), privatekey_file=getenv('PRIVATEKEY_FILE'), domain='test')
 res = sf.query_all('SELECT Id FROM Opportunity')
-for opp in res['records']:
-  sf.Opportunity.delete(opp['Id']) #type:ignore
+run(start_deleting(sf.Opportunity.delete, [opp['Id'] for opp in res['records']]))
 res = sf.query_all('SELECT Id FROM Account')
-for acc in res['records']:
-  sf.Account.delete(acc['Id']) #type:ignore
+run(start_deleting(sf.Account.delete, [acc['Id'] for acc in res['records']]))

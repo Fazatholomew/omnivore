@@ -93,7 +93,6 @@ def extract_address(input_data: Any) -> Address:
       if key in parsed:
         continue
       parsed[key] = value
-    print(parsed)
     result = [parsed, 'Street Address']
   # If not enough data, return empty address
   if result[1] == 'Ambiguous':

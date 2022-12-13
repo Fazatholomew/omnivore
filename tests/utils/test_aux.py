@@ -9,7 +9,6 @@ def assert_partial_dict(dict_1, dict_2):
     for key in dict_2:
         if dict_1[key] != dict_2[key]:
             print(f'dict_1 {key} = {dict_1[key]} dict_2 {key} = {dict_2[key]}')
-            print(dict_1)
             return False
     return True
 
