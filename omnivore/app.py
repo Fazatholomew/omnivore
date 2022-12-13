@@ -67,27 +67,31 @@ class Blueprint:
             opp['RecordTypeId'] = CFP_OPP_ID if opp['CampaignId'] else HEA_ID
             if 'Id' in opp:
                 if len(opp['Id']) > 3:
+                    payload = to_sf_payload(opp, 'Opportunity')
                     try:
-                        payload = to_sf_payload(opp, 'Opportunity')
                         res = self.sf.sf.Opportunity.update(opp['Id'], payload)  # type:ignore
                         if cast(int, res) > 200:
                             self.processed_rows.add(processed_row_id)
                             # Reporting
                     except Exception as err:
                         if (getenv('ENV') == 'staging'):
-                            print(opp)
+                            print(payload)
+                            print('failed to update')
+                            print(err)
                             raise err
                         continue
             else:
+                payload = to_sf_payload(opp, 'Opportunity')
                 try:
-                    payload = to_sf_payload(opp, 'Opportunity')
                     res: Create = self.sf.sf.Opportunity.create(payload)  # type:ignore
                     if res['success']:
                         self.processed_rows.add(processed_row_id)
                         # Reporting
                 except Exception as err:
                     if (getenv('ENV') == 'staging'):
-                        print(opp)
+                        print(payload)
+                        print('failed to create')
+                        print(err)
                         raise err
                     continue
 
