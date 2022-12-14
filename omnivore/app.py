@@ -3,6 +3,7 @@ from pickle import load, dump
 from typing import cast
 from pandas import DataFrame, read_csv
 from asyncio import run, gather, get_event_loop
+from simple_salesforce.exceptions import SalesforceMalformedRequest
 
 from .homeworks.homeworks import homeworks
 from .neeeco.neeeco import neeeco
@@ -88,12 +89,26 @@ class Blueprint:
                     if res['success']:
                         self.processed_rows.add(processed_row_id)
                         # Reporting
-                except Exception as err:
+                except SalesforceMalformedRequest as err:
+                    if (err.content[0]['errorCode'] == 'DUPLICATE_VALUE'):
+                        maybe_id = err.content[0]['message'].split('id: ')
+                        if len(maybe_id) == 2:
+                            try:
+                                res = self.sf.sf.Opportunity.update(maybe_id[1], payload)  # type:ignore
+                                if cast(int, res) > 200:
+                                    self.processed_rows.add(processed_row_id)
+                            except Exception as e:
+                                if (getenv('ENV') == 'staging'):
+                                    print(payload)
+                                    print('failed to update after create')
+                                    print(e)
+                                    raise e
+                except Exception as e:
                     if (getenv('ENV') == 'staging'):
                         print(payload)
                         print('failed to create')
-                        print(err)
-                        raise err
+                        print(e)
+                        raise e
                     continue
 
     async def start_upload_to_salesforce(self, data: list[Record_Find_Info], HPC_ID: str) -> None:

@@ -4,6 +4,7 @@ from omnivore.app import Blueprint
 from omnivore.utils.constants import HEA_ID
 from .neeeco.neeeco_data import output_data
 from datetime import datetime
+from simple_salesforce.exceptions import SalesforceMalformedRequest
 
 
 @pytest.fixture
@@ -51,7 +52,7 @@ def test_connecting_to_salesforce(init_app):
     })
     assert res_opp['success']
     # querying
-    res_query = init_app.sf.sf.query_all(f"SELECT Id, AccountId from Opportunity WHERE RecordTypeId = '{HEA_ID}'")
+    res_query = init_app.sf.sf.query_all(f"SELECT Id, AccountId from Opportunity WHERE RecordTypeId = '{HEA_ID}' AND Id = '{res_opp['id']}'")
     assert res_query['records'][0]['Id'] == res_opp['id']
     assert res_query['records'][0]['AccountId'] == res['id']
 
@@ -59,7 +60,7 @@ def test_connecting_to_salesforce(init_app):
 @pytest.mark.staging
 def test_duplicates_account(init_app: Blueprint):
     '''
-      Testing handling makin duplicate account
+      Testing handling making duplicate account
     '''
     # Create account
     created_account = init_app.sf.sf.Account.create(
@@ -72,7 +73,6 @@ def test_duplicates_account(init_app: Blueprint):
     })
     assert len(found_opp) == 1
     assert found_opp[0]['AccountId'] == created_account['id']
-
 
 @pytest.mark.staging
 def test_app_using_neeeco(init_app):
