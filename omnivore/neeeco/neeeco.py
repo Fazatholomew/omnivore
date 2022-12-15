@@ -79,7 +79,8 @@ def neeeco(neeeco_input, neeeco_wx_input):
     neeeco_output = neeeco_output[neeeco_output['ID_from_HPC__c'].notnull()]
     neeeco_output["Street__c"] = neeeco_output["Full Address including zip"]
 
-    neeeco_output['Name'] = neeeco_output['Name'].str.replace('( \d\w{1}$| \d)', '', regex=True)
+    neeeco_output['Name'] = neeeco_output['Name'].str.replace(r"[^\w\-&' ]", '', regex=True)
+    neeeco_output['Name'] = neeeco_output['Name'].str.replace(r'( \d\w{1}$| \d)', '', regex=True)
 
     neeeco_output['Date of Audit'] = pd.to_datetime(neeeco_output['Date of Audit'], format='%m/%d/%Y')
     neeeco_output['Date of Audit'] = neeeco_output['Date of Audit'].dt.strftime('%Y-%m-%d')
@@ -187,11 +188,11 @@ def neeeco(neeeco_input, neeeco_wx_input):
     neeeco_output.loc[neeeco_output['Related to'].str.contains('VHEA').fillna(False), 'isVHEA__c'] = 'TRUE'
 
     neeeco_output['HPC__c'] = '0013i00000AtGAvAAN'
+    # neeeco_output['FirstName'] = neeeco_output['Name'].str.replace(r"[^\w\-&' ]", '', regex=True)
     neeeco_output['FirstName'] = neeeco_output['Name'].str.extract(r'(.*?(?=[\wäöüß]+$))')
     neeeco_output['LastName'] = neeeco_output['Name'].str.extract(r'( \w+)$')
     neeeco_output['FirstName'] = neeeco_output['FirstName'].str.replace(r'( )$', '', regex=True)
     neeeco_output['LastName'] = neeeco_output['LastName'].str.replace(' ', '')
-    neeeco_output['Name'].str.split(expand=True)
 
     for i in neeeco_output['Phone'].index:
         neeeco_output['Phone'][i] = re.sub(r'[^0-9]', '', str(neeeco_output['Phone'][i]))
