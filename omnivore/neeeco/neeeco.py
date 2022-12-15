@@ -81,6 +81,7 @@ def neeeco(neeeco_input, neeeco_wx_input):
 
     neeeco_output['Name'] = neeeco_output['Name'].str.replace(r"[^\w\-&' ]", '', regex=True)
     neeeco_output['Name'] = neeeco_output['Name'].str.replace(r'( \d\w{1}$| \d)', '', regex=True)
+    neeeco_output['Name'] = neeeco_output['Name'].str.replace(r'( )$', '', regex=True)
 
     neeeco_output['Date of Audit'] = pd.to_datetime(neeeco_output['Date of Audit'], format='%m/%d/%Y')
     neeeco_output['Date of Audit'] = neeeco_output['Date of Audit'].dt.strftime('%Y-%m-%d')
