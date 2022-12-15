@@ -81,20 +81,20 @@ def neeeco(neeeco_input, neeeco_wx_input):
 
     neeeco_output['Name'] = neeeco_output['Name'].str.replace('( \d\w{1}$| \d)', '', regex=True)
 
-    neeeco_output['Date of Audit'] = pd.to_datetime(neeeco_output['Date of Audit'])
+    neeeco_output['Date of Audit'] = pd.to_datetime(neeeco_output['Date of Audit'], format='%m/%d/%Y')
     neeeco_output['Date of Audit'] = neeeco_output['Date of Audit'].dt.strftime('%Y-%m-%d')
     neeeco_output['Date of Audit'] = neeeco_output['Date of Audit'].astype(str)
     neeeco_output['HEA_Date_And_Time__c'] = neeeco_output['Date of Audit']+'T00:00:00.000-07:00'
     neeeco_output.loc[neeeco_output['HEA_Date_And_Time__c'] == 'nanT00:00:00.000-07:00',
                       'HEA_Date_And_Time__c'] = ''
 
-    neeeco_output['Date Scheduled in Vcita'] = pd.to_datetime(neeeco_output['Date Scheduled in Vcita'])
+    neeeco_output['Date Scheduled in Vcita'] = pd.to_datetime(neeeco_output['Date Scheduled in Vcita'], format='%m/%d/%Y')
     # ,
     # format='%m/%d/%y')
     neeeco_output['Date Scheduled in Vcita'] = neeeco_output['Date Scheduled in Vcita'].dt.strftime('%Y-%m-%d')
     neeeco_output['Date Scheduled in Vcita'] = neeeco_output['Date Scheduled in Vcita'].astype(str)
     neeeco_output['Date Scheduled in Vcita'] = neeeco_output['Date Scheduled in Vcita']+'T00:00:00.000-07:00'
-    neeeco_output['Created'] = pd.to_datetime(neeeco_output['Created'])
+    neeeco_output['Created'] = pd.to_datetime(neeeco_output['Created'], format='%m/%d/%Y')
     neeeco_output['Created'] = neeeco_output['Created'].dt.strftime('%Y-%m-%d')
     neeeco_output['Created'] = neeeco_output['Created'].astype(str)
     neeeco_output['Created'] = neeeco_output['Created']+'T00:00:00.000-07:00'

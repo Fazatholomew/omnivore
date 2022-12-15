@@ -5,7 +5,7 @@ from pandas import DataFrame, read_csv
 from asyncio import run, gather, get_event_loop
 from simple_salesforce.exceptions import SalesforceMalformedRequest
 
-from .homeworks.homeworks import homeworks
+from .homeworks.homeworks import homeworks, rename_and_merge
 from .neeeco.neeeco import neeeco
 from .utils.salesforce import SalesforceConnection, Create
 from .utils.aux import to_account_and_opportunities, to_sf_payload, find_cfp_campaign
@@ -109,7 +109,7 @@ class Blueprint:
                         print('failed to create')
                         print(e)
                         raise e
-                    continue
+                continue
 
     async def start_upload_to_salesforce(self, data: list[Record_Find_Info], HPC_ID: str) -> None:
         '''
@@ -133,10 +133,11 @@ class Blueprint:
         '''
           Run Homeworks process
         '''
-        raw_data = read_csv(cast(str, getenv('HOMEWORKS_DATA_URL')), dtype='object')
-        wx_data = read_csv(cast(str, getenv('HOMEWORKS_COMPLETED_DATA_URL')), dtype='object')
-        processed_row_removed = self.remove_already_processed_row(raw_data)
-        processed_row = homeworks(wx_data, processed_row_removed)
+        new_data = read_csv(cast(str, getenv('HOMEWORKS_DATA_URL')), dtype='object')
+        old_data = read_csv(cast(str, getenv('HOMEWORKS_COMPLETED_DATA_URL')), dtype='object')
+        homeworks_output = rename_and_merge(old_data, new_data)
+        processed_row_removed = self.remove_already_processed_row(homeworks_output)
+        processed_row = homeworks(processed_row_removed)
         grouped_opps = to_account_and_opportunities(processed_row)
         run(self.start_upload_to_salesforce(grouped_opps, HOMEWORKS_ACCID))
 

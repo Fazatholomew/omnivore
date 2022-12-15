@@ -1,10 +1,10 @@
 import pytest
 from unittest.mock import patch, mock_open
 from omnivore.app import Blueprint
-from omnivore.utils.constants import HEA_ID
+from omnivore.utils.constants import HEA_ID, NEEECO_ACCID, HOMEWORKS_ACCID
 from .neeeco.neeeco_data import output_data
+from .homeworks.homeworks_data import output_data as output_data_homeworks
 from datetime import datetime
-from simple_salesforce.exceptions import SalesforceMalformedRequest
 
 
 @pytest.fixture
@@ -88,5 +88,24 @@ def test_app_using_neeeco(init_app):
     joined = "', '".join(unique_ids)
     res = init_app.sf.sf.query_all(f"SELECT ID_from_HPC__c from Opportunity WHERE ID_from_HPC__c IN ('{joined}')")
     assert len(res['records']) == len(unique_ids)
-    for opp in res['records']:
-        assert opp['ID_from_HPC__c'] in unique_ids
+    ids = [current_opp['ID_from_HPC__c'] for current_opp in res['records']]
+    for current_id in unique_ids:
+        assert current_id in ids
+
+@pytest.mark.staging
+def test_app_using_homeworks(init_app):
+    '''
+      Testing whole app functionility including:
+      - Connecting to SF and query current Database
+      - Fetch Data from GAS
+      - Process data for specific HPC (Neeeco)
+      - Upload the data to SF
+    '''
+    init_app.run_homeworks()
+    unique_ids = output_data_homeworks['ID_from_HPC__c'].unique().tolist()
+    joined = "', '".join(unique_ids)
+    res = init_app.sf.sf.query_all(f"SELECT ID_from_HPC__c from Opportunity WHERE ID_from_HPC__c IN ('{joined}')")
+    ids = [current_opp['ID_from_HPC__c'] for current_opp in res['records']]
+    for current_id in unique_ids:
+        assert current_id in ids
+    assert len(res['records']) == len(unique_ids)

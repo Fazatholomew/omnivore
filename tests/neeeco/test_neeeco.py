@@ -3,7 +3,7 @@ from .neeeco_data import input_wx_data, input_data, output_data
 from pandas import isna
 def test_neeeco_processing_function():
   result = neeeco(input_data, input_wx_data)
-  for i in range(len(output_data) - 1):
+  for i in range(len(output_data)):
     for column in output_data.columns:
       expected_value = output_data.iloc[i][column]
       current_value = result.iloc[i][column]

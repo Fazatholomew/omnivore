@@ -1,18 +1,18 @@
-,PersonEmail,FirstName,LastName,HEA_Date_And_Time__c,CloseDate,StageName,Owner_Renter__c,Street__c,City__c,ID_from_HPC__c,Weatherization_Status__c,Weatherization_Date_Time__c,Cancelation_Reason_s__c,Phone
-50,sullivanhg@gmail.com,Holly,Sullivan,2022-11-29T11:00:00.000-07:00,2022-11-29T11:00:00.000-07:00,Signed Contracts,Owner,10 Adeline Road,Beverly,a0o4X00000IoRrMQAV,Scheduled,,By Office,7815769992
-74,bhaley@endicott.edu,Bryan,Haley,2022-10-17T08:00:00.000-07:00,2022-10-17T08:00:00.000-07:00,Recommended - Unsigned,,44 Hathaway Avenue,Beverly,a0o4X00000LC4CsQAL,Not Yet Scheduled,,Reschedule Request,9783174033
-111,edmillar50@gmail.com,Edward,Millar,2022-08-11T08:00:00.000-07:00,2022-08-11T08:00:00.000-07:00,Canceled,Owner,37 Bridge Street,Beverly,a0o4X00000KgwspQAB,Not Yet Scheduled,,Reschedule Request,9789210202
-147,hallfinefinishes@gmail.com,John,Hall,2022-07-15T14:00:00.000-07:00,2022-07-15T14:00:00.000-07:00,Canceled,Owner,7 Temi Road,Beverly,a0o4X00000L654NQAR,Not Yet Scheduled,,Reschedule Request,8572721660
-168,,Pamela,Johnson,2022-11-15T11:00:00.000-07:00,2022-11-15T11:00:00.000-07:00,Health & Safety Barrier,Owner,19 Thorndike Street,Beverly,a0o4X00000Ip65bQAB,Not Yet Scheduled,,,5089322509
-183,bevwiley@comcast.net,Beverly,Wiley,2022-11-01T11:00:00.000-07:00,2022-11-01T11:00:00.000-07:00,Health & Safety Barrier,Owner,16 High Street,Beverly,a0o4X00000IoRj8QAF,Not Yet Scheduled,,,9784731606
-196,peter.t.rye@gmail.com,Pete,Rye,2022-10-13T14:00:00.000-07:00,2022-10-13T14:00:00.000-07:00,Recommended - Unsigned,Owner,13 Arbella Drive,Beverly,a0o4X00000IoqHEQAZ,Not Yet Scheduled,,,6173884869
-239,,Don,Brann,2022-07-22T14:00:00.000-07:00,2022-07-22T14:00:00.000-07:00,Canceled,Owner,17 Hayes Avenue,Beverly,a0o4X00000L7NNOQA3,Not Yet Scheduled,,Reschedule Request,9782235012
-398,mswears@comcast.net,Michael,Swears,2022-12-27T11:00:00.000-07:00,2022-12-27T11:00:00.000-07:00,Scheduled,Owner,51 Putnam Street,Beverly,a0o4X00000LUX4FQAX,Not Yet Scheduled,,,9789279340
-419,marcfonline@gmail.cpm,Marc,Frigon,2022-11-22T14:00:00.000-07:00,2022-11-22T14:00:00.000-07:00,Canceled,Owner,1 Thomas Road,Beverly,a0o4X00000IpBYlQAN,Not Yet Scheduled,,Reschedule Request,9784069365
-442,billsoilservice@verizon.net,Rebecca,Roy,2022-11-01T08:00:00.000-07:00,2022-11-01T08:00:00.000-07:00,No Opportunity,Owner,112 Valley Street,Beverly,a0o4X00000IoReDQAV,Not Yet Scheduled,,,9785785861
-584,taramalone70@gmail.com,Tara,Malone,2022-05-18T11:00:00.000-07:00,2022-05-18T11:00:00.000-07:00,Health & Safety Barrier,Owner,44 Baker Avenue,Beverly,a0o0y00000P66RZAAZ,Not Yet Scheduled,,,9785180395
-672,laurence.ettwiller@gmail.com,Laurence,Ettwiller,2022-10-17T11:00:00.000-07:00,2022-10-17T11:00:00.000-07:00,Signed Contracts,Owner,6 Middle Street,Beverly,a0o4X00000LOpWkQAL,Not Yet Scheduled,2022-11-10T00:00:00.000-07:00,Reschedule Request,9789989089
-997,,Shanie,Oliveira,2022-07-13T11:00:00.000-07:00,2022-07-13T11:00:00.000-07:00,Health & Safety Barrier,Owner,16 Chestnut Street,Beverly,a0o4X00000L6LMQQA3,Not Yet Scheduled,,,9783356902
-1127,maggied1851@yahoo.com,Margherita,Desy,2022-08-10T14:00:00.000-07:00,2022-08-10T14:00:00.000-07:00,Health & Safety Barrier,Owner,37 Ashton Street,Beverly,a0o4X00000Kgq0wQAB,Completed,2022-10-31T00:00:00.000-07:00,,6175290524
-4301,tracykd247@aol.com,Tracy,Dunn,2022-07-05T08:00:00.000-07:00,2022-07-05T08:00:00.000-07:00,Recommended - Unsigned,,247 Gillette Avenue,Springfield,a0o4X00000L5kx2QAB,Not Yet Scheduled,,,4135379681
-5814,,Ashley,Perrine,2022-08-20T16:43:00.000-07:00,2022-08-20T16:43:00.000-07:00,Health & Safety Barrier,Owner,,Gloucester,a0o4X00000KgpXIQAZ,Not Yet Scheduled,,,9783176431
+PersonEmail,FirstName,LastName,HEA_Date_And_Time__c,CloseDate,StageName,Owner_Renter__c,Street__c,City__c,ID_from_HPC__c,Weatherization_Status__c,Weatherization_Date_Time__c,Cancelation_Reason_s__c,Phone
+sullivanhg@gmail.com,Holly,Sullivan,2022-11-29T11:00:00.000-07:00,2022-11-29T11:00:00.000-07:00,Signed Contracts,Owner,10 Adeline Road,Beverly,a0o4X00000IoRrMQAV,Scheduled,,By Office,7815769992
+bhaley@endicott.edu,Bryan,Haley,2022-10-17T08:00:00.000-07:00,2022-10-17T08:00:00.000-07:00,Recommended - Unsigned,,44 Hathaway Avenue,Beverly,a0o4X00000LC4CsQAL,Not Yet Scheduled,,Reschedule Request,9783174033
+edmillar50@gmail.com,Edward,Millar,2022-08-11T08:00:00.000-07:00,2022-08-11T08:00:00.000-07:00,Canceled,Owner,37 Bridge Street,Beverly,a0o4X00000KgwspQAB,Not Yet Scheduled,,Reschedule Request,9789210202
+hallfinefinishes@gmail.com,John,Hall,2022-07-15T14:00:00.000-07:00,2022-07-15T14:00:00.000-07:00,Canceled,Owner,7 Temi Road,Beverly,a0o4X00000L654NQAR,Not Yet Scheduled,,Reschedule Request,8572721660
+,Pamela,Johnson,2022-11-15T11:00:00.000-07:00,2022-11-15T11:00:00.000-07:00,Health & Safety Barrier,Owner,19 Thorndike Street,Beverly,a0o4X00000Ip65bQAB,Not Yet Scheduled,,,5089322509
+bevwiley@comcast.net,Beverly,Wiley,2022-11-01T11:00:00.000-07:00,2022-11-01T11:00:00.000-07:00,Health & Safety Barrier,Owner,16 High Street,Beverly,a0o4X00000IoRj8QAF,Not Yet Scheduled,,,9784731606
+peter.t.rye@gmail.com,Pete,Rye,2022-10-13T14:00:00.000-07:00,2022-10-13T14:00:00.000-07:00,Recommended - Unsigned,Owner,13 Arbella Drive,Beverly,a0o4X00000IoqHEQAZ,Not Yet Scheduled,,,6173884869
+,Don,Brann,2022-07-22T14:00:00.000-07:00,2022-07-22T14:00:00.000-07:00,Canceled,Owner,17 Hayes Avenue,Beverly,a0o4X00000L7NNOQA3,Not Yet Scheduled,,Reschedule Request,9782235012
+mswears@comcast.net,Michael,Swears,2022-12-27T11:00:00.000-07:00,2022-12-27T11:00:00.000-07:00,Scheduled,Owner,51 Putnam Street,Beverly,a0o4X00000LUX4FQAX,Not Yet Scheduled,,,9789279340
+marcfonline@gmail.cpm,Marc,Frigon,2022-11-22T14:00:00.000-07:00,2022-11-22T14:00:00.000-07:00,Canceled,Owner,1 Thomas Road,Beverly,a0o4X00000IpBYlQAN,Not Yet Scheduled,,Reschedule Request,9784069365
+billsoilservice@verizon.net,Rebecca,Roy,2022-11-01T08:00:00.000-07:00,2022-11-01T08:00:00.000-07:00,No Opportunity,Owner,112 Valley Street,Beverly,a0o4X00000IoReDQAV,Not Yet Scheduled,,,9785785861
+taramalone70@gmail.com,Tara,Malone,2022-05-18T11:00:00.000-07:00,2022-05-18T11:00:00.000-07:00,Health & Safety Barrier,Owner,44 Baker Avenue,Beverly,a0o0y00000P66RZAAZ,Not Yet Scheduled,,,9785180395
+laurence.ettwiller@gmail.com,Laurence,Ettwiller,2022-10-17T11:00:00.000-07:00,2022-10-17T11:00:00.000-07:00,Signed Contracts,Owner,6 Middle Street,Beverly,a0o4X00000LOpWkQAL,Not Yet Scheduled,2022-11-10T00:00:00.000-07:00,Reschedule Request,9789989089
+,Shanie,Oliveira,2022-07-13T11:00:00.000-07:00,2022-07-13T11:00:00.000-07:00,Health & Safety Barrier,Owner,16 Chestnut Street,Beverly,a0o4X00000L6LMQQA3,Not Yet Scheduled,,,9783356902
+maggied1851@yahoo.com,Margherita,Desy,2022-08-10T14:00:00.000-07:00,2022-08-10T14:00:00.000-07:00,Health & Safety Barrier,Owner,37 Ashton Street,Beverly,a0o4X00000Kgq0wQAB,Completed,2022-10-31T00:00:00.000-07:00,,6175290524
+tracykd247@aol.com,Tracy,Dunn,2022-07-05T08:00:00.000-07:00,2022-07-05T08:00:00.000-07:00,Recommended - Unsigned,,247 Gillette Avenue,Springfield,a0o4X00000L5kx2QAB,Not Yet Scheduled,,,4135379681
+,Ashley,Perrine,2022-08-20T16:43:00.000-07:00,2022-08-20T16:43:00.000-07:00,Health & Safety Barrier,Owner,,Gloucester,a0o4X00000KgpXIQAZ,Not Yet Scheduled,,,9783176431
