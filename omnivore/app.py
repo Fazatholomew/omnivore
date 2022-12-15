@@ -64,7 +64,7 @@ class Blueprint:
             # Remove and keep tempId for processed row
             processed_row_id = opp.pop('tempId') if 'tempId' in opp else opp['ID_from_HPC__c']
             if not 'tempId' in opp:
-              print(opp)
+              print(f'No Temp Id: {opp["ID_from_HPC__c"]}')
             if 'Don_t_Omnivore__c' in opp:
               # Don't omnivore is flagged
                 if opp['Don_t_Omnivore__c']:

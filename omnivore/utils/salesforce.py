@@ -165,6 +165,9 @@ class SalesforceConnection:
             payload['RecordTypeId'] = PERSON_ACCOUNT_ID
             # Final check on required field of lastname
             if not 'LastName' in payload:
+              if not 'FirstName' in payload:
+                print('No First name')
+                print(payload)
               payload['LastName'] = payload['FirstName']
             try:
               res: Create = cast(Create, self.sf.Account.create(payload))  # type:ignore
@@ -180,4 +183,5 @@ class SalesforceConnection:
                   found_opps.append(opp) 
               else:
                 raise e
+            return found_opps
         return found_opps
