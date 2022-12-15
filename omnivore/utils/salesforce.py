@@ -163,6 +163,9 @@ class SalesforceConnection:
             # Account not found create a new account
             payload = to_sf_payload(input_records['acc'])
             payload['RecordTypeId'] = PERSON_ACCOUNT_ID
+            # Final check on required field of lastname
+            if isna(payload['LastName']) or len(payload['LastName']) == 0:
+              payload['LastName'] = payload['FirstName']
             try:
               res: Create = cast(Create, self.sf.Account.create(payload))  # type:ignore
               if res['success']:
