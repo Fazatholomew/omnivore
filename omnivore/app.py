@@ -4,6 +4,8 @@ from typing import cast
 from pandas import DataFrame, read_csv
 from asyncio import run, gather, get_event_loop
 from simple_salesforce.exceptions import SalesforceMalformedRequest
+import logging
+
 
 from .homeworks.homeworks import homeworks, rename_and_merge
 from .neeeco.neeeco import neeeco
@@ -12,14 +14,17 @@ from .utils.aux import to_account_and_opportunities, to_sf_payload, find_cfp_cam
 from .utils.types import Record_Find_Info
 from .utils.constants import NEEECO_ACCID, HEA_ID, CFP_OPP_ID, HOMEWORKS_ACCID
 
+logging.basicConfig(format='%(asctime)s %(message)s')
 
 class Blueprint:
     def __init__(self) -> None:
         if getenv('EMAIL') or getenv('ENV') == 'test':
+            logging.info('Load Database from SF')
             self.sf = SalesforceConnection(username=getenv('EMAIL'), consumer_key=getenv(  # type:ignore
                 'CONSUMER_KEY'), privatekey_file=getenv('PRIVATEKEY_FILE'))  # type:ignore
             self.sf.get_salesforce_table()
         self.load_processed_rows()
+        logging.info('Finsihed loading Database from SF')
 
     def load_processed_rows(self, fileName='./processed_row') -> None:
         '''
@@ -142,7 +147,10 @@ class Blueprint:
         run(self.start_upload_to_salesforce(grouped_opps, HOMEWORKS_ACCID))
 
     def run(self) -> None:
+        logging.info('Start Processing Neeeco')
         self.run_neeeco()
         self.save_processed_rows()
+        logging.info('Start Processing Homeworks')
         self.run_homeworks()
         self.save_processed_rows()
+        logging.info('Finished running Omnivore')
