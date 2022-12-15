@@ -19,12 +19,12 @@ logging.basicConfig(format='%(asctime)s %(message)s')
 class Blueprint:
     def __init__(self) -> None:
         if getenv('EMAIL') or getenv('ENV') == 'test':
-            logging.info('Load Database from SF')
+            print('Load Database from SF')
             self.sf = SalesforceConnection(username=getenv('EMAIL'), consumer_key=getenv(  # type:ignore
                 'CONSUMER_KEY'), privatekey_file=getenv('PRIVATEKEY_FILE'))  # type:ignore
             self.sf.get_salesforce_table()
         self.load_processed_rows()
-        logging.info('Finsihed loading Database from SF')
+        print('Finsihed loading Database from SF')
 
     def load_processed_rows(self, fileName='./processed_row') -> None:
         '''
@@ -63,8 +63,6 @@ class Blueprint:
         for opp in found_records:
             # Remove and keep tempId for processed row
             processed_row_id = opp.pop('tempId') if 'tempId' in opp else opp['ID_from_HPC__c']
-            if not 'tempId' in opp:
-              print(f'No Temp Id: {opp["ID_from_HPC__c"]}')
             if 'Don_t_Omnivore__c' in opp:
               # Don't omnivore is flagged
                 if opp['Don_t_Omnivore__c']:
@@ -149,10 +147,10 @@ class Blueprint:
         run(self.start_upload_to_salesforce(grouped_opps, HOMEWORKS_ACCID))
 
     def run(self) -> None:
-        logging.info('Start Processing Neeeco')
+        print('Start Processing Neeeco')
         self.run_neeeco()
         self.save_processed_rows()
-        logging.info('Start Processing Homeworks')
+        print('Start Processing Homeworks')
         self.run_homeworks()
         self.save_processed_rows()
-        logging.info('Finished running Omnivore')
+        print('Finished running Omnivore')

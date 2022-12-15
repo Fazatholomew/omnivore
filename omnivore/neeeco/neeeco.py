@@ -194,6 +194,7 @@ def neeeco(neeeco_input, neeeco_wx_input):
     neeeco_output['LastName'] = neeeco_output['Name'].str.extract(r'( \w+)$')
     neeeco_output['FirstName'] = neeeco_output['FirstName'].str.replace(r'( )$', '', regex=True)
     neeeco_output['LastName'] = neeeco_output['LastName'].str.replace(' ', '')
+    neeeco_output['LastName'] = neeeco_output['LastName'].fillna(neeeco_output['Name'])
 
     for i in neeeco_output['Phone'].index:
         neeeco_output['Phone'][i] = re.sub(r'[^0-9]', '', str(neeeco_output['Phone'][i]))
