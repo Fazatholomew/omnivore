@@ -34,7 +34,7 @@ def rename_and_merge(homeworks_old_input, homeworks_new_input) -> pd.DataFrame:
                                                                   "Time Stamp HEA Performed": "CloseDate",
                                                                   "Wx Job Status": "Weatherization_Status__c",
                                                                   "Billing City": "City__c",
-                                                                  "Account Name": "Name"})
+                                                                  "Account Name": "Street__c"})
     return pd.merge(left=homeworks_new_input, right=homeworks_old_input,
                                 how='outer', on='ID_from_HPC__c')
 
@@ -194,6 +194,9 @@ def homeworks(homeworks_output):
     homeworks_output['Weatherization_Date_Time__c'] = homeworks_output['Weatherization_Date_Time__c'].dt.strftime(
         '%Y-%m-%d'+'T'+'%H:%M:%S'+'.000-07:00')
 
+    homeworks_output['Street__c'] = homeworks_output[
+        'Street__c_x'].combine_first(homeworks_output['Street__c_y'])
+        
     homeworks_output["Street__c"] = homeworks_output[
         "Street__c"].str.extract(r'(\d+ [a-zA-Z]\w{2,} \w{1,})')
 
