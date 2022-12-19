@@ -54,6 +54,7 @@ class SalesforceConnection:
             if len(aie_id) > 0:
                 self.ids_to_oppId[aie_id[0]] = opportunity['Id']
             self.oppId_to_opp[opportunity['Id']] = opportunity
+        # Querying all Acc
         res: Query = cast(Query, self.sf.query_all(
             f"SELECT {', '.join(ACCOUNT_COLUMNS)} FROM Account WHERE RecordTypeID IN ('{PERSON_ACCOUNT_ID}', '{CFP_ACCOUNT_ID}')"))
         # Generating Dummies
@@ -78,7 +79,22 @@ class SalesforceConnection:
             if len(cleaned_phone) > 0:
                 self.phone_to_accId[cleaned_phone] = account['Id']
             self.accId_to_acc[account['Id']] = account
+        # Querying remaining account
+        not_yet_queried = [accId for accId in self.accId_to_oppIds.keys() if not accId in self.accId_to_acc]
+        joined_ids = "', '".join(not_yet_queried)
+        res: Query = cast(Query, self.sf.query_all(
+            f"SELECT {', '.join(ACCOUNT_COLUMNS)} FROM Account WHERE Id IN ('{joined_ids}')"))
+        for account in res['records']:
+            account = cast(Account, account)
+            # Cleaning email and phone
+            cleaned_email = toSalesforceEmail(account['PersonEmail'])
+            if len(cleaned_email) > 0:
+                self.email_to_accId[cleaned_email] = account['Id']
 
+            cleaned_phone = toSalesforcePhone(account['Phone'])
+            if len(cleaned_phone) > 0:
+                self.phone_to_accId[cleaned_phone] = account['Id']
+            self.accId_to_acc[account['Id']] = account
     def find_records(self, input_records: Record_Find_Info) -> list[Opportunity]:
         '''
           Match record in salesforce using Email, Phone, AIE ID, ID from HPC.
