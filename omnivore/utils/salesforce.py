@@ -164,7 +164,7 @@ class SalesforceConnection:
                             # Check whether Opportunity already in SF
                             account_id: str = self.phone_to_accId[input_records['acc']['Phone']]
                             empty_oppIds: list[str] = [oppId for oppId in self.accId_to_oppIds[account_id]
-                                                       if not self.oppId_to_opp[oppId]['ID_from_HPC__c']]
+                                                       if not self.oppId_to_opp[oppId]['ID_from_HPC__c']] if account_id in self.accId_to_oppIds else []
                             if len(empty_oppIds) > 0:
                                 # Assign one of the opportunity into current row
                                 current_oppId = empty_oppIds[0]
