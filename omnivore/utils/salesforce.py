@@ -80,7 +80,7 @@ class SalesforceConnection:
                 self.phone_to_accId[cleaned_phone] = account['Id']
             self.accId_to_acc[account['Id']] = account
         # Querying remaining account
-        not_yet_queried = [accId for accId in self.accId_to_oppIds.keys() if not accId in self.accId_to_acc]
+        not_yet_queried = [accId for accId in self.accId_to_oppIds.keys() if not accId in self.accId_to_acc and type(accId) == type('aaa')]
         joined_ids = "', '".join(not_yet_queried)
         if len(joined_ids) == 0:
           return
