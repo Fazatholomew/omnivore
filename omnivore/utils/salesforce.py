@@ -82,6 +82,8 @@ class SalesforceConnection:
         # Querying remaining account
         not_yet_queried = [accId for accId in self.accId_to_oppIds.keys() if not accId in self.accId_to_acc]
         joined_ids = "', '".join(not_yet_queried)
+        if len(joined_ids) == 0:
+          return
         res: Query = cast(Query, self.sf.query_all(
             f"SELECT {', '.join(ACCOUNT_COLUMNS)} FROM Account WHERE Id IN ('{joined_ids}')"))
         for account in res['records']:
