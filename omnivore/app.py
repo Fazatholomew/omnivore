@@ -127,24 +127,33 @@ class Blueprint:
         '''
           Run neeeco process
         '''
-        raw_data = read_csv(cast(str, getenv('NEEECO_DATA_URL')), dtype='object')
-        wx_data = read_csv(cast(str, getenv('NEEECO_WX_DATA_URL')), dtype='object')
-        processed_row_removed = self.remove_already_processed_row(raw_data)
-        processed_row = neeeco(processed_row_removed, wx_data)
-        grouped_opps = to_account_and_opportunities(processed_row)
-        run(self.start_upload_to_salesforce(grouped_opps, NEEECO_ACCID))
+        try:
+          raw_data = read_csv(cast(str, getenv('NEEECO_DATA_URL')), dtype='object')
+          wx_data = read_csv(cast(str, getenv('NEEECO_WX_DATA_URL')), dtype='object')
+          processed_row_removed = self.remove_already_processed_row(raw_data)
+          processed_row = neeeco(processed_row_removed, wx_data)
+          grouped_opps = to_account_and_opportunities(processed_row)
+          run(self.start_upload_to_salesforce(grouped_opps, NEEECO_ACCID))
+        except Exception as e:
+          print("Error in Neeeco process.")
+          print(e)
+
 
     def run_homeworks(self) -> None:
         '''
           Run Homeworks process
         '''
-        new_data = read_csv(cast(str, getenv('HOMEWORKS_DATA_URL')), dtype='object')
-        old_data = read_csv(cast(str, getenv('HOMEWORKS_COMPLETED_DATA_URL')), dtype='object')
-        homeworks_output = rename_and_merge(old_data, new_data)
-        processed_row_removed = self.remove_already_processed_row(homeworks_output)
-        processed_row = homeworks(processed_row_removed)
-        grouped_opps = to_account_and_opportunities(processed_row)
-        run(self.start_upload_to_salesforce(grouped_opps, HOMEWORKS_ACCID))
+        try:
+          new_data = read_csv(cast(str, getenv('HOMEWORKS_DATA_URL')), dtype='object')
+          old_data = read_csv(cast(str, getenv('HOMEWORKS_COMPLETED_DATA_URL')), dtype='object')
+          homeworks_output = rename_and_merge(old_data, new_data)
+          processed_row_removed = self.remove_already_processed_row(homeworks_output)
+          processed_row = homeworks(processed_row_removed)
+          grouped_opps = to_account_and_opportunities(processed_row)
+          run(self.start_upload_to_salesforce(grouped_opps, HOMEWORKS_ACCID))
+        except Exception as e:
+          print("Error in Homeworks process.")
+          print(e)
 
     def run(self) -> None:
         print('Start Processing Neeeco')
