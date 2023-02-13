@@ -4,6 +4,7 @@ import numpy as np
 pd.set_option('display.max_columns', 1000)
 pd.options.mode.chained_assignment = None  # type:ignore
 
+
 def rename_and_merge(homeworks_old_input, homeworks_new_input) -> pd.DataFrame:
     homeworks_new_input = homeworks_new_input.rename(columns={"Account: Primary Contact: First Name": "FirstName",
                                                               "Account: Primary Contact: Last Name": "LastName",
@@ -36,7 +37,8 @@ def rename_and_merge(homeworks_old_input, homeworks_new_input) -> pd.DataFrame:
                                                                   "Billing City": "City__c",
                                                                   "Account Name": "Street__c"})
     return pd.merge(left=homeworks_new_input, right=homeworks_old_input,
-                                how='outer', on='ID_from_HPC__c')
+                    how='outer', on='ID_from_HPC__c')
+
 
 def homeworks(homeworks_output):
     stageMapper = {
@@ -196,7 +198,7 @@ def homeworks(homeworks_output):
 
     homeworks_output['Street__c'] = homeworks_output[
         'Street__c_x'].combine_first(homeworks_output['Street__c_y'])
-        
+
     homeworks_output["Street__c"] = homeworks_output[
         "Street__c"].str.extract(r'(\d+ [a-zA-Z]\w{2,} \w{1,})')
 

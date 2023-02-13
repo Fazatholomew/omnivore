@@ -7,8 +7,8 @@ def test_homeworks_processing_function():
     result = homeworks(data)
     for i in range(len(output_data)):
       for column in output_data.columns:
-        expected_value = output_data.iloc[i][column]
-        current_value = result.iloc[i][column]
+        expected_value = output_data.iloc[i][column] # type: ignore
+        current_value = result.iloc[i][column] # type: ignore
         if isna(expected_value):
           assert isna(current_value), f"\nColumn = '{column}'\nHomeworks code = {current_value}\nExpected value = {expected_value}\nHomeworks ID = {output_data.iloc[i]['ID_from_HPC__c']}\n"
         else:

@@ -2,7 +2,7 @@ import numpy
 import pandas as pd
 import re
 
-pd.options.mode.chained_assignment = None
+pd.options.mode.chained_assignment = ""
 
 
 def neeeco(neeeco_input, neeeco_wx_input):

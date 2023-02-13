@@ -138,43 +138,45 @@ class SalesforceConnection:
             # No Account ID yet, search using email and phone
             if 'PersonEmail' in input_records['acc']:
                 # Search using Email
-                if not isna(input_records['acc']['PersonEmail']):
-                    if len(input_records['acc']['PersonEmail']) > 0:  # type:ignore
-                        if input_records['acc']['PersonEmail'] in self.email_to_accId:
-                            # Check whether Opportunity already in SF
-                            account_id: str = self.email_to_accId[input_records['acc']['PersonEmail']]
-                            empty_oppIds: list[str] = [oppId for oppId in self.accId_to_oppIds[account_id]
-                                                       if not self.oppId_to_opp[oppId]['ID_from_HPC__c']] if account_id in self.accId_to_oppIds else []
-                            if len(empty_oppIds) > 0:
-                                # Assign one of the opportunity into current row
-                                current_oppId = empty_oppIds[0]
-                                self.oppId_to_opp[current_oppId].update(opp)
-                                found_opps.append(self.oppId_to_opp[current_oppId])
-                                continue
-                            # This is new Opp, create a new one by flagging empty ID but with Account ID
-                            opp['AccountId'] = account_id
-                            found_opps.append(opp)
-                            continue
+                if not input_records['acc']['PersonEmail']: 
+                  if not isna(input_records['acc']['PersonEmail']):
+                      if len(input_records['acc']['PersonEmail']) > 0:  # type:ignore
+                          if input_records['acc']['PersonEmail'] in self.email_to_accId:
+                              # Check whether Opportunity already in SF
+                              account_id: str = self.email_to_accId[input_records['acc']['PersonEmail']]
+                              empty_oppIds: list[str] = [oppId for oppId in self.accId_to_oppIds[account_id]
+                                                        if not self.oppId_to_opp[oppId]['ID_from_HPC__c']] if account_id in self.accId_to_oppIds else []
+                              if len(empty_oppIds) > 0:
+                                  # Assign one of the opportunity into current row
+                                  current_oppId = empty_oppIds[0]
+                                  self.oppId_to_opp[current_oppId].update(opp)
+                                  found_opps.append(self.oppId_to_opp[current_oppId])
+                                  continue
+                              # This is new Opp, create a new one by flagging empty ID but with Account ID
+                              opp['AccountId'] = account_id
+                              found_opps.append(opp)
+                              continue
 
             if 'Phone' in input_records['acc']:
                 # Search using Phone
-                if not isna(input_records['acc']['Phone']):
-                    if len(input_records['acc']['Phone']) > 0:
-                        if input_records['acc']['Phone'] in self.phone_to_accId:
-                            # Check whether Opportunity already in SF
-                            account_id: str = self.phone_to_accId[input_records['acc']['Phone']]
-                            empty_oppIds: list[str] = [oppId for oppId in self.accId_to_oppIds[account_id]
-                                                       if not self.oppId_to_opp[oppId]['ID_from_HPC__c']] if account_id in self.accId_to_oppIds else []
-                            if len(empty_oppIds) > 0:
-                                # Assign one of the opportunity into current row
-                                current_oppId = empty_oppIds[0]
-                                self.oppId_to_opp[current_oppId].update(opp)
-                                found_opps.append(self.oppId_to_opp[current_oppId])
-                                continue
-                            # This is new Opp, create a new one by flagging empty ID but with Account ID
-                            opp['AccountId'] = account_id
-                            found_opps.append(opp)
-                            continue
+                if not input_records['acc']['Phone']:
+                  if not isna(input_records['acc']['Phone']): # type: ignoref
+                      if len(input_records['acc']['Phone']) > 0:
+                          if input_records['acc']['Phone'] in self.phone_to_accId:
+                              # Check whether Opportunity already in SF
+                              account_id: str = self.phone_to_accId[input_records['acc']['Phone']]
+                              empty_oppIds: list[str] = [oppId for oppId in self.accId_to_oppIds[account_id]
+                                                        if not self.oppId_to_opp[oppId]['ID_from_HPC__c']] if account_id in self.accId_to_oppIds else []
+                              if len(empty_oppIds) > 0:
+                                  # Assign one of the opportunity into current row
+                                  current_oppId = empty_oppIds[0]
+                                  self.oppId_to_opp[current_oppId].update(opp)
+                                  found_opps.append(self.oppId_to_opp[current_oppId])
+                                  continue
+                              # This is new Opp, create a new one by flagging empty ID but with Account ID
+                              opp['AccountId'] = account_id
+                              found_opps.append(opp)
+                              continue
             # Account Not found break
             break
         if len(found_opps) == 0:
