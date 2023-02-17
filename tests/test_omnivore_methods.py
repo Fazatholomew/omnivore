@@ -1,6 +1,6 @@
 from omnivore.app import Blueprint
 from .utils.salesforce_data import load_dummy_query_all
-from omnivore.utils.types import Record_Find_Info, Account, Opportunity
+from omnivore.utils.types import Record_Find_Info, Account, Opportunity, Create
 from omnivore.utils.constants import NEEECO_ACCID
 from unittest.mock import patch, mock_open
 from pandas import DataFrame
@@ -33,7 +33,7 @@ def sf():
     # Load dummy in test
     with patch('omnivore.utils.salesforce.Salesforce') as MockSf:
         MockSf.return_value.query_all.side_effect = load_dummy_query_all
-        MockSf.return_value.Account.create.return_value = 'new account'
+        MockSf.return_value.Account.create.return_value = Create(errors=[], id='new account', success=True)
         MockSf.return_value.Opportunity.update.side_effect = mock_sf_update
         MockSf.return_value.Opportunity.create.side_effect = mock_sf_create
         with patch('omnivore.app.open', mock_open()):
@@ -69,17 +69,17 @@ def test_remove_processed_row(sf, dataframe, mocking_open):
 async def test_upload_to_salesforce(sf):
   omni = Blueprint()
   # Test don't omnivore
-  data: list[Record_Find_Info] = [Record_Find_Info(acc=Account(PersonEmail='aldoglean@gmail.com'), opps=[Opportunity(ID_from_HPC__c='259292987', Don_t_Omnivore__c=True, tempId='test test test')])]
+  data: list[Record_Find_Info] = [Record_Find_Info(acc=Account(PersonEmail='aldoglean@gmail.com', LastName='yeah'), opps=[Opportunity(ID_from_HPC__c='259292987', Don_t_Omnivore__c=True, tempId='test test test')])]
   await omni.start_upload_to_salesforce(data, NEEECO_ACCID)
   assert 'test test test' in omni.processed_rows
   assert not sf.return_value.called
   # Test updating
-  data: list[Record_Find_Info] = [Record_Find_Info(acc=Account(PersonEmail='aldoglean@gmail.com'), opps=[Opportunity(ID_from_HPC__c='259292987', tempId='test test', StageName='Completed', Don_t_Omnivore__c=False)])]
+  data: list[Record_Find_Info] = [Record_Find_Info(acc=Account(PersonEmail='aldoglean@gmail.com', LastName='yeah'), opps=[Opportunity(ID_from_HPC__c='259292987', tempId='test test', StageName='Completed', Don_t_Omnivore__c=False)])]
   await omni.start_upload_to_salesforce(data, NEEECO_ACCID)
   assert sf.return_value.Opportunity.update.call_args_list[0][0][0] == '0063i00000DEbCsAAL'
   assert sf.return_value.Opportunity.update.call_args_list[0][0][1]['StageName'] == 'Completed'
   # Test creating
-  data: list[Record_Find_Info] = [Record_Find_Info(acc=Account(PersonEmail='aldoglean@gmail.com'), opps=[Opportunity(ID_from_HPC__c='259292911', tempId='test test', StageName='Completed', Don_t_Omnivore__c=False)])]
+  data: list[Record_Find_Info] = [Record_Find_Info(acc=Account(PersonEmail='aldoglean@gmail.com', LastName='yeah'), opps=[Opportunity(ID_from_HPC__c='259292911', tempId='test test', StageName='Completed', Don_t_Omnivore__c=False)])]
   await omni.start_upload_to_salesforce(data, NEEECO_ACCID)
   assert sf.return_value.Opportunity.create.call_args_list[0][0][0]['StageName'] == 'Completed'
   assert 'test test' in omni.processed_rows

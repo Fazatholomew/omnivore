@@ -138,7 +138,7 @@ class SalesforceConnection:
             # No Account ID yet, search using email and phone
             if 'PersonEmail' in input_records['acc']:
                 # Search using Email
-                if not input_records['acc']['PersonEmail']: 
+                if input_records['acc']['PersonEmail']: 
                   if not isna(input_records['acc']['PersonEmail']):
                       if len(input_records['acc']['PersonEmail']) > 0:  # type:ignore
                           if input_records['acc']['PersonEmail'] in self.email_to_accId:
@@ -159,9 +159,12 @@ class SalesforceConnection:
 
             if 'Phone' in input_records['acc']:
                 # Search using Phone
-                if not input_records['acc']['Phone']:
+                print('phone')
+                if input_records['acc']['Phone']:
+                  print('Phone is here')
                   if not isna(input_records['acc']['Phone']): # type: ignoref
                       if len(input_records['acc']['Phone']) > 0:
+                          print(self.phone_to_accId)
                           if input_records['acc']['Phone'] in self.phone_to_accId:
                               # Check whether Opportunity already in SF
                               account_id: str = self.phone_to_accId[input_records['acc']['Phone']]
@@ -191,6 +194,7 @@ class SalesforceConnection:
               payload['LastName'] = payload['FirstName']
             try:
               res: Create = cast(Create, self.sf.Account.create(payload))  # type:ignore
+              print(res)
               if res['success']:
                   for opp in input_records['opps']:
                       opp['AccountId'] = res['id']
