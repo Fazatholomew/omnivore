@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 pd.set_option('display.max_columns', 1000)
 pd.options.mode.chained_assignment = None  # type:ignore
+from omnivore.utils.aux import toSalesforceEmail, toSalesforcePhone
 
 
 def rename_and_merge(homeworks_old_input, homeworks_new_input) -> pd.DataFrame:
@@ -217,6 +218,7 @@ def homeworks(homeworks_output):
         ''
 
     homeworks_output['PersonEmail'] = homeworks_output['PersonEmail'].replace('na@hwe.com', np.nan)
+    # homeworks_output = homeworks_output.apply(clean_up_phone_and_email, axis=1)
 
     homeworks_output = homeworks_output.loc[:, [col for col in ['PersonEmail', 'FirstName',
                                                                 'LastName', 'HEA_Date_And_Time__c', 'CloseDate', 'StageName',
@@ -226,6 +228,10 @@ def homeworks(homeworks_output):
 
     return homeworks_output
 
+# def clean_up_phone_and_email(row):
+#   row['Phone'] = toSalesforcePhone(row['Phone'])
+#   row['PersonEmail'] = toSalesforceEmail(row['PersonEmail'])
+#   return row
 
 # if __name__ == '__main__':
 #     output = pd.read_csv('/content/CFP Communities Report - Output.csv')

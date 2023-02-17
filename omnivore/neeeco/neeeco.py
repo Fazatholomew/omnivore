@@ -1,6 +1,7 @@
 import numpy
 import pandas as pd
 import re
+from omnivore.utils.aux import toSalesforceEmail
 
 pd.options.mode.chained_assignment = None
 
@@ -202,6 +203,8 @@ def neeeco(neeeco_input, neeeco_wx_input):
             neeeco_output['Phone'][i] = ''
         if len(neeeco_output['Phone'][i]) > 10:
             neeeco_output['Phone'][i] = neeeco_output['Phone'][i][0:10]
+    
+    neeeco_output['PersonEmail'] = neeeco_output['Email'].apply(toSalesforceEmail)
 
     neeeco_output = neeeco_output.replace('', numpy.nan)
     neeeco_output = neeeco_output.loc[:, [col for col in ['Street__c', 'Name', 'FirstName',
@@ -209,6 +212,6 @@ def neeeco(neeeco_input, neeeco_wx_input):
                                                           'Health_Safety_Barrier_Status__c', 'Health_Safety_Barrier__c',
                                                           'isVHEA__c', 'Weatherization_Status__c', 'Weatherization_Date_Time__c',
                                                           'Contract_Amount__c', 'Final_Contract_Amount__c', 'ID_from_HPC__c',
-                                                          'Cancelation_Reason_s__c', 'HPC__c', 'Phone', 'Legacy_Post_Assessment_Notes__c', 'tempId'] if col in neeeco_output.columns]]
+                                                          'Cancelation_Reason_s__c', 'HPC__c', 'Phone', 'Legacy_Post_Assessment_Notes__c','PersonEmail','tempId'] if col in neeeco_output.columns]]
 
     return neeeco_output
