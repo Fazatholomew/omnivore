@@ -115,7 +115,7 @@ def extract_address(input_data: Any) -> Address:
     extracted_address['city'] = result[0]['PlaceName']
   # extrating zipcode
   if 'ZipCode' in result[0]:
-    extracted_address['zipcode'] = result[0]['ZipCode']
+    extracted_address['zipcode'] = result[0]['ZipCode'][:10]
   return extracted_address
 
 def to_account_and_opportunities(data: DataFrame) -> list[Record_Find_Info]:
@@ -241,13 +241,15 @@ def to_account_and_opportunities(data: DataFrame) -> list[Record_Find_Info]:
       # First Name Last Name for Account
       if hasattr(row, 'FirstName') and not 'FirstName' in current_account:
         first_name = getattr(row, 'FirstName')
-        current_account['FirstName'] = first_name
-        full_name.append(first_name)
+        if not isna(first_name):
+          current_account['FirstName'] = first_name
+          full_name.append(first_name)
       
       if hasattr(row, 'LastName') and not 'LastName' in current_account:
         last_name = getattr(row, 'LastName')
-        current_account['LastName'] = last_name
-        full_name.append(last_name)
+        if not isna(last_name):
+          current_account['LastName'] = last_name
+          full_name.append(last_name)
       
       # Name for Opp
       current_opp['Name'] =  ' '.join(full_name) if len(current_opps) == 0 else f"{' '.join(full_name)} unit {len(current_opps)}"

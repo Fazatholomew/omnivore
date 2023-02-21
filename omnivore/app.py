@@ -68,9 +68,6 @@ class Blueprint:
                 if opp['Don_t_Omnivore__c']:
                     self.processed_rows.add(processed_row_id)
                     continue
-            if opp['ID_from_HPC__c'] == '260538339':
-              print('not exist')
-              print(opp)
             opp['HPC__c'] = HPC_ID
             opp['CampaignId'] = find_cfp_campaign(opp)
             opp['RecordTypeId'] = CFP_OPP_ID if opp['CampaignId'] else HEA_ID
@@ -90,14 +87,13 @@ class Blueprint:
                             print('failed to update')
                             print(err)
                             raise err
+                        print(err)
                         continue
             else:
                 print('creating')
                 payload = to_sf_payload(opp, 'Opportunity')
                 try:
                     res: Create = self.sf.sf.Opportunity.create(payload)  # type:ignore
-                    print('created opp')
-                    print(res)
                     if res['success']:
                         self.processed_rows.add(processed_row_id)
                         # Reporting
@@ -121,6 +117,7 @@ class Blueprint:
                         print('failed to update after create')
                         print(err)
                         raise err
+                    print(err)
                       
                 except Exception as e:
                     print('error creating')
@@ -129,6 +126,7 @@ class Blueprint:
                         print('failed to create')
                         print(e)
                         raise e
+                    print(e)
                 continue
 
     async def start_upload_to_salesforce(self, data: list[Record_Find_Info], HPC_ID: str) -> None:

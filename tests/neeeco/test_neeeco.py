@@ -8,6 +8,6 @@ def test_neeeco_processing_function():
       expected_value = output_data.iloc[i][column]
       current_value = result.iloc[i][column]
       if isna(expected_value):
-        assert isna(current_value), f"\nColumn = '{column}'\nNeeeco code = {current_value}\nExpected value = {expected_value}\nNeeeco ID = {output_data.iloc[i]['ID_from_HPC__c']}\n"
+        assert isna(current_value), f"\nColumn =\n'{column}'\nNeeeco code =\n{current_value}\nExpected value =\n{expected_value}\nNeeeco ID = {output_data.iloc[i]['ID_from_HPC__c']}\n"
       else:
-        assert expected_value == current_value, f"\nColumn = '{column}'\nNeeeco code = {current_value}\nExpected value = {expected_value}\nNeeeco ID = {output_data.iloc[i]['ID_from_HPC__c']}\n"
+        assert expected_value == current_value, f"\nColumn = '{column}'\nNeeeco code =\n{current_value}\nExpected value =\n{expected_value}\nNeeeco ID = {output_data.iloc[i]['ID_from_HPC__c']}\n"
