@@ -68,10 +68,14 @@ class Blueprint:
                 if opp['Don_t_Omnivore__c']:
                     self.processed_rows.add(processed_row_id)
                     continue
+            if opp['ID_from_HPC__c'] == '260538339':
+              print('not exist')
+              print(opp)
             opp['HPC__c'] = HPC_ID
             opp['CampaignId'] = find_cfp_campaign(opp)
             opp['RecordTypeId'] = CFP_OPP_ID if opp['CampaignId'] else HEA_ID
             if 'Id' in opp:
+                print('updating')
                 if len(opp['Id']) > 3:
                     payload = to_sf_payload(opp, 'Opportunity')
                     current_id = payload.pop('Id')
@@ -88,13 +92,17 @@ class Blueprint:
                             raise err
                         continue
             else:
+                print('creating')
                 payload = to_sf_payload(opp, 'Opportunity')
                 try:
                     res: Create = self.sf.sf.Opportunity.create(payload)  # type:ignore
+                    print('created opp')
+                    print(res)
                     if res['success']:
                         self.processed_rows.add(processed_row_id)
                         # Reporting
                 except SalesforceMalformedRequest as err:
+
                     if (err.content[0]['errorCode'] == 'DUPLICATE_VALUE'):
                         maybe_id = err.content[0]['message'].split('id: ')
                         if len(maybe_id) == 2:
@@ -108,7 +116,14 @@ class Blueprint:
                                     print('failed to update after create')
                                     print(e)
                                     raise e
+                    if (getenv('ENV') == 'staging'):
+                        print(payload)
+                        print('failed to update after create')
+                        print(err)
+                        raise err
+                      
                 except Exception as e:
+                    print('error creating')
                     if (getenv('ENV') == 'staging'):
                         print(payload)
                         print('failed to create')

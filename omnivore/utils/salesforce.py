@@ -159,12 +159,9 @@ class SalesforceConnection:
 
             if 'Phone' in input_records['acc']:
                 # Search using Phone
-                print('phone')
                 if input_records['acc']['Phone']:
-                  print('Phone is here')
                   if not isna(input_records['acc']['Phone']): # type: ignoref
                       if len(input_records['acc']['Phone']) > 0:
-                          print(self.phone_to_accId)
                           if input_records['acc']['Phone'] in self.phone_to_accId:
                               # Check whether Opportunity already in SF
                               account_id: str = self.phone_to_accId[input_records['acc']['Phone']]
@@ -194,6 +191,7 @@ class SalesforceConnection:
               payload['LastName'] = payload['FirstName']
             try:
               res: Create = cast(Create, self.sf.Account.create(payload))  # type:ignore
+              print('creating new account')
               print(res)
               if res['success']:
                   for opp in input_records['opps']:
