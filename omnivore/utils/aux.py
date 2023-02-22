@@ -285,7 +285,6 @@ def find_cfp_campaign(data: Opportunity) -> str:
   '''
     Return respected CFP Campaign
   '''
-  print(data)
   if not 'City__c' in data:
     return ''
   if isna(data['City__c']):

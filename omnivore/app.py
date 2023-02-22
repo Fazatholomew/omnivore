@@ -4,6 +4,7 @@ from typing import cast
 from pandas import DataFrame, read_csv
 from asyncio import run, gather, get_event_loop
 from simple_salesforce.exceptions import SalesforceMalformedRequest
+from traceback import print_exc
 import logging
 
 
@@ -87,6 +88,7 @@ class Blueprint:
                             print('failed to update')
                             print(err)
                             raise err
+                        print_exc()
                         print(err)
                         continue
             else:
@@ -117,6 +119,7 @@ class Blueprint:
                         print('failed to update after create')
                         print(err)
                         raise err
+                    print_exc()
                     print(err)
                       
                 except Exception as e:
@@ -126,6 +129,7 @@ class Blueprint:
                         print('failed to create')
                         print(e)
                         raise e
+                    print_exc()
                     print(e)
                 continue
 
@@ -149,6 +153,7 @@ class Blueprint:
           run(self.start_upload_to_salesforce(grouped_opps, NEEECO_ACCID))
         except Exception as e:
           print("Error in Neeeco process.")
+          print_exc()
           print(e)
 
 
@@ -166,6 +171,7 @@ class Blueprint:
           run(self.start_upload_to_salesforce(grouped_opps, HOMEWORKS_ACCID))
         except Exception as e:
           print("Error in Homeworks process.")
+          print_exc()
           print(e)
 
     def run(self) -> None:
