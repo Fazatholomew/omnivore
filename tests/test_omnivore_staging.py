@@ -4,6 +4,7 @@ from omnivore import app
 from omnivore.utils.constants import HEA_ID, NEEECO_ACCID, HOMEWORKS_ACCID
 from .neeeco.neeeco_data import output_data
 from .homeworks.homeworks_data import output_data as output_data_homeworks
+from .vhi.vhi_data import output_data as output_data_vhi
 from datetime import datetime
 from omnivore.utils.aux import find_cfp_campaign 
 
@@ -93,8 +94,6 @@ def test_app_using_neeeco(init_app):
     unique_ids = output_data['ID_from_HPC__c'].unique().tolist()
     joined = "', '".join(unique_ids)
     res = init_app.sf.sf.query_all(f"SELECT ID_from_HPC__c from Opportunity WHERE ID_from_HPC__c IN ('{joined}')")
-    print('neeeco test')
-    print(res)
     # assert len(res['records']) == len(unique_ids)
     ids = [current_opp['ID_from_HPC__c'] for current_opp in res['records']]
     for current_id in unique_ids:
@@ -106,15 +105,32 @@ def test_app_using_homeworks(init_app):
       Testing whole app functionility including:
       - Connecting to SF and query current Database
       - Fetch Data from GAS
-      - Process data for specific HPC (Neeeco)
+      - Process data for specific HPC (Homeworks)
       - Upload the data to SF
     '''
     init_app.run_homeworks()
     unique_ids = output_data_homeworks['ID_from_HPC__c'].unique().tolist()
     joined = "', '".join(unique_ids)
     res = init_app.sf.sf.query_all(f"SELECT ID_from_HPC__c from Opportunity WHERE ID_from_HPC__c IN ('{joined}')")
-    print('homeworks test')
-    print(res)
+    ids = [current_opp['ID_from_HPC__c'] for current_opp in res['records']]
+    for current_id in unique_ids:
+        assert current_id in ids
+    assert len(res['records']) == len(unique_ids)
+
+
+@pytest.mark.staging
+def test_app_using_vhi(init_app):
+    '''
+      Testing whole app functionility including:
+      - Connecting to SF and query current Database
+      - Fetch Data from GAS
+      - Process data for specific HPC (VHI)
+      - Upload the data to SF
+    '''
+    init_app.run_vhi()
+    unique_ids = output_data_homeworks['ID_from_HPC__c'].unique().tolist()
+    joined = "', '".join(unique_ids)
+    res = init_app.sf.sf.query_all(f"SELECT ID_from_HPC__c from Opportunity WHERE ID_from_HPC__c IN ('{joined}')")
     ids = [current_opp['ID_from_HPC__c'] for current_opp in res['records']]
     for current_id in unique_ids:
         assert current_id in ids

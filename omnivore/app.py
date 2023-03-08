@@ -10,10 +10,11 @@ import logging
 
 from .homeworks.homeworks import homeworks, rename_and_merge
 from .neeeco.neeeco import neeeco
+from .vhi.vhi import vhi
 from .utils.salesforce import SalesforceConnection, Create
 from .utils.aux import to_account_and_opportunities, to_sf_payload, find_cfp_campaign
 from .utils.types import Record_Find_Info
-from .utils.constants import NEEECO_ACCID, HEA_ID, CFP_OPP_ID, HOMEWORKS_ACCID
+from .utils.constants import NEEECO_ACCID, HEA_ID, CFP_OPP_ID, HOMEWORKS_ACCID, VHI_ACCID
 
 logging.basicConfig(format='%(asctime)s %(message)s')
 
@@ -171,6 +172,21 @@ class Blueprint:
           run(self.start_upload_to_salesforce(grouped_opps, HOMEWORKS_ACCID))
         except Exception as e:
           print("Error in Homeworks process.")
+          print_exc()
+          print(e)
+    
+    def run_vhi(self) -> None:
+        '''
+          Run VHI process
+        '''
+        try:
+          data = read_csv(cast(str, getenv('VHI_DATA_URL')), dtype='object')
+          processed_row_removed = self.remove_already_processed_row(data)
+          processed_row = vhi(processed_row_removed)
+          grouped_opps = to_account_and_opportunities(processed_row)
+          run(self.start_upload_to_salesforce(grouped_opps, VHI_ACCID))
+        except Exception as e:
+          print("Error in VHI process.")
           print_exc()
           print(e)
 

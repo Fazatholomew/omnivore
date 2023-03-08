@@ -1,0 +1,10 @@
+ID_from_HPC__c,FirstName,LastName,Street__c,Phone,PersonEmail,HEA_Date_And_Time__c,StageName,Health_Safety_Barrier__c,Weatherization_Status__c,Weatherization_Date_Time__c,Final_Contract_Amount__c,Cancelation_Reason_s__c
+2021-0347,Jose,Queliz-,"116-118 Stearns Ave 3rd Floor Lawrence, MA Lawrence",9782087839,,2021-08-25T10:00:00.000-07:00,Signed Contracts,,Completed,,"4791.6",
+2022-bmf45,Nick,Ambra 3rd unit,"22- 24 Custer Street, Lawrence Lawrence",,sandy1518@hotmail.es,2022-02-03T12:00:00.000-07:00,Signed Contracts,,Completed,2022-08-29T00:00:00.000-07:00,"16745.27",
+2022-0760A,Maseray,Medley - unit 1,16 gilbert Ave  Haverhill Haverhill,9783872313,amed5963@yahoo.com,2022-02-17T10:00:00.000-07:00,Signed Contracts,Other,Completed,2022-09-06T00:00:00.000-07:00,"5426.62",
+2022-1096,Arianne,Santos,"24 Hillside St, 2nd Flr, Haverhill Haverhill",5086333776,apenarivas@hotmail.com,2022-10-28T13:00:00.000-07:00,No Opportunity,Knob & Tube (Minor),,,,
+2022-0942,Rodolfo,Nunez,74 Ferry st Lawrence LAWRENCE MA,9783900411,rodolfon1078@gmail.com,2022-08-05T10:00:00.000-07:00,Recommended - Unsigned,,,,"9564.89",
+2022-1063,Francisco,Horton-,"52-54 HILLSIDE AVE, Lawrence",9782426989,francisco0457@yahoo.com,2023-02-03T15:00:00.000-07:00,Canceled,,,,,Low Income
+2021-0558,Richy,Cabrera - unit 1,"50 52 oak st, Lawrence",9788818282,richyxxi@hotmail.com,2022-01-05T06:30:00.000-07:00,Recommended - Unsigned,,,,"9222.08",Low Income
+2021-0594,Carlos,Matos,"61 Wilmot Street, Lawrence, 01841",9788578398,vegasaturno@yahoo.com,2022-11-14T13:00:00.000-07:00,Scheduled,,,,,Low Income
+2021-0378,Eduardo,Rosario,50 Loring St Lawrence,9782284804,jelssyescano@hotmail.com,2022-11-08T13:00:00.000-07:00,Signed Contracts,,Completed,2023-02-02T00:00:00.000-07:00,"5932.67",Low Income
