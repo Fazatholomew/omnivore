@@ -5,9 +5,35 @@ pd.set_option('display.max_columns', 1000)
 pd.options.mode.chained_assignment = None  # type:ignore
 from omnivore.utils.aux import toSalesforceEmail, toSalesforcePhone
 
+# Health And Safety
+hsMapper = {
+        "Knob and Tube": 'Knob & Tube (Major)',
+        "Asbestos": 'Asbestos',	
+        "Vermiculite": 'Vermiculite',
+        "Mold": 'Mold/Moisture'
+    }
+
+
+def combine_hs(row: pd.Series) -> str:
+    """
+    Unfortunately, homeworks uses columns with a boolean value for
+    each Health and Safety Barrier category. This function combines
+    them in one column.
+    """
+    values = [value for key, value in hsMapper.items() if row[key] == '1']
+    return ';'.join(values)
+
+
+
 
 def rename_and_merge(homeworks_old_input, homeworks_new_input) -> pd.DataFrame:
-    homeworks_new_input = homeworks_new_input.rename(columns={"Account: Primary Contact: First Name": "FirstName",
+  '''
+   Homeworks sends 2 files. Old input only contains completed HEAs whereas
+   new input contains canceled and scheduled ones. Sometimes they overlap.
+   This functions rename the columns and combines them in case there's an
+   overlap.
+  '''
+  homeworks_new_input = homeworks_new_input.rename(columns={"Account: Primary Contact: First Name": "FirstName",
                                                               "Account: Primary Contact: Last Name": "LastName",
                                                               "Phone Number": "Phone",
                                                               "Customer Email": "PersonEmail",
@@ -19,10 +45,10 @@ def rename_and_merge(homeworks_old_input, homeworks_new_input) -> pd.DataFrame:
                                                               "Operations: Billing Town": "City__c",
                                                               "Account: Account Name": "Street__c",
                                                               "Operations: Last Scheduled HEA Date": "HEA_Date_And_Time__c",
-                                                              "Operations: Last Scheduled HEA Date": "CloseDate",
+                                                              "Created Date": "CloseDate",
                                                               "Reason for Canceled": "Cancelation_Reason_s__c"})
 
-    homeworks_old_input = homeworks_old_input.rename(columns={"Customer First Name": "FirstName",
+  homeworks_old_input = homeworks_old_input.rename(columns={"Customer First Name": "FirstName",
                                                               "Customer Last Name": "LastName",
                                                               "Day Phone": "Phone",
                                                               "Email": "PersonEmail",
@@ -37,7 +63,7 @@ def rename_and_merge(homeworks_old_input, homeworks_new_input) -> pd.DataFrame:
                                                                   "Wx Job Status": "Weatherization_Status__c",
                                                                   "Billing City": "City__c",
                                                                   "Account Name": "Street__c"})
-    return pd.merge(left=homeworks_new_input, right=homeworks_old_input,
+  return pd.merge(left=homeworks_new_input, right=homeworks_old_input,
                     how='outer', on='ID_from_HPC__c')
 
 

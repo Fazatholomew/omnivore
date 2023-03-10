@@ -23,6 +23,7 @@ def init_app(monkeypatch):
                         mock_find_cfp.return_value = ''
                         m.setattr(app, "NEEECO_ACCID", "0017600000VQCaXAAX")
                         m.setattr(app, "HOMEWORKS_ACCID", "0017600000VQCacAAH") 
+                        m.setattr(app, "VHI_ACCID", "0017600000Vb87cAAB")
                         now = datetime.now()
                         mock_load.return_value = set()  # Empty processed row so in the beginning everything is processed
                         omni = app.Blueprint()
@@ -128,7 +129,7 @@ def test_app_using_vhi(init_app):
       - Upload the data to SF
     '''
     init_app.run_vhi()
-    unique_ids = output_data_homeworks['ID_from_HPC__c'].unique().tolist()
+    unique_ids = output_data_vhi['ID_from_HPC__c'].unique().tolist()
     joined = "', '".join(unique_ids)
     res = init_app.sf.sf.query_all(f"SELECT ID_from_HPC__c from Opportunity WHERE ID_from_HPC__c IN ('{joined}')")
     ids = [current_opp['ID_from_HPC__c'] for current_opp in res['records']]
