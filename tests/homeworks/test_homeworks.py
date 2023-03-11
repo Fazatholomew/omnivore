@@ -45,6 +45,7 @@ def test_homeworks_hsMapper():
 
 def test_homeworks_processing_function():
     data = rename_and_merge(input_old_data, input_new_data)
+    print(data)
     result = homeworks(data)
     for i in range(len(output_data)):
       for column in output_data.columns:

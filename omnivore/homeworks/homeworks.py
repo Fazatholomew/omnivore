@@ -14,14 +14,14 @@ hsMapper = {
     }
 
 
-def combine_hs(row: pd.Series) -> str:
+def combine_hs(row: pd.Series) -> str | float:
     """
     Unfortunately, homeworks uses columns with a boolean value for
     each Health and Safety Barrier category. This function combines
     them in one column.
     """
     values = [value for key, value in hsMapper.items() if row[key] == '1']
-    return ';'.join(values)
+    return ';'.join(values) or np.nan
 
 
 
@@ -33,6 +33,7 @@ def rename_and_merge(homeworks_old_input, homeworks_new_input) -> pd.DataFrame:
    This functions rename the columns and combines them in case there's an
    overlap.
   '''
+  print(homeworks_new_input.head())
   homeworks_new_input = homeworks_new_input.rename(columns={"Account: Primary Contact: First Name": "FirstName",
                                                               "Account: Primary Contact: Last Name": "LastName",
                                                               "Phone Number": "Phone",
@@ -45,8 +46,9 @@ def rename_and_merge(homeworks_old_input, homeworks_new_input) -> pd.DataFrame:
                                                               "Operations: Billing Town": "City__c",
                                                               "Account: Account Name": "Street__c",
                                                               "Operations: Last Scheduled HEA Date": "HEA_Date_And_Time__c",
-                                                              "Created Date": "CloseDate",
-                                                              "Reason for Canceled": "Cancelation_Reason_s__c"})
+                                                              "Reason for Canceled": "Cancelation_Reason_s__c"})                                                            
+  print(homeworks_new_input.head())
+  homeworks_new_input['CloseDate'] = homeworks_new_input['HEA_Date_And_Time__c']
 
   homeworks_old_input = homeworks_old_input.rename(columns={"Customer First Name": "FirstName",
                                                               "Customer Last Name": "LastName",
@@ -59,7 +61,7 @@ def rename_and_merge(homeworks_old_input, homeworks_new_input) -> pd.DataFrame:
                                                                   "Operations: Unique ID": "ID_from_HPC__c",
                                                                   "Preferred Language": "Prefered_Lan__c",
                                                                   "Time Stamp HEA Performed": "HEA_Date_And_Time__c",
-                                                                  "Time Stamp HEA Performed": "CloseDate",
+                                                                  "Created Date": "CloseDate",
                                                                   "Wx Job Status": "Weatherization_Status__c",
                                                                   "Billing City": "City__c",
                                                                   "Account Name": "Street__c"})
@@ -185,7 +187,7 @@ def homeworks(homeworks_output):
     homeworks_output['StageName'] = homeworks_output[
         'StageName_x'].combine_first(homeworks_output['StageName_y'])
     homeworks_output['CloseDate'] = homeworks_output[
-        'CloseDate_x'].combine_first(homeworks_output['CloseDate_y'])
+        'CloseDate_y'].combine_first(homeworks_output['CloseDate_x'])
     homeworks_output['Phone'] = homeworks_output[
         'Phone_x'].combine_first(homeworks_output['Phone_y'])
     homeworks_output['PersonEmail'] = homeworks_output[
@@ -215,8 +217,11 @@ def homeworks(homeworks_output):
 
     homeworks_output['CloseDate'] = pd.to_datetime(homeworks_output['CloseDate'])
     homeworks_output['CloseDate'] = homeworks_output['CloseDate'].dt.strftime('%Y-%m-%d'+'T'+'%H:%M:%S'+'.000-07:00')
-    homeworks_output['CloseDate'] = homeworks_output['CloseDate']
-    homeworks_output['HEA_Date_And_Time__c'] = homeworks_output['CloseDate']
+    homeworks_output['HEA_Date_And_Time__c'] = homeworks_output[
+        'HEA_Date_And_Time__c_y'].combine_first(homeworks_output['HEA_Date_And_Time__c_x'])
+    homeworks_output['HEA_Date_And_Time__c'] = pd.to_datetime(homeworks_output['HEA_Date_And_Time__c'])
+    homeworks_output['HEA_Date_And_Time__c'] = homeworks_output['HEA_Date_And_Time__c'].dt.strftime('%Y-%m-%d'+'T'+'%H:%M:%S'+'.000-07:00')
+    
 
     homeworks_output['Weatherization_Date_Time__c'] = pd.to_datetime(
         homeworks_output['Weatherization_Date_Time__c'], errors='coerce')
@@ -246,11 +251,14 @@ def homeworks(homeworks_output):
     homeworks_output['PersonEmail'] = homeworks_output['PersonEmail'].replace('na@hwe.com', np.nan)
     # homeworks_output = homeworks_output.apply(clean_up_phone_and_email, axis=1)
 
+    # Combine health and safety
+    homeworks_output['Health_Safety_Barrier__c'] = homeworks_output.apply(combine_hs, axis=1)
+
     homeworks_output = homeworks_output.loc[:, [col for col in ['PersonEmail', 'FirstName',
                                                                 'LastName', 'HEA_Date_And_Time__c', 'CloseDate', 'StageName',
                                                                 'Owner_Renter__c', 'Street__c', 'City__c', 'ID_from_HPC__c',
                                                                 'Weatherization_Status__c', 'Weatherization_Date_Time__c',
-                                                                'Cancelation_Reason_s__c', 'Phone', 'tempId'] if col in homeworks_output.columns]]
+                                                                'Cancelation_Reason_s__c', 'Phone', 'Health_Safety_Barrier__c', 'tempId'] if col in homeworks_output.columns]]
 
     return homeworks_output
 
