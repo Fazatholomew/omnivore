@@ -74,7 +74,6 @@ class Blueprint:
             opp['CampaignId'] = find_cfp_campaign(opp)
             opp['RecordTypeId'] = CFP_OPP_ID if opp['CampaignId'] else HEA_ID
             if 'Id' in opp:
-                print('updating')
                 if len(opp['Id']) > 3:
                     payload = to_sf_payload(opp, 'Opportunity')
                     current_id = payload.pop('Id')
@@ -93,7 +92,6 @@ class Blueprint:
                         print(err)
                         continue
             else:
-                print('creating')
                 payload = to_sf_payload(opp, 'Opportunity')
                 try:
                     res: Create = self.sf.sf.Opportunity.create(payload)  # type:ignore
