@@ -195,4 +195,7 @@ class Blueprint:
         print('Start Processing Homeworks')
         self.run_homeworks()
         self.save_processed_rows()
+        print('Start Processing VHI')
+        self.run_vhi()
+        self.save_processed_rows()
         print('Finished running Omnivore')
