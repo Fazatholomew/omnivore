@@ -1,5 +1,6 @@
 from omnivore.utils.aux import toSalesforceEmail, toSalesforcePhone
 from pandas import DataFrame, to_datetime, Series
+from datetime import datetime
 from numpy import nan
 
 stageMapper = {
@@ -45,13 +46,17 @@ def vhi(data:DataFrame) -> DataFrame:
     data['Weatherization_Status__c'] = nan
     data.loc[(data['StageName'] == 'Wx Scheduled'), 'Weatherization_Status__c'] = 'Scheduled'
     data.loc[(data['StageName'] == 'Wx Completed'), 'Weatherization_Status__c'] = 'Completed'
-    data['Cancelation_Reason_s__c'] = nan
-    data.loc[(data['Lead Vendor'] == 'ABCD'), 'Cancelation_Reason_s__c'] = 'Low Income'
-    data.loc[(data['StageName'] == 'Canceled'), 'Cancelation_Reason_s__c'] = 'No Reason'
     data['StageName'] = data['StageName'].map(stageMapper)
+    data.loc[(data['StageName'].isna()), 'StageName'] = 'Canceled' 
+    data['Cancelation_Reason_s__c'] = nan
+    data.loc[(data['StageName'] == 'Canceled'), 'Cancelation_Reason_s__c'] = 'No Reason'
+    data.loc[(data['Lead Vendor'] == 'ABCD'), 'Cancelation_Reason_s__c'] = 'Low Income'
+
 
     # Date and Time
     data['CloseDate'] = to_datetime(data['HEA_Date_And_Time__c'], errors='coerce').dt.strftime(
+        '%Y-%m-%d'+'T'+'%H:%M:%S'+'.000-07:00')
+    data.loc[(data['CloseDate'].isna()), 'CloseDate'] = datetime.now().strftime(
         '%Y-%m-%d'+'T'+'%H:%M:%S'+'.000-07:00')
     data['HEA_Date_And_Time__c'] = to_datetime(data['HEA_Date_And_Time__c'], errors='coerce').dt.strftime(
         '%Y-%m-%d'+'T'+'%H:%M:%S'+'.000-07:00')

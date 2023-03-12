@@ -82,6 +82,22 @@ class Blueprint:
                         if cast(int, res) > 200:
                             self.processed_rows.add(processed_row_id)
                             # Reporting
+                    except SalesforceMalformedRequest as err:
+                        if (err.content[0]['errorCode'] == 'FIELD_CUSTOM_VALIDATION_EXCEPTION' and 'cancelation' in err.content[0]['message']):
+                        # Canceled stage needs a cancelation reason
+                          try:
+                              payload['Cancelation_Reason_s__c'] = 'No Reason' # Default reason
+                              res = self.sf.sf.Opportunity.create(payload)  # type:ignore
+                              if cast(int, res) > 200:
+                                  self.processed_rows.add(processed_row_id)
+                          except Exception as e:
+                              if (getenv('ENV') == 'staging'):
+                                  print(payload)
+                                  print('failed to create after cancelation reason')
+                                  print(e)
+                                  raise e
+                              print_exc()
+                              print(e) 
                     except Exception as err:
                         if (getenv('ENV') == 'staging'):
                             print(payload)
@@ -99,7 +115,6 @@ class Blueprint:
                         self.processed_rows.add(processed_row_id)
                         # Reporting
                 except SalesforceMalformedRequest as err:
-
                     if (err.content[0]['errorCode'] == 'DUPLICATE_VALUE'):
                         maybe_id = err.content[0]['message'].split('id: ')
                         if len(maybe_id) == 2:
@@ -113,6 +128,24 @@ class Blueprint:
                                     print('failed to update after create')
                                     print(e)
                                     raise e
+                                print_exc()
+                                print(e)
+                            
+                    if (err.content[0]['errorCode'] == 'FIELD_CUSTOM_VALIDATION_EXCEPTION' and 'cancelation' in err.content[0]['message']):
+                        # Canceled stage needs a cancelation reason
+                        try:
+                            payload['Cancelation_Reason_s__c'] = 'No Reason' # Default reason
+                            res = self.sf.sf.Opportunity.create(payload)  # type:ignore
+                            if cast(int, res) > 200:
+                                self.processed_rows.add(processed_row_id)
+                        except Exception as e:
+                            if (getenv('ENV') == 'staging'):
+                                print(payload)
+                                print('failed to create after cancelation reason')
+                                print(e)
+                                raise e
+                            print_exc()
+                            print(e)
                     if (getenv('ENV') == 'staging'):
                         print(payload)
                         print('failed to update after create')
