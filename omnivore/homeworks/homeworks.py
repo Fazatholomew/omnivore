@@ -33,7 +33,6 @@ def rename_and_merge(homeworks_old_input, homeworks_new_input) -> pd.DataFrame:
    This functions rename the columns and combines them in case there's an
    overlap.
   '''
-  print(homeworks_new_input.head())
   homeworks_new_input = homeworks_new_input.rename(columns={"Account: Primary Contact: First Name": "FirstName",
                                                               "Account: Primary Contact: Last Name": "LastName",
                                                               "Phone Number": "Phone",
@@ -47,7 +46,6 @@ def rename_and_merge(homeworks_old_input, homeworks_new_input) -> pd.DataFrame:
                                                               "Account: Account Name": "Street__c",
                                                               "Operations: Last Scheduled HEA Date": "HEA_Date_And_Time__c",
                                                               "Reason for Canceled": "Cancelation_Reason_s__c"})                                                            
-  print(homeworks_new_input.head())
   homeworks_new_input['CloseDate'] = homeworks_new_input['HEA_Date_And_Time__c']
 
   homeworks_old_input = homeworks_old_input.rename(columns={"Customer First Name": "FirstName",
