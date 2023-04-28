@@ -96,7 +96,6 @@ OPPORTUNITY_COLUMNS = [
     "Legacy_Post_Assessment_Notes__c",
     "HPC__c",
     "CampaignId",
-    "Owner_Renter__c"
 ]
 # Account columns to fetch
 ACCOUNT_COLUMNS = [
