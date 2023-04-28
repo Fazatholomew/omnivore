@@ -203,8 +203,9 @@ class Blueprint:
           run(self.start_upload_to_salesforce(grouped_opps, HOMEWORKS_ACCID))
         except Exception as e:
           print("Error in Homeworks process.")
-          print_exc()
-          print(e)
+          # print_exc()
+          # print(e)
+          raise e
     
     def run_vhi(self) -> None:
         '''

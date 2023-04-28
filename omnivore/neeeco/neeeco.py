@@ -112,9 +112,13 @@ def neeeco(neeeco_input, neeeco_wx_input):
     )
     neeeco_output["Name"] = neeeco_output["Name"].str.replace(r"( )$", "", regex=True)
 
+    neeeco_output["Date of Audit"] = neeeco_output["Date of Audit"].replace("", numpy.nan)
+    neeeco_output["Date of Audit"] = neeeco_output["Date of Audit"].fillna(neeeco_output["Date Of Audit"])
+    neeeco_output["Date of Audit"] = neeeco_output["Date of Audit"].replace(numpy.nan, "")
     neeeco_output["Date of Audit"] = pd.to_datetime(
         neeeco_output["Date of Audit"], format="%m/%d/%Y"
     )
+
     neeeco_output["Date of Audit"] = neeeco_output["Date of Audit"].dt.strftime(
         "%Y-%m-%d"
     )
