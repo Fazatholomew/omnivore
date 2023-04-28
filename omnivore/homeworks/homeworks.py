@@ -40,7 +40,7 @@ def rename_and_merge(homeworks_old_input, homeworks_new_input) -> pd.DataFrame:
                                                               "Account: Deal: HEA Visit Result Detail": "StageName",
                                                               "Operations: Account: Landlord, Owner, Tenant": "Owner_Renter__c",
                                                               "Operations: Completion/Walk Date": "Weatherization_Date_Time__c",
-                                                              "Operations: Unique ID": "ID_from_HPC__c",
+                                                              "Operations: Operations ID & Payzer Memo": "ID_from_HPC__c",
                                                               "Operations: Job Status": "Weatherization_Status__c",
                                                               "Operations: Billing Town": "City__c",
                                                               "Account: Account Name": "Street__c",
@@ -56,7 +56,7 @@ def rename_and_merge(homeworks_old_input, homeworks_new_input) -> pd.DataFrame:
                                                               "Landlord, Owner, Tenant": "Owner_Renter__c",
                                                               "Operations: Scheduled Insulation Start Date (DT)":
                                                                   "Weatherization_Date_Time__c",
-                                                                  "Operations: Unique ID": "ID_from_HPC__c",
+                                                                  "Operations: Operations ID & Payzer Memo": "ID_from_HPC__c",
                                                                   "Preferred Language": "Prefered_Lan__c",
                                                                   "Time Stamp HEA Performed": "HEA_Date_And_Time__c",
                                                                   "Created Date": "CloseDate",
