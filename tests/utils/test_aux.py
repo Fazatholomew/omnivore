@@ -68,6 +68,9 @@ def test_toSalesforceEmail():
     lower_email = toSalesforceEmail('JffsImmY@yaHOO.com')
     assert lower_email == 'jffsimmy@yahoo.com'
 
+    # Don't know what happen
+    assert 'tinakemper1@verizon.net' == toSalesforceEmail('tinakemper1@verizon.net')
+
 
 def test_extractId():
     # Return empty array when no id

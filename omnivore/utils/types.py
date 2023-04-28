@@ -31,6 +31,7 @@ class Opportunity(TypedDict, total=False):
     CampaignId: str
     Cancelation_Reason_s__c: str
     Legacy_Post_Assessment_Notes__c: str
+    Owner_Renter__c: str
 
 class Account(TypedDict, total=False):
     Id: str
@@ -48,6 +49,7 @@ class Account(TypedDict, total=False):
     Owner_Renter__c: str
     All_In_Energy_ID__c: str
     Field_Staff__c: str
+    Prefered_Lan__c: str
 
 
 class Query(TypedDict, total=True):
