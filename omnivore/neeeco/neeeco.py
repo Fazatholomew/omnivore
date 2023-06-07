@@ -242,10 +242,10 @@ def neeeco(neeeco_input, neeeco_wx_input):
             if neeeco_output["Final_Contract_Amount__c"][i] != "":
               neeeco_output["Weatherization_Status__c"][i] = "Completed" #Final Completed amount not empty
 
-            if neeeco_output["Weatherization_Date_Time__c"][i] != "":
+            elif neeeco_output["Weatherization_Date_Time__c"][i] != "":
                 neeeco_output["Weatherization_Status__c"][i] = "Scheduled"
 
-            if neeeco_output["Weatherization_Date_Time__c"][i] == "":
+            elif neeeco_output["Weatherization_Date_Time__c"][i] == "":
                 neeeco_output["Weatherization_Status__c"][i] = "Not Yet Scheduled"
 
     # // No cancel reason, default it to No Reason
