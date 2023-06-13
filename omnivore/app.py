@@ -6,15 +6,21 @@ from asyncio import run, gather, get_event_loop
 from simple_salesforce.exceptions import SalesforceMalformedRequest
 from traceback import print_exc
 import logging
+from dotenv import load_dotenv
 
+import sys
+from pathlib import Path
+# Add the project's root directory to the system path
+sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from .homeworks.homeworks import homeworks, rename_and_merge
-from .neeeco.neeeco import neeeco
-from .vhi.vhi import vhi
-from .utils.salesforce import SalesforceConnection, Create
-from .utils.aux import to_account_and_opportunities, to_sf_payload, find_cfp_campaign
-from .utils.types import Record_Find_Info
-from .utils.constants import NEEECO_ACCID, HEA_ID, CFP_OPP_ID, HOMEWORKS_ACCID, VHI_ACCID
+# Now you can import the modules using absolute import
+from omnivore.homeworks.homeworks import homeworks, rename_and_merge
+from omnivore.neeeco.neeeco import neeeco
+from omnivore.vhi.vhi import vhi
+from omnivore.utils.salesforce import SalesforceConnection, Create
+from omnivore.utils.aux import to_account_and_opportunities, to_sf_payload, find_cfp_campaign
+from omnivore.utils.types import Record_Find_Info
+from omnivore.utils.constants import NEEECO_ACCID, HEA_ID, CFP_OPP_ID, HOMEWORKS_ACCID, VHI_ACCID
 
 logging.basicConfig(format='%(asctime)s %(message)s')
 
@@ -232,3 +238,9 @@ class Blueprint:
         self.run_vhi()
         self.save_processed_rows()
         print('Finished running Omnivore')
+
+
+if __name__ == '__main__':
+    load_dotenv()
+    omni = Blueprint()
+    omni.run()
