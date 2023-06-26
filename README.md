@@ -10,6 +10,10 @@ Syncing All In Energy's Salesforce with data from HPC's.
 ```
 
 ## Running
+## New Run
+```shell
+~ $ pdm run
+```
 
 ### Using Python Interpreter
 ```shell
