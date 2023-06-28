@@ -56,4 +56,4 @@ __pycache__/
 pip-wheel-metadata/
 
 # pytest debug logs generated via --debug
-pytestdebug.log
+pytestdebug.log.pdm-python

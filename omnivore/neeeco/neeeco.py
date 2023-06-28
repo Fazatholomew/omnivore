@@ -7,13 +7,16 @@ pd.options.mode.chained_assignment = None
 
 
 def neeeco(neeeco_input, neeeco_wx_input):
-    neeeco_output = pd.merge(
-        left=neeeco_input,
-        right=neeeco_wx_input,
-        how="left",
-        left_on="Related to",
-        right_on="HEA - Last, First, Address",
-    )
+    try:
+        neeeco_output = pd.merge(
+            left=neeeco_input,
+            right=neeeco_wx_input,
+            how="left",
+            left_on="Related to",
+            right_on="HEA - Last, First, Address",
+        )
+    except Exception as e:
+        print("An error occured:", str(e))
 
     # // Neeeco words into Salesforce Stage
     stageMapper = {
@@ -68,15 +71,23 @@ def neeeco(neeeco_input, neeeco_wx_input):
         "Tenant": "Renter"
     }
 
-    neeeco_output = neeeco_output.rename(
-        columns={
+    try:
+        # Merge the input dataframes and rename columns
+        neeeco_output = pd.merge(
+            left=neeeco_input,
+            right=neeeco_wx_input,
+            how="left",
+            left_on="Related to",
+            right_on="HEA - Last, First, Address"
+        ).rename(columns={
             "ID": "ID_from_HPC__c",
             "Additional Interests": "Legacy_Post_Assessment_Notes__c",
             "Preferred Language": "Prefered_Lan__c",
             "Occupant": "Owner_Renter__c"
-        }
-    )
+        })
 
+    except Exception as e:
+        print("An error occurred:", str(e))
 
     #     // Combine both data
     neeeco_output["Final_Contract_Amount__c"] = neeeco_output[
