@@ -4,8 +4,8 @@ import re
 
 pd.options.mode.chained_assignment = None
 
-revise_input=pd.read_csv('/Users/ankit/Documents/Omnivore_Refactor/omnivore/revise/Revise Input.csv')
-revise_wx_input=pd.read_csv('/Users/ankit/Documents/Omnivore_Refactor/omnivore/revise/Revise Wx Input.csv')
+revise_input=pd.read_csv('omnivore/revise/Revise Input.csv')
+revise_wx_input=pd.read_csv('omnivore/revise/Revise Wx Input.csv')
 
 revise_input['Client Number'] = revise_input['Client Number'].astype(object)
 revise_wx_input['Client Number'] = revise_wx_input['Client Number'].astype(object)
@@ -51,7 +51,7 @@ owner_renter_mapper = {
 # Convert to datetime -> Convert to Y/M/D format -> Convert to String -> 
 # Concatenate the end -> Remove NaN
 revise_output["HEA_Date_And_Time__c"] = pd.to_datetime(
-    revise_output["HEA_Date_And_Time__c"], infer_datetime_format=True
+    revise_output["HEA_Date_And_Time__c"]
 )
 revise_output["HEA_Date_And_Time__c"] = revise_output["HEA_Date_And_Time__c"].dt.strftime(
     "%Y-%m-%d"
@@ -69,7 +69,7 @@ revise_output.loc[
 # Convert to datetime -> Convert to Y/M/D format -> Convert to String -> 
 # Concatenate the end -> Remove NaN
 revise_output["Weatherization_Date_Time__c"] = pd.to_datetime(
-    revise_output["Weatherization_Date_Time__c"], infer_datetime_format=True
+    revise_output["Weatherization_Date_Time__c"]
 )
 revise_output["Weatherization_Date_Time__c"] = revise_output["Weatherization_Date_Time__c"].dt.strftime(
     "%Y-%m-%d"
@@ -84,7 +84,7 @@ revise_output["Weatherization_Date_Time__c"] = revise_output["Weatherization_Dat
 # Convert to datetime -> Convert to Y/M/D format -> Convert to String -> 
 # Concatenate the end -> Remove NaN
 revise_output["CloseDate"] = pd.to_datetime(
-    revise_output["CloseDate"], infer_datetime_format=True
+    revise_output["CloseDate"]
 )
 revise_output["CloseDate"] = revise_output["CloseDate"].dt.strftime(
     "%Y-%m-%d"

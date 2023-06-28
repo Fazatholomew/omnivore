@@ -214,17 +214,44 @@ def homeworks(homeworks_output):
         'Owner_Renter__c'].map(orMapper)
 
     homeworks_output['CloseDate'] = pd.to_datetime(homeworks_output['CloseDate'])
-    homeworks_output['CloseDate'] = homeworks_output['CloseDate'].dt.strftime('%Y-%m-%d'+'T'+'%H:%M:%S'+'.000-07:00')
+    homeworks_output['CloseDate'] = homeworks_output['CloseDate'].dt.strftime("%Y-%m-%d")
+    homeworks_output["CloseDate"] = homeworks_output["CloseDate"].astype(str)
+    homeworks_output["CloseDate"] = (
+        homeworks_output["CloseDate"] + "T00:00:00.000-07:00"
+    )
+    homeworks_output.loc[
+        homeworks_output["CloseDate"] == "nanT00:00:00.000-07:00",
+        "CloseDate",
+    ] = ""
+    # homeworks_output['CloseDate'] = homeworks_output['CloseDate'].dt.strftime('%Y-%m-%d'+'T'+'%H:%M:%S'+'.000-07:00')
     homeworks_output['HEA_Date_And_Time__c'] = homeworks_output[
         'HEA_Date_And_Time__c_y'].combine_first(homeworks_output['HEA_Date_And_Time__c_x'])
     homeworks_output['HEA_Date_And_Time__c'] = pd.to_datetime(homeworks_output['HEA_Date_And_Time__c'])
-    homeworks_output['HEA_Date_And_Time__c'] = homeworks_output['HEA_Date_And_Time__c'].dt.strftime('%Y-%m-%d'+'T'+'%H:%M:%S'+'.000-07:00')
+    homeworks_output['HEA_Date_And_Time__c'] = homeworks_output['HEA_Date_And_Time__c'].dt.strftime("%Y-%m-%d")
+    homeworks_output["HEA_Date_And_Time__c"] = homeworks_output["HEA_Date_And_Time__c"].astype(str)
+    homeworks_output["HEA_Date_And_Time__c"] = (
+        homeworks_output["HEA_Date_And_Time__c"] + "T00:00:00.000-07:00"
+    )
+    homeworks_output.loc[
+        homeworks_output["HEA_Date_And_Time__c"] == "nanT00:00:00.000-07:00",
+        "HEA_Date_And_Time__c",
+    ] = ""
+    # homeworks_output['HEA_Date_And_Time__c'] = homeworks_output['HEA_Date_And_Time__c'].dt.strftime('%Y-%m-%d'+'T'+'%H:%M:%S'+'.000-07:00')
     
 
     homeworks_output['Weatherization_Date_Time__c'] = pd.to_datetime(
         homeworks_output['Weatherization_Date_Time__c'], errors='coerce')
-    homeworks_output['Weatherization_Date_Time__c'] = homeworks_output['Weatherization_Date_Time__c'].dt.strftime(
-        '%Y-%m-%d'+'T'+'%H:%M:%S'+'.000-07:00')
+    homeworks_output['Weatherization_Date_Time__c'] = homeworks_output['Weatherization_Date_Time__c'].dt.strftime("%Y-%m-%d")
+    homeworks_output["Weatherization_Date_Time__c"] = homeworks_output["Weatherization_Date_Time__c"].astype(str)
+    homeworks_output["Weatherization_Date_Time__c"] = (
+        homeworks_output["Weatherization_Date_Time__c"] + "T00:00:00.000-07:00"
+    )
+    homeworks_output.loc[
+        homeworks_output["Weatherization_Date_Time__c"] == "nanT00:00:00.000-07:00",
+        "Weatherization_Date_Time__c",
+    ] = ""
+    # homeworks_output['Weatherization_Date_Time__c'] = homeworks_output['Weatherization_Date_Time__c'].dt.strftime(
+    #     '%Y-%m-%d'+'T'+'%H:%M:%S'+'.000-07:00')
 
     homeworks_output['Street__c'] = homeworks_output[
         'Street__c_x'].combine_first(homeworks_output['Street__c_y'])
