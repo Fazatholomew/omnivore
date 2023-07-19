@@ -50,6 +50,7 @@ dependencies = [
     "urllib3==1.26.12",
     "usaddress==0.5.10",
     "zeep==4.2.0",
+    "logging>=0.4.9.6",
 ]
 requires-python = ">=3.10"
 license = {text = "MIT"}
@@ -57,6 +58,7 @@ license = {text = "MIT"}
 [tool.pdm.scripts]
 _.env_file = ".env"
 start="python omnivore/app.py"
+neeeco="python omnivore/neeeco.py"
 test="python test_neeeco.py"
 tests="pytest"
 revise="python omnivore/revise/revise.py"

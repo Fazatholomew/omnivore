@@ -2,21 +2,40 @@ import numpy
 import pandas as pd
 import re
 from omnivore.utils.aux import toSalesforceEmail
+import logging
+import time
 
 pd.options.mode.chained_assignment = None
-
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    filename="logger.log",
+    filemode="w",
+)
 
 def neeeco(neeeco_input, neeeco_wx_input):
-    try:
-        neeeco_output = pd.merge(
-            left=neeeco_input,
-            right=neeeco_wx_input,
-            how="left",
-            left_on="Related to",
-            right_on="HEA - Last, First, Address",
-        )
-    except Exception as e:
-        print("An error occured:", str(e))
+    # Create a logger object
+    logger = logging.getLogger()
+
+    # Remove existing handlers to avoid duplication
+    for handler in logger.handlers[:]:
+        logger.removeHandler(handler)
+
+    # Create a file handler and set its level
+    file_handler = logging.FileHandler("logger.log")
+    file_handler.setLevel(logging.DEBUG)
+
+    # Create a formatter and set it for the file handler
+    formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+    file_handler.setFormatter(formatter)
+
+    # Add the file handler to the logger
+    logger.addHandler(file_handler)
+
+    start_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+
+    # Log an info message with the start time
+    logger.warning(f"File execution started at: {start_time}")
 
     # // Neeeco words into Salesforce Stage
     stageMapper = {
@@ -66,10 +85,7 @@ def neeeco(neeeco_input, neeeco_wx_input):
     }
 
     # Owner / Renter
-    owner_renter_mapper = {
-        "Landlord": 'Owner',
-        "Tenant": "Renter"
-    }
+    owner_renter_mapper = {"Landlord": "Owner", "Tenant": "Renter"}
 
     try:
         # Merge the input dataframes and rename columns
@@ -78,13 +94,15 @@ def neeeco(neeeco_input, neeeco_wx_input):
             right=neeeco_wx_input,
             how="left",
             left_on="Related to",
-            right_on="HEA - Last, First, Address"
-        ).rename(columns={
-            "ID": "ID_from_HPC__c",
-            "Additional Interests": "Legacy_Post_Assessment_Notes__c",
-            "Preferred Language": "Prefered_Lan__c",
-            "Occupant": "Owner_Renter__c"
-        })
+            right_on="HEA - Last, First, Address",
+        ).rename(
+            columns={
+                "ID": "ID_from_HPC__c",
+                "Additional Interests": "Legacy_Post_Assessment_Notes__c",
+                "Preferred Language": "Prefered_Lan__c",
+                "Occupant": "Owner_Renter__c",
+            }
+        )
 
     except Exception as e:
         print("An error occurred:", str(e))
@@ -111,207 +129,259 @@ def neeeco(neeeco_input, neeeco_wx_input):
     ].fillna("")
     neeeco_output["Contract_Amount__c"] = neeeco_output["Contract_Amount__c"].fillna("")
 
-    #       // Skip Empty Row
-    neeeco_output = neeeco_output[neeeco_output["ID_from_HPC__c"].notnull()]
-    neeeco_output["Street__c"] = neeeco_output["Full Address including zip"]
+    try:
+        #       // Skip Empty Row
+        neeeco_output = neeeco_output[neeeco_output["ID_from_HPC__c"].notnull()]
+        neeeco_output["Street__c"] = neeeco_output["Full Address including zip"]
+    except Exception as e:
+        print("An error occurred:", str(e))
 
-    neeeco_output["Name"] = neeeco_output["Name"].str.replace(
-        r"[^\w\-&' ]", "", regex=True
-    )
-    neeeco_output["Name"] = neeeco_output["Name"].str.replace(
-        r"( \d\w{1}$| \d)", "", regex=True
-    )
-    neeeco_output["Name"] = neeeco_output["Name"].str.replace(r"( )$", "", regex=True)
+    try:
+        neeeco_output["Name"] = neeeco_output["Name"].str.replace(
+            r"[^\w\-&' ]", "", regex=True
+        )
+        neeeco_output["Name"] = neeeco_output["Name"].str.replace(
+            r"( \d\w{1}$| \d)", "", regex=True
+        )
+        neeeco_output["Name"] = neeeco_output["Name"].str.replace(
+            r"( )$", "", regex=True
+        )
+    except Exception as e:
+        print("An error occurred:", str(e))
 
-    neeeco_output["Date Of Audit"] = neeeco_output[
-        "Date Of Audit_y"
-    ].combine_first(neeeco_output["Date Of Audit_x"])
+    try:
+        neeeco_output["Date Of Audit"] = neeeco_output["Date Of Audit_y"].combine_first(
+            neeeco_output["Date Of Audit_x"]
+        )
+        neeeco_output["Date of Audit"] = neeeco_output["Date of Audit"].replace(
+            "", np.nan
+        )
+        neeeco_output["Date of Audit"] = neeeco_output["Date of Audit"].fillna(
+            neeeco_output["Date Of Audit"]
+        )
+        neeeco_output["Date of Audit"] = pd.to_datetime(
+            neeeco_output["Date of Audit"], infer_datetime_format=True
+        )
+        neeeco_output["Date of Audit"] = neeeco_output["Date of Audit"].dt.strftime(
+            "%Y-%m-%d"
+        )
+        neeeco_output["Date of Audit"] = neeeco_output["Date of Audit"].astype(str)
+        neeeco_output["HEA_Date_And_Time__c"] = (
+            neeeco_output["Date of Audit"] + "T00:00:00.000-07:00"
+        )
+        neeeco_output.loc[
+            neeeco_output["HEA_Date_And_Time__c"] == "nanT00:00:00.000-07:00",
+            "HEA_Date_And_Time__c",
+        ] = ""
+    except Exception as e:
+        print("An error occurred:", str(e))
 
-    neeeco_output["Date of Audit"] = neeeco_output["Date of Audit"].replace("", numpy.nan)
-    neeeco_output["Date of Audit"] = neeeco_output["Date of Audit"].fillna(neeeco_output["Date Of Audit"])
-    neeeco_output["Date of Audit"] = pd.to_datetime(
-        neeeco_output["Date of Audit"], format="%m/%d/%Y"
-    )
+    try:
+        neeeco_output["Date Scheduled in Vcita"] = pd.to_datetime(
+            neeeco_output["Date Scheduled in Vcita"], infer_datetime_format=True
+        )
+        neeeco_output["Date Scheduled in Vcita"] = neeeco_output[
+            "Date Scheduled in Vcita"
+        ].dt.strftime("%Y-%m-%d")
+        neeeco_output["Date Scheduled in Vcita"] = neeeco_output[
+            "Date Scheduled in Vcita"
+        ].astype(str)
+        neeeco_output["Date Scheduled in Vcita"] = (
+            neeeco_output["Date Scheduled in Vcita"] + "T00:00:00.000-07:00"
+        )
+        neeeco_output["Created"] = pd.to_datetime(
+            neeeco_output["Created"], format="%m/%d/%Y"
+        )
+        neeeco_output["Created"] = neeeco_output["Created"].dt.strftime("%Y-%m-%d")
+        neeeco_output["Created"] = neeeco_output["Created"].astype(str)
+        neeeco_output["Created"] = neeeco_output["Created"] + "T00:00:00.000-07:00"
+        neeeco_output["CloseDate"] = neeeco_output[
+            "Date Scheduled in Vcita"
+        ].combine_first(neeeco_output["Created"])
+        neeeco_output.loc[
+            neeeco_output["CloseDate"] == "nanT00:00:00.000-07:00", "CloseDate"
+        ] = neeeco_output["Created"]
+    except Exception as e:
+        print("An error occurred:", str(e))
 
-    neeeco_output["Date of Audit"] = neeeco_output["Date of Audit"].dt.strftime(
-        "%Y-%m-%d"
-    )
-    neeeco_output["Date of Audit"] = neeeco_output["Date of Audit"].astype(str)
-    neeeco_output["HEA_Date_And_Time__c"] = (
-        neeeco_output["Date of Audit"] + "T00:00:00.000-07:00"
-    )
-    neeeco_output.loc[
-        neeeco_output["HEA_Date_And_Time__c"] == "nanT00:00:00.000-07:00",
-        "HEA_Date_And_Time__c",
-    ] = ""
+    try:
+        neeeco_output["StageName"] = "Scheduled"
+        neeeco_output["Cancelation_Reason_s__c"] = ""
 
-    neeeco_output["Date Scheduled in Vcita"] = pd.to_datetime(
-        neeeco_output["Date Scheduled in Vcita"], format="%m/%d/%Y"
-    )
-    # ,
-    # format='%m/%d/%y')
-    neeeco_output["Date Scheduled in Vcita"] = neeeco_output[
-        "Date Scheduled in Vcita"
-    ].dt.strftime("%Y-%m-%d")
-    neeeco_output["Date Scheduled in Vcita"] = neeeco_output[
-        "Date Scheduled in Vcita"
-    ].astype(str)
-    neeeco_output["Date Scheduled in Vcita"] = (
-        neeeco_output["Date Scheduled in Vcita"] + "T00:00:00.000-07:00"
-    )
-    neeeco_output["Created"] = pd.to_datetime(
-        neeeco_output["Created"], format="%m/%d/%Y"
-    )
-    neeeco_output["Created"] = neeeco_output["Created"].dt.strftime("%Y-%m-%d")
-    neeeco_output["Created"] = neeeco_output["Created"].astype(str)
-    neeeco_output["Created"] = neeeco_output["Created"] + "T00:00:00.000-07:00"
-    neeeco_output["CloseDate"] = neeeco_output["Date Scheduled in Vcita"].combine_first(
-        neeeco_output["Created"]
-    )
-    neeeco_output.loc[
-        neeeco_output["CloseDate"] == "nanT00:00:00.000-07:00", "CloseDate"
-    ] = neeeco_output["Created"]
+        #         // if canceled or disqualified
+        neeeco_output.loc[
+            neeeco_output["Lead Status"] != "Scheduled (Lead Converted)", "StageName"
+        ] = "Canceled"
+        neeeco_output.loc[
+            neeeco_output["Lead Status"] != "Scheduled (Lead Converted)",
+            "Cancelation_Reason_s__c",
+        ] = neeeco_output["Lead Disqualified"].map(neeecoCancelMapper)
+    except Exception as e:
+        print("An error occurred:", str(e))
 
-    neeeco_output["StageName"] = "Scheduled"
-    neeeco_output["Cancelation_Reason_s__c"] = ""
+    try:
+        #         // Defaulted to No Reason
+        neeeco_output.loc[
+            (neeeco_output["Lead Status"] != "Scheduled (Lead Converted)")
+            & (neeeco_output["Lead Disqualified"] == ""),
+            "Cancelation_Reason_s__c",
+        ] = "No Reason"
 
-    #         // if canceled or disqualified
-    neeeco_output.loc[
-        neeeco_output["Lead Status"] != "Scheduled (Lead Converted)", "StageName"
-    ] = "Canceled"
-    neeeco_output.loc[
-        neeeco_output["Lead Status"] != "Scheduled (Lead Converted)",
-        "Cancelation_Reason_s__c",
-    ] = neeeco_output["Lead Disqualified"].map(neeecoCancelMapper)
+        neeeco_output["Health_Safety_Barrier_Status__c"] = neeeco_output[
+            "Health & Safety Status"
+        ].map(hsStageMapper)
 
-    #         // Defaulted to No Reason
-    neeeco_output.loc[
-        (neeeco_output["Lead Status"] != "Scheduled (Lead Converted)")
-        & (neeeco_output["Lead Disqualified"] == ""),
-        "Cancelation_Reason_s__c",
-    ] = "No Reason"
+        neeeco_output["Health & Safety Issue"] = neeeco_output[
+            "Health & Safety Issue"
+        ].fillna("")
+        neeeco_output["Health_Safety_Barrier__c"] = (
+            neeeco_output["Health & Safety Issue"]
+            .str.replace("K&T", "Knob & Tube (Major)")
+            .str.replace("CST", "Combustion Safety Failure")
+            .str.replace("Moisture", "Mold/Moisture")
+            .str.replace("Asbestos", "Asbestos")
+            .str.replace("", "")
+            .str.split(",")
+            .str.join(";")
+            .astype(str)
+        )
+    except Exception as e:
+        print("An error occurred:", str(e))
 
-    neeeco_output["Health_Safety_Barrier_Status__c"] = neeeco_output[
-        "Health & Safety Status"
-    ].map(hsStageMapper)
-    # neeeco_output['Health_Safety_Barrier_Status__c']=neeeco_output['Health_Safety_Barrier_Status__c'].repacr('')
+    try:
+        # // Audit completed
+        neeeco_output.loc[
+            (neeeco_output["HEA Status"] == "Completed")
+            | (neeeco_output["Insulation Project Status"].notnull()),
+            "StageName",
+        ] = neeeco_output["Insulation Project Status"].map(stageMapper)
+        neeeco_output.loc[
+            (neeeco_output["HEA Status"] == "Completed")
+            & (neeeco_output["Insulation Project Status"].isnull()),
+            "StageName",
+        ] = "No Opportunity"
 
-    neeeco_output["Health & Safety Issue"] = neeeco_output[
-        "Health & Safety Issue"
-    ].fillna("")
-    neeeco_output["Health_Safety_Barrier__c"] = (
-        neeeco_output["Health & Safety Issue"]
-        .str.replace("K&T", "Knob & Tube (Major)")
-        .str.replace("CST", "Combustion Safety Failure")
-        .str.replace("Moisture", "Mold/Moisture")
-        .str.replace("Asbestos", "Asbestos")
-        .str.replace("", "")
-        .str.split(",")
-        .str.join(";")
-        .astype(str)
-    )
+        # # // Although contract signed, still barier
+        neeeco_output.loc[
+            neeeco_output["Health & Safety Status"] == "H&S Needs Follow Up",
+            "StageName",
+        ] = "Health & Safety Barrier"
+    except Exception as e:
+        print("An error occurred:", str(e))
 
-    # // Audit completed
-    neeeco_output.loc[
-        (neeeco_output["HEA Status"] == "Completed")
-        | (neeeco_output["Insulation Project Status"].notnull()),
-        "StageName",
-    ] = neeeco_output["Insulation Project Status"].map(stageMapper)
-    neeeco_output.loc[
-        (neeeco_output["HEA Status"] == "Completed")
-        & (neeeco_output["Insulation Project Status"].isnull()),
-        "StageName",
-    ] = "No Opportunity"
+    try:
+        #       // Wx Jobs Statuses
+        neeeco_output["Weatherization_Status__c"] = ""
 
-    # # // Although contract signed, still barier
-    neeeco_output.loc[
-        neeeco_output["Health & Safety Status"] == "H&S Needs Follow Up", "StageName"
-    ] = "Health & Safety Barrier"
+        neeeco_output["Insulation Project Installation Date"] = pd.to_datetime(
+            neeeco_output["Insulation Project Installation Date"]
+        )
+        neeeco_output["Insulation Project Installation Date"] = neeeco_output[
+            "Insulation Project Installation Date"
+        ].dt.strftime("%Y-%m-%d")
+        neeeco_output["Insulation Project Installation Date"] = neeeco_output[
+            "Insulation Project Installation Date"
+        ].astype(str)
+        neeeco_output["Weatherization_Date_Time__c"] = (
+            neeeco_output["Insulation Project Installation Date"]
+            + "T00:00:00.000-07:00"
+        )
+        neeeco_output["Weatherization_Date_Time__c"] = neeeco_output[
+            "Weatherization_Date_Time__c"
+        ].replace("nanT00:00:00.000-07:00", "")
+    except Exception as e:
+        print("An error occurred:", str(e))
 
-    #       // Wx Jobs Statuses
-    neeeco_output["Weatherization_Status__c"] = ""
+    try:
+        # neeeco_output["Weatherization_Status__c"]
+        for i in neeeco_output.index:
+            if neeeco_output["StageName"][i] == "Signed Contracts":
+                if neeeco_output["Final_Contract_Amount__c"][i] != "":
+                    neeeco_output["Weatherization_Status__c"][
+                        i
+                    ] = "Completed"  # Final Completed amount not empty
 
-    neeeco_output["Insulation Project Installation Date"] = pd.to_datetime(
-        neeeco_output["Insulation Project Installation Date"]
-    )
-    neeeco_output["Insulation Project Installation Date"] = neeeco_output[
-        "Insulation Project Installation Date"
-    ].dt.strftime("%Y-%m-%d")
-    neeeco_output["Insulation Project Installation Date"] = neeeco_output[
-        "Insulation Project Installation Date"
-    ].astype(str)
-    neeeco_output["Weatherization_Date_Time__c"] = (
-        neeeco_output["Insulation Project Installation Date"] + "T00:00:00.000-07:00"
-    )
-    neeeco_output.loc[
-        neeeco_output["Weatherization_Date_Time__c"] == "nanT00:00:00.000-07:00",
-        "Weatherization_Date_Time__c",
-    ] = ""
+                elif neeeco_output["Weatherization_Date_Time__c"][i] != "":
+                    neeeco_output["Weatherization_Status__c"][i] = "Scheduled"
 
-    for i in neeeco_output.index:
-        if neeeco_output["StageName"][i] == "Signed Contracts":
-            neeeco_output["Weatherization_Status__c"][i] = "Completed"
-            if neeeco_output["Weatherization_Date_Time__c"][i] == "":
-                neeeco_output["Weatherization_Status__c"][i] = "Scheduled"
-            if neeeco_output["Final_Contract_Amount__c"][i] == "":
-                neeeco_output["Weatherization_Status__c"][i] = "Not Yet Scheduled"
+                elif neeeco_output["Weatherization_Date_Time__c"][i] == "":
+                    neeeco_output["Weatherization_Status__c"][
+                        i
+                    ] = "Not Yet Scheduled"  # If weatherization date is empty
 
-    # // No cancel reason, default it to No Reason
-    neeeco_output.loc[
-        (neeeco_output["StageName"] == "Canceled")
-        & (neeeco_output["Cancelation_Reason_s__c"]).isna(),
-        "Cancelation_Reason_s__c",
-    ] = "No Reason"
+        # // No cancel reason, default it to No Reason
+        neeeco_output.loc[
+            (neeeco_output["StageName"] == "Canceled")
+            & (neeeco_output["Cancelation_Reason_s__c"]).isna(),
+            "Cancelation_Reason_s__c",
+        ] = "No Reason"
 
-    # // No cancel reason, default it to No Reason
-    neeeco_output.loc[
-        (neeeco_output["StageName"] == "Canceled")
-        & (neeeco_output["Cancelation_Reason_s__c"])
-        == "",
-        "Cancelation_Reason_s__c",
-    ] = "No Reason"
+        # // No cancel reason, default it to No Reason
+        neeeco_output.loc[
+            (neeeco_output["StageName"] == "Canceled")
+            & (neeeco_output["Cancelation_Reason_s__c"])
+            == "",
+            "Cancelation_Reason_s__c",
+        ] = "No Reason"
 
-    #         // If date is still in the future, stage is scheduled
-    neeeco_output["Date of Audit"] = pd.to_datetime(neeeco_output["Date of Audit"])
+        #         // If date is still in the future, stage is scheduled
+        neeeco_output["Date of Audit"] = pd.to_datetime(neeeco_output["Date of Audit"])
 
-    neeeco_output.loc[
-        neeeco_output["Date of Audit"] == "", "Date of Audit"
-    ] = pd.to_datetime("today")
-    neeeco_output.loc[
-        neeeco_output["Date of Audit"] > pd.to_datetime("today"), "StageName"
-    ] = "Scheduled"
+        neeeco_output.loc[
+            neeeco_output["Date of Audit"] == "", "Date of Audit"
+        ] = pd.to_datetime("today")
+        neeeco_output.loc[
+            neeeco_output["Date of Audit"] > pd.to_datetime("today"), "StageName"
+        ] = "Scheduled"
+    except Exception as e:
+        print("An error occurred:", str(e))
 
-    #       // VHEA detection
-    neeeco_output["isVHEA__c"] = "FALSE"
-    neeeco_output.loc[
-        neeeco_output["Related to"].str.contains("VHEA").fillna(False), "isVHEA__c"
-    ] = "TRUE"
+    try:
+        #       // VHEA detection
+        neeeco_output["isVHEA__c"] = "FALSE"
+        neeeco_output.loc[
+            neeeco_output["Related to"].str.contains("VHEA").fillna(False), "isVHEA__c"
+        ] = "TRUE"
+    except Exception as e:
+        print("An error occurred:", str(e))
 
     neeeco_output["HPC__c"] = "0013i00000AtGAvAAN"
-    # neeeco_output['FirstName'] = neeeco_output['Name'].str.replace(r"[^\w\-&' ]", '', regex=True)
-    neeeco_output["FirstName"] = neeeco_output["Name"].str.extract(
-        r"(.*?(?=[\wäöüß]+$))"
-    )
-    neeeco_output["LastName"] = neeeco_output["Name"].str.extract(r"( \w+)$")
-    neeeco_output["FirstName"] = neeeco_output["FirstName"].str.replace(
-        r"( )$", "", regex=True
-    )
-    neeeco_output["LastName"] = neeeco_output["LastName"].str.replace(" ", "")
-    neeeco_output["LastName"] = neeeco_output["LastName"].fillna(neeeco_output["Name"])
-
-    for i in neeeco_output["Phone"].index:
-        neeeco_output["Phone"][i] = re.sub(
-            r"[^0-9]", "", str(neeeco_output["Phone"][i])
+    try:
+        neeeco_output["FirstName"] = neeeco_output["Name"].str.extract(
+            r"(.*?(?=[\wäöüß]+$))"
         )
-        if len(neeeco_output["Phone"][i]) < 10:
-            neeeco_output["Phone"][i] = ""
-        if len(neeeco_output["Phone"][i]) > 10:
-            neeeco_output["Phone"][i] = neeeco_output["Phone"][i][0:10]
+        neeeco_output["LastName"] = neeeco_output["Name"].str.extract(r"( \w+)$")
+        neeeco_output["FirstName"] = neeeco_output["FirstName"].str.replace(
+            r"( )$", "", regex=True
+        )
+        neeeco_output["LastName"] = neeeco_output["LastName"].str.replace(" ", "")
+        neeeco_output["LastName"] = neeeco_output["LastName"].fillna(
+            neeeco_output["Name"]
+        )
+    except Exception as e:
+        print("An error occurred:", str(e))
 
-    neeeco_output["PersonEmail"] = neeeco_output["Email"].apply(toSalesforceEmail)
-    neeeco_output['Owner_Renter__c'] = neeeco_output['Owner_Renter__c'].map(owner_renter_mapper)
+    try:
+        for i in neeeco_output["Phone"].index:
+            neeeco_output["Phone"][i] = re.sub(
+                r"[^0-9]", "", str(neeeco_output["Phone"][i])
+            )
+            if len(neeeco_output["Phone"][i]) < 10:
+                neeeco_output["Phone"][i] = ""
+            if len(neeeco_output["Phone"][i]) > 10:
+                neeeco_output["Phone"][i] = neeeco_output["Phone"][i][0:10]
+    except Exception as e:
+        print("An error occurred:", str(e))
 
-    neeeco_output = neeeco_output.replace("", numpy.nan)
+    try:
+        neeeco_output["PersonEmail"] = neeeco_output["Email"].apply(toSalesforceEmail)
+        neeeco_output["Owner_Renter__c"] = neeeco_output["Owner_Renter__c"].map(
+            owner_renter_mapper
+        )
+        neeeco_output = neeeco_output.replace("", np.nan)
+    except Exception as e:
+        print("An error occurred:", str(e))
+
     neeeco_output = neeeco_output.loc[
         :,
         [
