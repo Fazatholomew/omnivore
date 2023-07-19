@@ -57,3 +57,6 @@ pip-wheel-metadata/
 
 # pytest debug logs generated via --debug
 pytestdebug.log.pdm-python
+
+### Env Files ###
+.env
