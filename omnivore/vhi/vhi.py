@@ -50,7 +50,7 @@ def clean_contact_info(row) -> Series:
         row["Phone"] = toSalesforcePhone(row["Phone"]) or nan
         return row
     except Exception as e:
-        logger.error("An error occurred:", str(e))
+        logger.error("An error occurred: %s", str(e))
 
 
 def vhi(data: DataFrame) -> DataFrame:
@@ -59,7 +59,7 @@ def vhi(data: DataFrame) -> DataFrame:
         data = data[~data["VHI Unique Number"].isna()]
         data = data[~data["Contact: Email"].isna() | ~data["Contact: Phone"].isna()]
     except Exception as e:
-        logger.error("An error occurred:", str(e))
+        logger.error("An error occurred: %s", str(e))
 
     # Rename columns into Salesforce Field
     try:
@@ -76,13 +76,13 @@ def vhi(data: DataFrame) -> DataFrame:
             }
         )
     except Exception as e:
-        logger.error("An error occurred:", str(e))
+        logger.error("An error occurred: %s", str(e))
 
     # Combine street and city
     try:
         data["Street__c"] = data["Address"] + " " + data["Billing City"]
     except Exception as e:
-        logger.error("An error occurred:", str(e))
+        logger.error("An error occurred: %s", str(e))
 
     # Translate stage into stagename and wx status
     try:
@@ -99,7 +99,7 @@ def vhi(data: DataFrame) -> DataFrame:
         data.loc[(data["StageName"] == "Canceled"), "Cancelation_Reason_s__c"] = "No Reason"
         data.loc[(data["Lead Vendor"] == "ABCD"), "Cancelation_Reason_s__c"] = "Low Income"
     except Exception as e:
-        logger.error("An error occurred:", str(e))
+        logger.error("An error occurred: %s", str(e))
 
     # Date and Time
     try:
@@ -116,19 +116,19 @@ def vhi(data: DataFrame) -> DataFrame:
             data["Weatherization_Date_Time__c"], errors="coerce"
         ).dt.strftime("%Y-%m-%d" + "T" + "%H:%M:%S" + ".000-07:00")
     except Exception as e:
-        logger.error("An error occurred:", str(e))
+        logger.error("An error occurred: %s", str(e))
 
     # first name and last name
     try:
         data["FirstName"] = data["Opportunity Name"].str.extract(r"^(.*?)\s(?:\S+\s)*\S+$")
         data["LastName"] = data["Opportunity Name"].str.extract(r"\s(.*)$")
     except Exception as e:
-        logger.error("An error occurred:", str(e))
+        logger.error("An error occurred: %s", str(e))
 
     # Clean up contact info
     try:
         data = data.apply(clean_contact_info, axis=1)
     except Exception as e:
-        logger.error("An error occurred:", str(e))
+        logger.error("An error occurred: %s", str(e))
 
     return data
