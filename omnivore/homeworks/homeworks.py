@@ -41,15 +41,17 @@ hsMapper = {
     "Mold": "Mold/Moisture",
 }
 
-
 def combine_hs(row: pd.Series) -> str | float:
     """
     Unfortunately, homeworks uses columns with a boolean value for
     each Health and Safety Barrier category. This function combines
     them in one column.
     """
-    values = [value for key, value in hsMapper.items() if row[key] == "1"]
-    return ";".join(values) or np.nan
+    try:
+        values = [value for key, value in hsMapper.items() if row[key] == "1"]
+        return ";".join(values) or np.nan
+    except Exception as e:
+        logger.error("An error occurred:", str(e))
 
 
 def rename_and_merge(homeworks_old_input, homeworks_new_input) -> pd.DataFrame:
@@ -59,53 +61,59 @@ def rename_and_merge(homeworks_old_input, homeworks_new_input) -> pd.DataFrame:
     This functions rename the columns and combines them in case there's an
     overlap.
     """
-    homeworks_new_input = homeworks_new_input.rename(
-        columns={
-            "Account: Primary Contact: First Name": "FirstName",
-            "Account: Primary Contact: Last Name": "LastName",
-            "Phone Number": "Phone",
-            "Customer Email": "PersonEmail",
-            "Account: Deal: HEA Visit Result Detail": "StageName",
-            "Operations: Account: Landlord, Owner, Tenant": "Owner_Renter__c",
-            "Operations: Completion/Walk Date": "Weatherization_Date_Time__c",
-            "Operations: Operations ID & Payzer Memo": "ID_from_HPC__c",
-            "Operations: Job Status": "Weatherization_Status__c",
-            "Operations: Billing Town": "City__c",
-            "Account: Account Name": "Street__c",
-            "Operations: Last Scheduled HEA Date": "HEA_Date_And_Time__c",
-            "Reason for Canceled": "Cancelation_Reason_s__c",
-        }
-    )
-    homeworks_new_input["CloseDate"] = homeworks_new_input["HEA_Date_And_Time__c"]
+    try:
+        homeworks_new_input = homeworks_new_input.rename(
+            columns={
+                "Account: Primary Contact: First Name": "FirstName",
+                "Account: Primary Contact: Last Name": "LastName",
+                "Phone Number": "Phone",
+                "Customer Email": "PersonEmail",
+                "Account: Deal: HEA Visit Result Detail": "StageName",
+                "Operations: Account: Landlord, Owner, Tenant": "Owner_Renter__c",
+                "Operations: Completion/Walk Date": "Weatherization_Date_Time__c",
+                "Operations: Operations ID & Payzer Memo": "ID_from_HPC__c",
+                "Operations: Job Status": "Weatherization_Status__c",
+                "Operations: Billing Town": "City__c",
+                "Account: Account Name": "Street__c",
+                "Operations: Last Scheduled HEA Date": "HEA_Date_And_Time__c",
+                "Reason for Canceled": "Cancelation_Reason_s__c",
+            }
+        )
+        homeworks_new_input["CloseDate"] = homeworks_new_input["HEA_Date_And_Time__c"]
+    except Exception as e:
+        logger.error("An error occurred:", str(e))
 
-    homeworks_old_input = homeworks_old_input.rename(
-        columns={
-            "Customer First Name": "FirstName",
-            "Customer Last Name": "LastName",
-            "Day Phone": "Phone",
-            "Email": "PersonEmail",
-            "HEA Visit Result Detail": "StageName",
-            "Landlord, Owner, Tenant": "Owner_Renter__c",
-            "Operations: Scheduled Insulation Start Date (DT)": "Weatherization_Date_Time__c",
-            "Operations: Operations ID & Payzer Memo": "ID_from_HPC__c",
-            "Preferred Language": "Prefered_Lan__c",
-            "Time Stamp HEA Performed": "HEA_Date_And_Time__c",
-            "Created Date": "CloseDate",
-            "Wx Job Status": "Weatherization_Status__c",
-            "Billing City": "City__c",
-            "Account Name": "Street__c",
-        }
-    )
+    try:
+        homeworks_old_input = homeworks_old_input.rename(
+            columns={
+                "Customer First Name": "FirstName",
+                "Customer Last Name": "LastName",
+                "Day Phone": "Phone",
+                "Email": "PersonEmail",
+                "HEA Visit Result Detail": "StageName",
+                "Landlord, Owner, Tenant": "Owner_Renter__c",
+                "Operations: Scheduled Insulation Start Date (DT)": "Weatherization_Date_Time__c",
+                "Operations: Operations ID & Payzer Memo": "ID_from_HPC__c",
+                "Preferred Language": "Prefered_Lan__c",
+                "Time Stamp HEA Performed": "HEA_Date_And_Time__c",
+                "Created Date": "CloseDate",
+                "Wx Job Status": "Weatherization_Status__c",
+                "Billing City": "City__c",
+                "Account Name": "Street__c",
+            }
+        )
+    except Exception as e:
+        logger.error("An error occurred:", str(e))
 
-    homeworks_new_input['ID_from_HPC__c'] = homeworks_new_input['ID_from_HPC__c'].astype('str')
-    homeworks_old_input['ID_from_HPC__c'] = homeworks_old_input['ID_from_HPC__c'].astype('str')
-
-    return pd.merge(
-        left=homeworks_new_input,
-        right=homeworks_old_input,
-        how="outer",
-        on="ID_from_HPC__c",
-    )
+    try:
+        return pd.merge(
+            left=homeworks_new_input,
+            right=homeworks_old_input,
+            how="outer",
+            on="ID_from_HPC__c",
+        )
+    except Exception as e:
+        logger.error("An error occurred:", str(e))
 
 
 def homeworks(homeworks_output):
@@ -219,140 +227,157 @@ def homeworks(homeworks_output):
     }
 
     #     // Combine both data
-    homeworks_output["FirstName"] = homeworks_output["FirstName_x"].combine_first(
-        homeworks_output["FirstName_y"]
-    )
-    homeworks_output["LastName"] = homeworks_output["LastName_x"].combine_first(
-        homeworks_output["LastName_y"]
-    )
-    homeworks_output["StageName"] = homeworks_output["StageName_x"].combine_first(
-        homeworks_output["StageName_y"]
-    )
-    homeworks_output["CloseDate"] = homeworks_output["CloseDate_y"].combine_first(
-        homeworks_output["CloseDate_x"]
-    )
-    homeworks_output["Phone"] = homeworks_output["Phone_x"].combine_first(
-        homeworks_output["Phone_y"]
-    )
-    homeworks_output["PersonEmail"] = homeworks_output["PersonEmail_x"].combine_first(
-        homeworks_output["PersonEmail_y"]
-    )
-    homeworks_output["HEA Visit Result"] = homeworks_output[
-        "HEA Visit Result_x"
-    ].combine_first(homeworks_output["HEA Visit Result_y"])
-    homeworks_output["City__c"] = homeworks_output["City__c_x"].combine_first(
-        homeworks_output["City__c_y"]
-    )
-    homeworks_output["Weatherization_Status__c"] = homeworks_output[
-        "Weatherization_Status__c_x"
-    ].combine_first(homeworks_output["Weatherization_Status__c_y"])
-    homeworks_output["Weatherization_Date_Time__c"] = homeworks_output[
-        "Weatherization_Date_Time__c_x"
-    ].combine_first(homeworks_output["Weatherization_Date_Time__c_y"])
-    homeworks_output["Owner_Renter__c"] = homeworks_output[
-        "Owner_Renter__c_x"
-    ].combine_first(homeworks_output["Owner_Renter__c_y"])
+    try:
+        homeworks_output["FirstName"] = homeworks_output["FirstName_x"].combine_first(
+            homeworks_output["FirstName_y"]
+        )
+        homeworks_output["LastName"] = homeworks_output["LastName_x"].combine_first(
+            homeworks_output["LastName_y"]
+        )
+        homeworks_output["StageName"] = homeworks_output["StageName_x"].combine_first(
+            homeworks_output["StageName_y"]
+        )
+        homeworks_output["CloseDate"] = homeworks_output["CloseDate_y"].combine_first(
+            homeworks_output["CloseDate_x"]
+        )
+        homeworks_output["Phone"] = homeworks_output["Phone_x"].combine_first(
+            homeworks_output["Phone_y"]
+        )
+        homeworks_output["PersonEmail"] = homeworks_output["PersonEmail_x"].combine_first(
+            homeworks_output["PersonEmail_y"]
+        )
+        homeworks_output["HEA Visit Result"] = homeworks_output[
+            "HEA Visit Result_x"
+        ].combine_first(homeworks_output["HEA Visit Result_y"])
+        homeworks_output["City__c"] = homeworks_output["City__c_x"].combine_first(
+            homeworks_output["City__c_y"]
+        )
+        homeworks_output["Weatherization_Status__c"] = homeworks_output[
+            "Weatherization_Status__c_x"
+        ].combine_first(homeworks_output["Weatherization_Status__c_y"])
+        homeworks_output["Weatherization_Date_Time__c"] = homeworks_output[
+            "Weatherization_Date_Time__c_x"
+        ].combine_first(homeworks_output["Weatherization_Date_Time__c_y"])
+        homeworks_output["Owner_Renter__c"] = homeworks_output[
+            "Owner_Renter__c_x"
+        ].combine_first(homeworks_output["Owner_Renter__c_y"])
+    except Exception as e:
+        logger.error("An error occurred:", str(e))
 
-    homeworks_output["StageName"] = homeworks_output["StageName"].map(stageMapper)
+    try:
+        homeworks_output["StageName"] = homeworks_output["StageName"].map(stageMapper)
+        homeworks_output["Cancelation_Reason_s__c"] = homeworks_output[
+            "Cancelation_Reason_s__c"
+        ].map(cancelMapper)
 
-    homeworks_output["Cancelation_Reason_s__c"] = homeworks_output[
-        "Cancelation_Reason_s__c"
-    ].map(cancelMapper)
+        homeworks_output["Weatherization_Status__c"] = homeworks_output[
+            "Weatherization_Status__c"
+        ].map(wxMapper)
 
-    homeworks_output["Weatherization_Status__c"] = homeworks_output[
-        "Weatherization_Status__c"
-    ].map(wxMapper)
+        homeworks_output["Owner_Renter__c"] = homeworks_output["Owner_Renter__c"].map(
+            orMapper
+        )
+    except Exception as e:
+        logger.error("An error occurred:", str(e))
 
-    homeworks_output["Owner_Renter__c"] = homeworks_output["Owner_Renter__c"].map(
-        orMapper
-    )
+    try:
+        homeworks_output["CloseDate"] = pd.to_datetime(homeworks_output["CloseDate"])
+        homeworks_output["CloseDate"] = homeworks_output["CloseDate"].dt.strftime(
+            "%Y-%m-%d"
+        )
+        homeworks_output["CloseDate"] = homeworks_output["CloseDate"].astype(str)
+        homeworks_output["CloseDate"] = (
+            homeworks_output["CloseDate"] + "T00:00:00.000-07:00"
+        )
+        homeworks_output.loc[
+            homeworks_output["CloseDate"] == "nanT00:00:00.000-07:00",
+            "CloseDate",
+        ] = ""
+    except Exception as e:
+        logger.error("An error occurred:", str(e))
 
-    homeworks_output["CloseDate"] = pd.to_datetime(homeworks_output["CloseDate"])
-    homeworks_output["CloseDate"] = homeworks_output["CloseDate"].dt.strftime(
-        "%Y-%m-%d"
-    )
-    homeworks_output["CloseDate"] = homeworks_output["CloseDate"].astype(str)
-    homeworks_output["CloseDate"] = (
-        homeworks_output["CloseDate"] + "T00:00:00.000-07:00"
-    )
-    homeworks_output.loc[
-        homeworks_output["CloseDate"] == "nanT00:00:00.000-07:00",
-        "CloseDate",
-    ] = ""
-    # homeworks_output['CloseDate'] = homeworks_output['CloseDate'].dt.strftime('%Y-%m-%d'+'T'+'%H:%M:%S'+'.000-07:00')
-    homeworks_output["HEA_Date_And_Time__c"] = homeworks_output[
-        "HEA_Date_And_Time__c_y"
-    ].combine_first(homeworks_output["HEA_Date_And_Time__c_x"])
-    homeworks_output["HEA_Date_And_Time__c"] = pd.to_datetime(
-        homeworks_output["HEA_Date_And_Time__c"]
-    )
-    homeworks_output["HEA_Date_And_Time__c"] = homeworks_output[
-        "HEA_Date_And_Time__c"
-    ].dt.strftime("%Y-%m-%d")
-    homeworks_output["HEA_Date_And_Time__c"] = homeworks_output[
-        "HEA_Date_And_Time__c"
-    ].astype(str)
-    homeworks_output["HEA_Date_And_Time__c"] = (
-        homeworks_output["HEA_Date_And_Time__c"] + "T00:00:00.000-07:00"
-    )
-    homeworks_output.loc[
-        homeworks_output["HEA_Date_And_Time__c"] == "nanT00:00:00.000-07:00",
-        "HEA_Date_And_Time__c",
-    ] = ""
-    # homeworks_output['HEA_Date_And_Time__c'] = homeworks_output['HEA_Date_And_Time__c'].dt.strftime('%Y-%m-%d'+'T'+'%H:%M:%S'+'.000-07:00')
+    try:
+        homeworks_output["HEA_Date_And_Time__c"] = homeworks_output[
+            "HEA_Date_And_Time__c_y"
+        ].combine_first(homeworks_output["HEA_Date_And_Time__c_x"])
+        homeworks_output["HEA_Date_And_Time__c"] = pd.to_datetime(
+            homeworks_output["HEA_Date_And_Time__c"]
+        )
+        homeworks_output["HEA_Date_And_Time__c"] = homeworks_output[
+            "HEA_Date_And_Time__c"
+        ].dt.strftime("%Y-%m-%d")
+        homeworks_output["HEA_Date_And_Time__c"] = homeworks_output[
+            "HEA_Date_And_Time__c"
+        ].astype(str)
+        homeworks_output["HEA_Date_And_Time__c"] = (
+            homeworks_output["HEA_Date_And_Time__c"] + "T00:00:00.000-07:00"
+        )
+        homeworks_output.loc[
+            homeworks_output["HEA_Date_And_Time__c"] == "nanT00:00:00.000-07:00",
+            "HEA_Date_And_Time__c",
+        ] = ""
+    except Exception as e:
+        logger.error("An error occurred:", str(e))
 
-    homeworks_output["Weatherization_Date_Time__c"] = pd.to_datetime(
-        homeworks_output["Weatherization_Date_Time__c"], errors="coerce"
-    )
-    homeworks_output["Weatherization_Date_Time__c"] = homeworks_output[
-        "Weatherization_Date_Time__c"
-    ].dt.strftime("%Y-%m-%d")
-    homeworks_output["Weatherization_Date_Time__c"] = homeworks_output[
-        "Weatherization_Date_Time__c"
-    ].astype(str)
-    homeworks_output["Weatherization_Date_Time__c"] = (
-        homeworks_output["Weatherization_Date_Time__c"] + "T00:00:00.000-07:00"
-    )
-    homeworks_output.loc[
-        homeworks_output["Weatherization_Date_Time__c"] == "nanT00:00:00.000-07:00",
-        "Weatherization_Date_Time__c",
-    ] = ""
-    # homeworks_output['Weatherization_Date_Time__c'] = homeworks_output['Weatherization_Date_Time__c'].dt.strftime(
-    #     '%Y-%m-%d'+'T'+'%H:%M:%S'+'.000-07:00')
+    try:
+        homeworks_output["Weatherization_Date_Time__c"] = pd.to_datetime(
+            homeworks_output["Weatherization_Date_Time__c"], errors="coerce"
+        )
+        homeworks_output["Weatherization_Date_Time__c"] = homeworks_output[
+            "Weatherization_Date_Time__c"
+        ].dt.strftime("%Y-%m-%d")
+        homeworks_output["Weatherization_Date_Time__c"] = homeworks_output[
+            "Weatherization_Date_Time__c"
+        ].astype(str)
+        homeworks_output["Weatherization_Date_Time__c"] = (
+            homeworks_output["Weatherization_Date_Time__c"] + "T00:00:00.000-07:00"
+        )
+        homeworks_output.loc[
+            homeworks_output["Weatherization_Date_Time__c"] == "nanT00:00:00.000-07:00",
+            "Weatherization_Date_Time__c",
+        ] = ""
+    except Exception as e:
+        logger.error("An error occurred:", str(e))
 
-    homeworks_output["Street__c"] = homeworks_output["Street__c_x"].combine_first(
-        homeworks_output["Street__c_y"]
-    )
-
-    homeworks_output["Street__c"] = homeworks_output["Street__c"].str.extract(
-        r"(\d+ [a-zA-Z]\w{2,} \w{1,})"
-    )
+    try:
+        homeworks_output["Street__c"] = homeworks_output["Street__c_x"].combine_first(
+            homeworks_output["Street__c_y"]
+        )
+        homeworks_output["Street__c"] = homeworks_output["Street__c"].str.extract(
+            r"(\d+ [a-zA-Z]\w{2,} \w{1,})"
+        )
+    except Exception as e:
+        logger.error("An error occurred:", str(e))
 
     homeworks_output["HPC__c"] = "0013i00000AtGGeAAN"
 
-    for i in homeworks_output["Phone"].index:
-        homeworks_output["Phone"][i] = re.sub(
-            r"[^0-9]", "", str(homeworks_output["Phone"][i])
+    try:
+        for i in homeworks_output["Phone"].index:
+            homeworks_output["Phone"][i] = re.sub(
+                r"[^0-9]", "", str(homeworks_output["Phone"][i])
+            )
+            if len(homeworks_output["Phone"][i]) < 10:
+                homeworks_output["Phone"][i] = ""
+
+        for i in homeworks_output["PersonEmail"].index:
+            homeworks_output["PersonEmail"][i] = homeworks_output["PersonEmail"][i].lower()
+            regex = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
+            if re.fullmatch(regex, homeworks_output["PersonEmail"][i]):  # type:ignore
+                homeworks_output["PersonEmail"]
+        
+        homeworks_output["PersonEmail"] = homeworks_output["PersonEmail"].replace(
+            "na@hwe.com", np.nan
         )
-        if len(homeworks_output["Phone"][i]) < 10:
-            homeworks_output["Phone"][i] = ""
-
-    for i in homeworks_output["PersonEmail"].index:
-        homeworks_output["PersonEmail"][i] = homeworks_output["PersonEmail"][i].lower()
-        regex = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
-        if re.fullmatch(regex, homeworks_output["PersonEmail"][i]):  # type:ignore
-            homeworks_output["PersonEmail"]
-        ""
-
-    homeworks_output["PersonEmail"] = homeworks_output["PersonEmail"].replace(
-        "na@hwe.com", np.nan
-    )
-    # homeworks_output = homeworks_output.apply(clean_up_phone_and_email, axis=1)
+    except Exception as e:
+        logger.error("An error occurred:", str(e))
 
     # Combine health and safety
-    homeworks_output["Health_Safety_Barrier__c"] = homeworks_output.apply(
-        combine_hs, axis=1
-    )
+    try:
+        homeworks_output["Health_Safety_Barrier__c"] = homeworks_output.apply(
+            combine_hs, axis=1
+        )
+    except Exception as e:
+        logger.error("An error occurred:", str(e))
 
     homeworks_output = homeworks_output.loc[
         :,
@@ -381,15 +406,3 @@ def homeworks(homeworks_output):
     ]
 
     return homeworks_output
-
-
-# def clean_up_phone_and_email(row):
-#   row['Phone'] = toSalesforcePhone(row['Phone'])
-#   row['PersonEmail'] = toSalesforceEmail(row['PersonEmail'])
-#   return row
-
-# if __name__ == '__main__':
-#     output = pd.read_csv('/content/CFP Communities Report - Output.csv')
-#     homeworks_old_input = pd.read_csv('/content/Old Data.csv', encoding="ISO-8859-1")
-#     homeworks_new_input = pd.read_csv('/content/CFP Communities Report - Homeworks Input.csv', encoding="ISO-8859-1")
-#     homeworks_output = homeworks(homeworks_old_input, homeworks_new_input)

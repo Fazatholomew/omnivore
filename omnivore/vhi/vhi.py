@@ -2,6 +2,33 @@ from omnivore.utils.aux import toSalesforceEmail, toSalesforcePhone
 from pandas import DataFrame, to_datetime, Series
 from datetime import datetime
 from numpy import nan
+import logging
+import time
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    filename="logger.log",
+    filemode="w",
+)
+
+# Create a logger object
+logger = logging.getLogger()
+
+# Remove existing handlers to avoid duplication
+for handler in logger.handlers[:]:
+    logger.removeHandler(handler)
+
+# Create a file handler and set its level
+file_handler = logging.FileHandler("logger.log")
+file_handler.setLevel(logging.DEBUG)
+
+# Create a formatter and set it for the file handler
+formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+file_handler.setFormatter(formatter)
+
+# Add the file handler to the logger
+logger.addHandler(file_handler)
 
 stageMapper = {
     "Recommended - Unsigned": "Recommended - Unsigned",
@@ -16,7 +43,6 @@ stageMapper = {
     "No Opportunity": "No Opportunity",
     "Scheduled": "Scheduled",
 }
-
 
 def clean_contact_info(row) -> Series:
     try: 
