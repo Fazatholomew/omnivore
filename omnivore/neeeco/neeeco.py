@@ -38,61 +38,61 @@ file_handler.setFormatter(formatter)
 # Add the file handler to the logger
 logger.addHandler(file_handler)
 
-start_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+# // Neeeco words into Salesforce Stage
+stageMapper = {
+    "Customer Declined - No F/U": "Recommended - Unsigned",
+    "High Probability": "Recommended - Unsigned",
+    "Low Probability": "Recommended - Unsigned",
+    "Medium Probability": "Recommended - Unsigned",
+    "Sold then Canceled": "Recommended - Unsigned",
+    "Deferred Until Later": "No Opportunity",
+    "No Opportunity": "No Opportunity",
+    "Signed & Sold": "Signed Contracts",
+    "OPS H&S Follow Up": "Health & Safety Barrier",
+}
+
+# // Cancelation Reasons
+neeecoCancelMapper = {
+    "Condo - Complex": "5+ units",
+    "Unable to Contact/8 attempts": "Unresponsive",
+    "Does Not Want Audit": "Not Interested",
+    "Low Income": "Low Income",
+    "Municipal - Not NG or EV": "Unresponsive",
+    "Already Had Audit (2year)": "Had HEA within 2 years",
+    "Bad Data": "Bad Data",
+    "No Account Info": "Bad Data",
+    "Scheduling Conflict": "Reschedule Request",
+    "Outside of our territory": "By Office",
+    "Under Construction": "By Office",
+    "Commercial Property": "5+ units",
+    "Do Not Contact": "Not Interested",
+    "": "No Reason",
+    np.nan: "No Reason",
+}
+
+# // Health And Safety Issues
+hsMapper = {
+    "K&T": "Knob & Tube (Major)",
+    "CST": "Combustion Safety Failure",
+    "Moisture": "Mold/Moisture",
+    "Asbestos": "Asbestos",
+}
+
+# // Health And Safety Statuses
+hsStageMapper = {
+    "H&S Remediated": "Barrier Removed",
+    "H&S No Follow Up Needed": "Barrier Removed",
+    "H&S Needs Follow Up": "Not Attempted",
+}
+
+# Owner / Renter
+owner_renter_mapper = {"Landlord": "Owner", "Tenant": "Renter"}
+
 
 def neeeco(neeeco_input, neeeco_wx_input):
+    start_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     # Log an info message with the start time
     logger.debug(f"Neeeco execution started at: {start_time}")
-    
-    # // Neeeco words into Salesforce Stage
-    stageMapper = {
-        "Customer Declined - No F/U": "Recommended - Unsigned",
-        "Deferred Until Later": "No Opportunity",
-        "High Probability": "Recommended - Unsigned",
-        "Low Probability": "Recommended - Unsigned",
-        "Medium Probability": "Recommended - Unsigned",
-        "No Opportunity": "No Opportunity",
-        "Signed & Sold": "Signed Contracts",
-        "Sold then Canceled": "Recommended - Unsigned",
-        "OPS H&S Follow Up": "Health & Safety Barrier",
-    }
-
-    # // Cancelation Reasons
-    neeecoCancelMapper = {
-        "Condo - Complex": "5+ units",
-        "Unable to Contact/8 attempts": "Unresponsive",
-        "Does Not Want Audit": "Not Interested",
-        "Low Income": "Low Income",
-        "Municipal - Not NG or EV": "Unresponsive",
-        "Already Had Audit (2year)": "Had HEA within 2 years",
-        "Bad Data": "Bad Data",
-        "No Account Info": "Bad Data",
-        "Scheduling Conflict": "Reschedule Request",
-        "": "No Reason",
-        np.nan: "No Reason",
-        "Outside of our territory": "By Office",
-        "Under Construction": "By Office",
-        "Commercial Property": "5+ units",
-        "Do Not Contact": "Not Interested",
-    }
-
-    # // Health And Safety Issues
-    hsMapper = {
-        "K&T": "Knob & Tube (Major)",
-        "CST": "Combustion Safety Failure",
-        "Moisture": "Mold/Moisture",
-        "Asbestos": "Asbestos",
-    }
-
-    # // Health And Safety Statuses
-    hsStageMapper = {
-        "H&S Remediated": "Barrier Removed",
-        "H&S No Follow Up Needed": "Barrier Removed",
-        "H&S Needs Follow Up": "Not Attempted",
-    }
-
-    # Owner / Renter
-    owner_renter_mapper = {"Landlord": "Owner", "Tenant": "Renter"}
 
     try:
         # Merge the input dataframes and rename columns

@@ -60,3 +60,6 @@ pytestdebug.log.pdm-python
 
 ### Env Files ###
 .env
+
+### Logger Files ###
+.logger.log
