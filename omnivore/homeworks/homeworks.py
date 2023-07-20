@@ -1,6 +1,8 @@
 import re
 import pandas as pd
 import numpy as np
+import logging
+import time
 
 pd.set_option("display.max_columns", 1000)
 pd.options.mode.chained_assignment = None  # type:ignore
@@ -94,6 +96,10 @@ def rename_and_merge(homeworks_old_input, homeworks_new_input) -> pd.DataFrame:
             "Account Name": "Street__c",
         }
     )
+
+    homeworks_new_input['ID_from_HPC__c'] = homeworks_new_input['ID_from_HPC__c'].astype('str')
+    homeworks_old_input['ID_from_HPC__c'] = homeworks_old_input['ID_from_HPC__c'].astype('str')
+
     return pd.merge(
         left=homeworks_new_input,
         right=homeworks_old_input,

@@ -19,66 +19,90 @@ stageMapper = {
 
 
 def clean_contact_info(row) -> Series:
-    row["PersonEmail"] = toSalesforceEmail(row["PersonEmail"]) or nan
-    row["Phone"] = toSalesforcePhone(row["Phone"]) or nan
-    return row
+    try: 
+        row["PersonEmail"] = toSalesforceEmail(row["PersonEmail"]) or nan
+        row["Phone"] = toSalesforcePhone(row["Phone"]) or nan
+        return row
+    except Exception as e:
+        logger.error("An error occurred:", str(e))
 
 
 def vhi(data: DataFrame) -> DataFrame:
     # Removing unprocessable rows
-    data = data[~data["VHI Unique Number"].isna()]
-    data = data[~data["Contact: Email"].isna() | ~data["Contact: Phone"].isna()]
+    try:
+        data = data[~data["VHI Unique Number"].isna()]
+        data = data[~data["Contact: Email"].isna() | ~data["Contact: Phone"].isna()]
+    except Exception as e:
+        logger.error("An error occurred:", str(e))
 
     # Rename columns into Salesforce Field
-    data = data.rename(
-        columns={
-            "VHI Unique Number": "ID_from_HPC__c",
-            "Contact: Phone": "Phone",
-            "Contact: Email": "PersonEmail",
-            "Audit Date & Time": "HEA_Date_And_Time__c",
-            "Stage": "StageName",
-            "Health & Safety Issues": "Health_Safety_Barrier__c",
-            "Date of work": "Weatherization_Date_Time__c",
-            "Amount": "Final_Contract_Amount__c",
-        }
-    )
+    try:
+        data = data.rename(
+            columns={
+                "VHI Unique Number": "ID_from_HPC__c",
+                "Contact: Phone": "Phone",
+                "Contact: Email": "PersonEmail",
+                "Audit Date & Time": "HEA_Date_And_Time__c",
+                "Stage": "StageName",
+                "Health & Safety Issues": "Health_Safety_Barrier__c",
+                "Date of work": "Weatherization_Date_Time__c",
+                "Amount": "Final_Contract_Amount__c",
+            }
+        )
+    except Exception as e:
+        logger.error("An error occurred:", str(e))
 
     # Combine street and city
-    data["Street__c"] = data["Address"] + " " + data["Billing City"]
+    try:
+        data["Street__c"] = data["Address"] + " " + data["Billing City"]
+    except Exception as e:
+        logger.error("An error occurred:", str(e))
 
     # Translate stage into stagename and wx status
-    data["Weatherization_Status__c"] = nan
-    data.loc[
-        (data["StageName"] == "Wx Scheduled"), "Weatherization_Status__c"
-    ] = "Scheduled"
-    data.loc[
-        (data["StageName"] == "Wx Completed"), "Weatherization_Status__c"
-    ] = "Completed"
-    data["StageName"] = data["StageName"].map(stageMapper)
-    data.loc[(data["StageName"].isna()), "StageName"] = "Canceled"
-    data["Cancelation_Reason_s__c"] = nan
-    data.loc[(data["StageName"] == "Canceled"), "Cancelation_Reason_s__c"] = "No Reason"
-    data.loc[(data["Lead Vendor"] == "ABCD"), "Cancelation_Reason_s__c"] = "Low Income"
+    try:
+        data["Weatherization_Status__c"] = nan
+        data.loc[
+            (data["StageName"] == "Wx Scheduled"), "Weatherization_Status__c"
+        ] = "Scheduled"
+        data.loc[
+            (data["StageName"] == "Wx Completed"), "Weatherization_Status__c"
+        ] = "Completed"
+        data["StageName"] = data["StageName"].map(stageMapper)
+        data.loc[(data["StageName"].isna()), "StageName"] = "Canceled"
+        data["Cancelation_Reason_s__c"] = nan
+        data.loc[(data["StageName"] == "Canceled"), "Cancelation_Reason_s__c"] = "No Reason"
+        data.loc[(data["Lead Vendor"] == "ABCD"), "Cancelation_Reason_s__c"] = "Low Income"
+    except Exception as e:
+        logger.error("An error occurred:", str(e))
 
     # Date and Time
-    data["CloseDate"] = to_datetime(
-        data["HEA_Date_And_Time__c"], errors="coerce"
-    ).dt.strftime("%Y-%m-%d" + "T" + "%H:%M:%S" + ".000-07:00")
-    data.loc[(data["CloseDate"].isna()), "CloseDate"] = datetime.now().strftime(
-        "%Y-%m-%d" + "T" + "%H:%M:%S" + ".000-07:00"
-    )
-    data["HEA_Date_And_Time__c"] = to_datetime(
-        data["HEA_Date_And_Time__c"], errors="coerce"
-    ).dt.strftime("%Y-%m-%d" + "T" + "%H:%M:%S" + ".000-07:00")
-    data["Weatherization_Date_Time__c"] = to_datetime(
-        data["Weatherization_Date_Time__c"], errors="coerce"
-    ).dt.strftime("%Y-%m-%d" + "T" + "%H:%M:%S" + ".000-07:00")
+    try:
+        data["CloseDate"] = to_datetime(
+            data["HEA_Date_And_Time__c"], errors="coerce"
+        ).dt.strftime("%Y-%m-%d" + "T" + "%H:%M:%S" + ".000-07:00")
+        data.loc[(data["CloseDate"].isna()), "CloseDate"] = datetime.now().strftime(
+            "%Y-%m-%d" + "T" + "%H:%M:%S" + ".000-07:00"
+        )
+        data["HEA_Date_And_Time__c"] = to_datetime(
+            data["HEA_Date_And_Time__c"], errors="coerce"
+        ).dt.strftime("%Y-%m-%d" + "T" + "%H:%M:%S" + ".000-07:00")
+        data["Weatherization_Date_Time__c"] = to_datetime(
+            data["Weatherization_Date_Time__c"], errors="coerce"
+        ).dt.strftime("%Y-%m-%d" + "T" + "%H:%M:%S" + ".000-07:00")
+    except Exception as e:
+        logger.error("An error occurred:", str(e))
 
     # first name and last name
-    data["FirstName"] = data["Opportunity Name"].str.extract(r"^(.*?)\s(?:\S+\s)*\S+$")
-    data["LastName"] = data["Opportunity Name"].str.extract(r"\s(.*)$")
+    try:
+        data["FirstName"] = data["Opportunity Name"].str.extract(r"^(.*?)\s(?:\S+\s)*\S+$")
+        data["LastName"] = data["Opportunity Name"].str.extract(r"\s(.*)$")
+    except Exception as e:
+        logger.error("An error occurred:", str(e))
 
     # Clean up contact info
-    data = data.apply(clean_contact_info, axis=1)
+    try:
+        data = data.apply(clean_contact_info, axis=1)
+    except Exception as e:
+        logger.error("An error occurred:", str(e))
 
     return data
