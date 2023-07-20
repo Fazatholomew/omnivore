@@ -4,8 +4,9 @@ from typing import cast
 from pandas import DataFrame, read_csv
 from asyncio import run, gather, get_event_loop
 from simple_salesforce.exceptions import SalesforceMalformedRequest
-from traceback import print_exc
+import traceback
 import logging
+import time
 from dotenv import load_dotenv
 
 import sys
@@ -22,17 +23,42 @@ from omnivore.utils.aux import to_account_and_opportunities, to_sf_payload, find
 from omnivore.utils.types import Record_Find_Info
 from omnivore.utils.constants import NEEECO_ACCID, HEA_ID, CFP_OPP_ID, HOMEWORKS_ACCID, VHI_ACCID
 
-logging.basicConfig(format='%(asctime)s %(message)s')
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    filename="logger.log",
+    filemode="w",
+)
+
+# Create a logger object
+logger = logging.getLogger()
+
+# Remove existing handlers to avoid duplication
+for handler in logger.handlers[:]:
+    logger.removeHandler(handler)
+
+# Create a file handler and set its level
+file_handler = logging.FileHandler("logger.log")
+file_handler.setLevel(logging.DEBUG)
+
+# Create a formatter and set it for the file handler
+formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+file_handler.setFormatter(formatter)
+
+# Add the file handler to the logger
+logger.addHandler(file_handler)
+
+start_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 
 class Blueprint:
     def __init__(self) -> None:
         if getenv('EMAIL') or getenv('ENV') == 'test':
-            print('Load Database from SF')
+            logger.debug('Load Database from SF')
             self.sf = SalesforceConnection(username=getenv('EMAIL'), consumer_key=getenv(  # type:ignore
                 'CONSUMER_KEY'), privatekey_file=getenv('PRIVATEKEY_FILE'))  # type:ignore
             self.sf.get_salesforce_table()
         self.load_processed_rows()
-        print('Finsihed loading Database from SF')
+        logger.debug('Finsihed loading Database from SF')
 
     def load_processed_rows(self, fileName='./processed_row') -> None:
         '''
@@ -98,20 +124,20 @@ class Blueprint:
                                   self.processed_rows.add(processed_row_id)
                           except Exception as e:
                               if (getenv('ENV') == 'staging'):
-                                  print(payload)
-                                  print('failed to create after cancelation reason')
-                                  print(e)
+                                  logger.error(payload)
+                                  logger.error('failed to create after cancelation reason')
+                                  logger.error(e)
                                   raise e
-                              print_exc()
-                              print(e) 
+                              logger.error(traceback.format_exc())
+                              logger.error(e) 
                     except Exception as err:
                         if (getenv('ENV') == 'staging'):
-                            print(payload)
-                            print('failed to update')
-                            print(err)
+                            logger.error(payload)
+                            logger.error('failed to update')
+                            logger.error(err)
                             raise err
-                        print_exc()
-                        print(err)
+                        logger.error(traceback.format_exc())
+                        logger.error(err)
                         continue
             else:
                 payload = to_sf_payload(opp, 'Opportunity')
@@ -130,12 +156,12 @@ class Blueprint:
                                     self.processed_rows.add(processed_row_id)
                             except Exception as e:
                                 if (getenv('ENV') == 'staging'):
-                                    print(payload)
-                                    print('failed to update after create')
-                                    print(e)
+                                    logger.error(payload)
+                                    logger.error('failed to update after create')
+                                    logger.error(e)
                                     raise e
-                                print_exc()
-                                print(e)
+                                logger.error(traceback.format_exc())
+                                logger.error(e)
                             
                     if (err.content[0]['errorCode'] == 'FIELD_CUSTOM_VALIDATION_EXCEPTION' and 'cancelation' in err.content[0]['message']):
                         # Canceled stage needs a cancelation reason
@@ -146,29 +172,29 @@ class Blueprint:
                                 self.processed_rows.add(processed_row_id)
                         except Exception as e:
                             if (getenv('ENV') == 'staging'):
-                                print(payload)
-                                print('failed to create after cancelation reason')
-                                print(e)
+                                logger.error(payload)
+                                logger.error('failed to create after cancelation reason')
+                                logger.error(e)
                                 raise e
-                            print_exc()
-                            print(e)
+                            logger.error(traceback.format_exc())
+                            logger.error(e)
                     if (getenv('ENV') == 'staging'):
-                        print(payload)
-                        print('failed to update after create')
-                        print(err)
+                        logger.error(payload)
+                        logger.error('failed to update after create')
+                        logger.error(err)
                         raise err
-                    print_exc()
-                    print(err)
+                    logger.error(traceback.format_exc())
+                    logger.error(err)
                       
                 except Exception as e:
-                    print('error creating')
+                    logger.error('error creating')
                     if (getenv('ENV') == 'staging'):
-                        print(payload)
-                        print('failed to create')
-                        print(e)
+                        logger.error(payload)
+                        logger.error('failed to create')
+                        logger.error(e)
                         raise e
-                    print_exc()
-                    print(e)
+                    logger.error(traceback.format_exc())
+                    logger.error(e)
                 continue
 
     async def start_upload_to_salesforce(self, data: list[Record_Find_Info], HPC_ID: str) -> None:
@@ -190,9 +216,9 @@ class Blueprint:
           grouped_opps = to_account_and_opportunities(processed_row)
           run(self.start_upload_to_salesforce(grouped_opps, NEEECO_ACCID))
         except Exception as e:
-          print("Error in Neeeco process.")
-          print_exc()
-          print(e)
+          logger.error("Error in Neeeco process.")
+          logger.error(traceback.format_exc())
+          logger.error(e)
 
 
     def run_homeworks(self) -> None:
@@ -208,9 +234,9 @@ class Blueprint:
           grouped_opps = to_account_and_opportunities(processed_row)
           run(self.start_upload_to_salesforce(grouped_opps, HOMEWORKS_ACCID))
         except Exception as e:
-          print("Error in Homeworks process.")
-          print_exc()
-          print(e)
+          logger.error("Error in Homeworks process.")
+          logger.error(traceback.format_exc())
+          logger.error(e)
     
     def run_vhi(self) -> None:
         '''
@@ -223,21 +249,21 @@ class Blueprint:
           grouped_opps = to_account_and_opportunities(processed_row)
           run(self.start_upload_to_salesforce(grouped_opps, VHI_ACCID))
         except Exception as e:
-          print("Error in VHI process.")
-          print_exc()
-          print(e)
+          logger.error("Error in VHI process.")
+          logger.error(traceback.format_exc())
+          logger.error(e)
 
     def run(self) -> None:
-        print('Start Processing Neeeco')
+        logger.debug('Start Processing Neeeco')
         self.run_neeeco()
         self.save_processed_rows()
-        print('Start Processing Homeworks')
+        logger.debug('Start Processing Homeworks')
         self.run_homeworks()
         self.save_processed_rows()
-        print('Start Processing VHI')
+        logger.debug('Start Processing VHI')
         self.run_vhi()
         self.save_processed_rows()
-        print('Finished running Omnivore')
+        logger.debug('Finished running Omnivore')
 
 
 if __name__ == '__main__':

@@ -7,7 +7,6 @@ Syncing All In Energy's Salesforce with data from HPC's.
 ```
 
 ## Testing
-
 ```console
 ~ $ pdm run tests
 ```

@@ -20,30 +20,30 @@ logging.basicConfig(
     filemode="w",
 )
 
+# Create a logger object
+logger = logging.getLogger()
+
+# Remove existing handlers to avoid duplication
+for handler in logger.handlers[:]:
+    logger.removeHandler(handler)
+
+# Create a file handler and set its level
+file_handler = logging.FileHandler("logger.log")
+file_handler.setLevel(logging.DEBUG)
+
+# Create a formatter and set it for the file handler
+formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+file_handler.setFormatter(formatter)
+
+# Add the file handler to the logger
+logger.addHandler(file_handler)
+
+start_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+
 def neeeco(neeeco_input, neeeco_wx_input):
-    # Create a logger object
-    logger = logging.getLogger()
-
-    # Remove existing handlers to avoid duplication
-    for handler in logger.handlers[:]:
-        logger.removeHandler(handler)
-
-    # Create a file handler and set its level
-    file_handler = logging.FileHandler("logger.log")
-    file_handler.setLevel(logging.DEBUG)
-
-    # Create a formatter and set it for the file handler
-    formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-    file_handler.setFormatter(formatter)
-
-    # Add the file handler to the logger
-    logger.addHandler(file_handler)
-
-    start_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-
     # Log an info message with the start time
     logger.debug(f"Neeeco execution started at: {start_time}")
-
+    
     # // Neeeco words into Salesforce Stage
     stageMapper = {
         "Customer Declined - No F/U": "Recommended - Unsigned",
