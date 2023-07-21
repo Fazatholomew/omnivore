@@ -406,3 +406,15 @@ def homeworks(homeworks_output):
     ]
 
     return homeworks_output
+
+    # # Calculate rows added in the file
+    # new = len(homeworks_output) - len(neeeco_input)
+    # logging.debug(f"Number of new rows added in Homeworks : {new}")
+
+    # # Calculate rows updated in the file
+    # update = len(homeworks_output) - new
+    # logging.debug(f"Number of rows updated in Homeworks : {update}")
+
+    # end_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    # # Log an info message with the end time
+    # logger.debug(f"Homeworks execution ended at: {end_time}")

@@ -132,3 +132,15 @@ def vhi(data: DataFrame) -> DataFrame:
         logger.error("An error occurred: %s", str(e))
 
     return data
+
+    # # Calculate rows added in the file
+    # new = len(data) - len(neeeco_input)
+    # logging.debug(f"Number of new rows added in VHI : {new}")
+
+    # # Calculate rows updated in the file
+    # update = len(data) - new
+    # logging.debug(f"Number of rows updated in VHI : {update}")
+
+    # end_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    # # Log an info message with the end time
+    # logger.debug(f"VHI execution ended at: {end_time}")
