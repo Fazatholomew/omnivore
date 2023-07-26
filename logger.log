@@ -6,3 +6,182 @@
 2023-07-26 12:14:13,398 - DEBUG - https://allinenergy--omnivore.sandbox.my.salesforce.com:443 "GET /services/data/v52.0/query/?q=SELECT+Id%2C+BillingStreet%2C+BillingCity%2C+BillingState%2C+BillingPostalCode%2C+FirstName%2C+LastName%2C+Phone%2C+PersonEmail%2C+Gas_Utility__c%2C+Electric_Utility__c%2C+RecordTypeId%2C+Owner_Renter__c%2C+All_In_Energy_ID__c%2C+Field_Staff__c%2C+Prefered_Lan__c+FROM+Account+WHERE+RecordTypeID+IN+%28%270123i000000YGesAAG%27%2C+%270128Z0000002307QAA%27%29 HTTP/1.1" 200 None
 2023-07-26 12:14:13,406 - DEBUG - Finsihed loading Database from SF
 2023-07-26 12:14:13,406 - DEBUG - Start Processing Neeeco
+2023-07-26 12:14:41,764 - DEBUG - Neeeco execution started at: 2023-07-26 12:14:41
+2023-07-26 12:14:41,814 - DEBUG - Number of new rows added in Neeeco : 0
+2023-07-26 12:14:41,814 - DEBUG - Number of rows updated in Neeeco : 16
+2023-07-26 12:14:41,814 - DEBUG - Neeeco execution ended at: 2023-07-26 12:14:41
+2023-07-26 12:14:41,819 - DEBUG - Using selector: KqueueSelector
+2023-07-26 12:14:41,827 - DEBUG - Starting new HTTPS connection (2): allinenergy--omnivore.sandbox.my.salesforce.com:443
+2023-07-26 12:14:41,828 - DEBUG - Starting new HTTPS connection (3): allinenergy--omnivore.sandbox.my.salesforce.com:443
+2023-07-26 12:14:41,828 - DEBUG - Starting new HTTPS connection (4): allinenergy--omnivore.sandbox.my.salesforce.com:443
+2023-07-26 12:14:41,829 - DEBUG - Starting new HTTPS connection (5): allinenergy--omnivore.sandbox.my.salesforce.com:443
+2023-07-26 12:14:41,829 - DEBUG - Starting new HTTPS connection (6): allinenergy--omnivore.sandbox.my.salesforce.com:443
+2023-07-26 12:14:41,830 - DEBUG - Starting new HTTPS connection (7): allinenergy--omnivore.sandbox.my.salesforce.com:443
+2023-07-26 12:14:41,830 - DEBUG - Starting new HTTPS connection (8): allinenergy--omnivore.sandbox.my.salesforce.com:443
+2023-07-26 12:14:41,834 - DEBUG - Starting new HTTPS connection (9): allinenergy--omnivore.sandbox.my.salesforce.com:443
+2023-07-26 12:14:41,835 - DEBUG - Starting new HTTPS connection (10): allinenergy--omnivore.sandbox.my.salesforce.com:443
+2023-07-26 12:14:41,837 - DEBUG - Starting new HTTPS connection (11): allinenergy--omnivore.sandbox.my.salesforce.com:443
+2023-07-26 12:14:41,837 - DEBUG - Starting new HTTPS connection (12): allinenergy--omnivore.sandbox.my.salesforce.com:443
+2023-07-26 12:14:42,300 - DEBUG - https://allinenergy--omnivore.sandbox.my.salesforce.com:443 "POST /services/data/v52.0/sobjects/Opportunity/ HTTP/1.1" 400 None
+2023-07-26 12:14:42,301 - DEBUG - https://allinenergy--omnivore.sandbox.my.salesforce.com:443 "POST /services/data/v52.0/sobjects/Opportunity/ HTTP/1.1" 400 None
+2023-07-26 12:14:42,301 - DEBUG - https://allinenergy--omnivore.sandbox.my.salesforce.com:443 "POST /services/data/v52.0/sobjects/Opportunity/ HTTP/1.1" 400 None
+2023-07-26 12:14:42,320 - DEBUG - https://allinenergy--omnivore.sandbox.my.salesforce.com:443 "POST /services/data/v52.0/sobjects/Opportunity/ HTTP/1.1" 400 None
+2023-07-26 12:14:42,323 - DEBUG - https://allinenergy--omnivore.sandbox.my.salesforce.com:443 "POST /services/data/v52.0/sobjects/Opportunity/ HTTP/1.1" 400 None
+2023-07-26 12:14:42,323 - DEBUG - https://allinenergy--omnivore.sandbox.my.salesforce.com:443 "POST /services/data/v52.0/sobjects/Opportunity/ HTTP/1.1" 400 None
+2023-07-26 12:14:42,323 - ERROR - {'Street__c': '1 Riverview Blvd', 'Unit__c': '6-201', 'City__c': 'Methuen', 'Zipcode__c': 1844, 'Name': 'Rachel Ling', 'CloseDate': '2020-06-19T00:00:00.000-07:00', 'StageName': 'Canceled', 'isVHEA__c': False, 'AccountId': '0017600000Z4NQnAAN', 'RecordTypeId': '0128Z000000230CQAQ', 'ID_from_HPC__c': 247692820, 'Cancelation_Reason_s__c': '5+ units', 'HPC__c': '0013i00000AtGAvAAN', 'CampaignId': '7013i000000i5vNAAQ'}
+2023-07-26 12:14:42,323 - ERROR - {'Street__c': '12 St. Paul St.', 'Unit__c': 'Unit 3', 'City__c': 'Cambridge', 'Zipcode__c': 2139, 'Name': 'Austin Che', 'CloseDate': '2019-06-05T00:00:00.000-07:00', 'StageName': 'Canceled', 'isVHEA__c': False, 'AccountId': '0017600000Z4N4qAAF', 'RecordTypeId': '0128Z000000230CQAQ', 'ID_from_HPC__c': 231904294, 'Cancelation_Reason_s__c': 'Not Interested', 'HPC__c': '0013i00000AtGAvAAN', 'CampaignId': '7013i000000i5vCAAQ'}
+2023-07-26 12:14:42,323 - ERROR - {'Street__c': '696 Bennington St', 'Unit__c': 'Unit 1', 'City__c': 'East Boston', 'Zipcode__c': 2128, 'Name': 'Abraham Bustillo', 'HEA_Date_And_Time__c': '2022-01-18T00:00:00.000-07:00', 'CloseDate': '2021-12-07T00:00:00.000-07:00', 'StageName': 'Signed Contracts', 'isVHEA__c': False, 'Weatherization_Status__c': 'Completed', 'Weatherization_Date_Time__c': '2022-02-09T00:00:00.000-07:00', 'Contract_Amount__c': 8685.95, 'Final_Contract_Amount__c': 8492.81, 'AccountId': '0017600000Z4NIZAA3', 'RecordTypeId': '0123i000000YF7QAAW', 'ID_from_HPC__c': 258602497, 'HPC__c': '0013i00000AtGAvAAN', 'CampaignId': ''}
+2023-07-26 12:14:42,324 - DEBUG - https://allinenergy--omnivore.sandbox.my.salesforce.com:443 "POST /services/data/v52.0/sobjects/Opportunity/ HTTP/1.1" 400 None
+2023-07-26 12:14:42,324 - DEBUG - https://allinenergy--omnivore.sandbox.my.salesforce.com:443 "POST /services/data/v52.0/sobjects/Opportunity/ HTTP/1.1" 400 None
+2023-07-26 12:14:42,324 - DEBUG - https://allinenergy--omnivore.sandbox.my.salesforce.com:443 "POST /services/data/v52.0/sobjects/Opportunity/ HTTP/1.1" 400 None
+2023-07-26 12:14:42,324 - DEBUG - https://allinenergy--omnivore.sandbox.my.salesforce.com:443 "POST /services/data/v52.0/sobjects/Opportunity/ HTTP/1.1" 400 None
+2023-07-26 12:14:42,324 - DEBUG - https://allinenergy--omnivore.sandbox.my.salesforce.com:443 "POST /services/data/v52.0/sobjects/Opportunity/ HTTP/1.1" 400 None
+2023-07-26 12:14:42,324 - ERROR - {'Street__c': '16 Crescent St', 'Unit__c': '', 'City__c': 'Weston', 'Zipcode__c': 2493, 'Name': 'Ran Jing', 'CloseDate': '2021-11-08T00:00:00.000-07:00', 'StageName': 'Canceled', 'isVHEA__c': False, 'AccountId': '0017600000Z4NRVAA3', 'RecordTypeId': '0123i000000YF7QAAW', 'ID_from_HPC__c': 263919758, 'Cancelation_Reason_s__c': 'Not Interested', 'HPC__c': '0013i00000AtGAvAAN', 'CampaignId': ''}
+2023-07-26 12:14:42,325 - ERROR - {'Street__c': '161 Central St', 'Unit__c': 'Unit 1', 'City__c': 'Framingham', 'Zipcode__c': 1701, 'Name': 'James Marious', 'HEA_Date_And_Time__c': '2022-02-15T00:00:00.000-07:00', 'CloseDate': '2022-01-04T00:00:00.000-07:00', 'StageName': 'Signed Contracts', 'Health_Safety_Barrier_Status__c': 'Barrier Removed', 'isVHEA__c': False, 'Weatherization_Status__c': 'Not Yet Scheduled', 'Contract_Amount__c': 2742.58, 'AccountId': '0017600000Z4NRGAA3', 'RecordTypeId': '0128Z000000230CQAQ', 'ID_from_HPC__c': 265074847, 'HPC__c': '0013i00000AtGAvAAN', 'CampaignId': '7013i000000i5vbAAA'}
+2023-07-26 12:14:42,325 - ERROR - failed to update after create
+2023-07-26 12:14:42,325 - ERROR - failed to update after create
+2023-07-26 12:14:42,325 - ERROR - failed to update after create
+2023-07-26 12:14:42,328 - ERROR - Malformed request https://allinenergy--omnivore.sandbox.my.salesforce.com/services/data/v52.0/sobjects/Opportunity/. Response content: [{'message': 'insufficient access rights on cross-reference id: 0013i00000AtGAv', 'errorCode': 'INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY', 'fields': []}]
+2023-07-26 12:14:42,326 - ERROR - {'Street__c': '46 William St', 'Unit__c': '', 'City__c': 'Cambridge', 'Zipcode__c': 2139, 'Name': 'Theresa Betancourt', 'HEA_Date_And_Time__c': '2020-11-04T00:00:00.000-07:00', 'CloseDate': '2020-10-06T00:00:00.000-07:00', 'StageName': 'No Opportunity', 'Health_Safety_Barrier_Status__c': 'Barrier Removed', 'isVHEA__c': True, 'AccountId': '0017600000Z4NRLAA3', 'RecordTypeId': '0128Z000000230CQAQ', 'ID_from_HPC__c': 251131858, 'HPC__c': '0013i00000AtGAvAAN', 'CampaignId': '7013i000000i5vCAAQ'}
+2023-07-26 12:14:42,326 - ERROR - {'Street__c': '4 Intervale Rd', 'Unit__c': '', 'City__c': 'Arlington', 'Zipcode__c': 2474, 'Name': 'Amy & Victor Martins', 'HEA_Date_And_Time__c': '2020-11-05T00:00:00.000-07:00', 'CloseDate': '2020-11-02T00:00:00.000-07:00', 'StageName': 'No Opportunity', 'isVHEA__c': True, 'AccountId': '0017600000Z4NRzAAN', 'RecordTypeId': '0128Z000000230CQAQ', 'ID_from_HPC__c': 251024675, 'HPC__c': '0013i00000AtGAvAAN', 'CampaignId': '7018Z0000033D6x'}
+2023-07-26 12:14:42,327 - ERROR - {'Street__c': '19 Desmond Rd.', 'Unit__c': '', 'City__c': 'Mattapan', 'Zipcode__c': 2126, 'Name': 'Louis Carter', 'HEA_Date_And_Time__c': '2019-03-05T00:00:00.000-07:00', 'CloseDate': '2019-02-19T00:00:00.000-07:00', 'StageName': 'Recommended - Unsigned', 'isVHEA__c': False, 'Contract_Amount__c': 2872.9, 'AccountId': '0017600000Z4NJKAA3', 'RecordTypeId': '0123i000000YF7QAAW', 'ID_from_HPC__c': 226303672, 'HPC__c': '0013i00000AtGAvAAN', 'CampaignId': ''}
+2023-07-26 12:14:42,327 - ERROR - failed to update after create
+2023-07-26 12:14:42,327 - ERROR - failed to update after create
+2023-07-26 12:14:42,327 - ERROR - {'Street__c': '80 Bellingham St', 'Unit__c': 'Unit 1', 'City__c': 'Chelsea', 'Zipcode__c': 2150, 'Name': 'Amarilys Amy Rodriguez', 'CloseDate': '2021-04-06T00:00:00.000-07:00', 'StageName': 'Canceled', 'isVHEA__c': True, 'AccountId': '0017600000Z4NR6AAN', 'RecordTypeId': '0128Z000000230CQAQ', 'ID_from_HPC__c': 257048632, 'Cancelation_Reason_s__c': 'Unresponsive', 'HPC__c': '0013i00000AtGAvAAN', 'CampaignId': '7013i000000i5vqAAA'}
+2023-07-26 12:14:42,328 - ERROR - Malformed request https://allinenergy--omnivore.sandbox.my.salesforce.com/services/data/v52.0/sobjects/Opportunity/. Response content: [{'message': 'insufficient access rights on cross-reference id: 7013i000000i5vN', 'errorCode': 'INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY', 'fields': []}]
+2023-07-26 12:14:42,328 - ERROR - Malformed request https://allinenergy--omnivore.sandbox.my.salesforce.com/services/data/v52.0/sobjects/Opportunity/. Response content: [{'message': 'insufficient access rights on cross-reference id: 7013i000000i5vC', 'errorCode': 'INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY', 'fields': []}]
+2023-07-26 12:14:42,325 - ERROR - {'Street__c': '105 Grover St', 'Unit__c': '', 'City__c': 'Revere', 'Zipcode__c': 2151, 'Name': 'Erla Da Silva', 'HEA_Date_And_Time__c': '2023-06-13T00:00:00.000-07:00', 'CloseDate': '2023-05-23T00:00:00.000-07:00', 'StageName': 'No Opportunity', 'isVHEA__c': False, 'AccountId': '0017600000Z4NR1AAN', 'RecordTypeId': '0128Z000000230CQAQ', 'ID_from_HPC__c': 278405810, 'Owner_Renter__c': 'Owner', 'Legacy_Post_Assessment_Notes__c': 'Heat Pumps', 'HPC__c': '0013i00000AtGAvAAN', 'CampaignId': '7013i000000i5vqAAA'}
+2023-07-26 12:14:42,328 - ERROR - failed to update after create
+2023-07-26 12:14:42,329 - ERROR - failed to update after create
+2023-07-26 12:14:42,329 - ERROR - failed to update after create
+2023-07-26 12:14:42,336 - ERROR - Malformed request https://allinenergy--omnivore.sandbox.my.salesforce.com/services/data/v52.0/sobjects/Opportunity/. Response content: [{'message': 'insufficient access rights on cross-reference id: 0013i00000AtGAv', 'errorCode': 'INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY', 'fields': []}]
+2023-07-26 12:14:42,330 - ERROR - Malformed request https://allinenergy--omnivore.sandbox.my.salesforce.com/services/data/v52.0/sobjects/Opportunity/. Response content: [{'message': 'insufficient access rights on cross-reference id: 0013i00000AtGAv', 'errorCode': 'INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY', 'fields': []}]
+2023-07-26 12:14:42,331 - ERROR - Malformed request https://allinenergy--omnivore.sandbox.my.salesforce.com/services/data/v52.0/sobjects/Opportunity/. Response content: [{'message': 'insufficient access rights on cross-reference id: 7013i000000i5vb', 'errorCode': 'INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY', 'fields': []}]
+2023-07-26 12:14:42,331 - ERROR - failed to update after create
+2023-07-26 12:14:42,333 - ERROR - failed to update after create
+2023-07-26 12:14:42,334 - ERROR - Malformed request https://allinenergy--omnivore.sandbox.my.salesforce.com/services/data/v52.0/sobjects/Opportunity/. Response content: [{'message': 'insufficient access rights on cross-reference id: 7013i000000i5vC', 'errorCode': 'INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY', 'fields': []}]
+2023-07-26 12:14:42,335 - ERROR - Malformed request https://allinenergy--omnivore.sandbox.my.salesforce.com/services/data/v52.0/sobjects/Opportunity/. Response content: [{'message': 'insufficient access rights on cross-reference id: 7018Z0000033D6x', 'errorCode': 'INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY', 'fields': []}]
+2023-07-26 12:14:42,331 - WARNING - Connection pool is full, discarding connection: allinenergy--omnivore.sandbox.my.salesforce.com. Connection pool size: 10
+2023-07-26 12:14:42,338 - ERROR - Malformed request https://allinenergy--omnivore.sandbox.my.salesforce.com/services/data/v52.0/sobjects/Opportunity/. Response content: [{'message': 'insufficient access rights on cross-reference id: 7013i000000i5vq', 'errorCode': 'INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY', 'fields': []}]
+2023-07-26 12:14:42,338 - ERROR - Malformed request https://allinenergy--omnivore.sandbox.my.salesforce.com/services/data/v52.0/sobjects/Opportunity/. Response content: [{'message': 'insufficient access rights on cross-reference id: 7013i000000i5vq', 'errorCode': 'INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY', 'fields': []}]
+2023-07-26 12:14:42,342 - ERROR - {'Street__c': '172 School Street', 'Unit__c': '', 'City__c': 'Framingham', 'Zipcode__c': 1701, 'Name': 'Stephen Keefe', 'HEA_Date_And_Time__c': '2021-06-07T00:00:00.000-07:00', 'CloseDate': '2021-05-18T00:00:00.000-07:00', 'StageName': 'Health & Safety Barrier', 'Health_Safety_Barrier_Status__c': 'Not Attempted', 'Health_Safety_Barrier__c': 'Knob & Tube (Major); Mold/Moisture; Asbestos', 'isVHEA__c': False, 'AccountId': '0017600000Z4NRQAA3', 'RecordTypeId': '0128Z000000230CQAQ', 'ID_from_HPC__c': 258438371, 'HPC__c': '0013i00000AtGAvAAN', 'CampaignId': '7013i000000i5vbAAA'}
+2023-07-26 12:14:42,342 - ERROR - failed to update after create
+2023-07-26 12:14:42,343 - ERROR - Malformed request https://allinenergy--omnivore.sandbox.my.salesforce.com/services/data/v52.0/sobjects/Opportunity/. Response content: [{'message': 'insufficient access rights on cross-reference id: 7013i000000i5vb', 'errorCode': 'INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY', 'fields': []}]
+2023-07-26 12:14:42,495 - DEBUG - https://allinenergy--omnivore.sandbox.my.salesforce.com:443 "POST /services/data/v52.0/sobjects/Opportunity/ HTTP/1.1" 400 None
+2023-07-26 12:14:42,501 - ERROR - {'Street__c': '64 Reservation Rd', 'Unit__c': '', 'City__c': 'Andover', 'Zipcode__c': 1810, 'Name': 'Evelyn Retelle', 'CloseDate': '2021-07-13T00:00:00.000-07:00', 'StageName': 'Canceled', 'isVHEA__c': False, 'AccountId': '0017600000Z4NKlAAN', 'RecordTypeId': '0128Z000000230CQAQ', 'ID_from_HPC__c': 260118657, 'Cancelation_Reason_s__c': 'Not Interested', 'HPC__c': '0013i00000AtGAvAAN', 'CampaignId': '7013i000000i5vNAAQ'}
+2023-07-26 12:14:42,501 - ERROR - failed to update after create
+2023-07-26 12:14:42,501 - ERROR - Malformed request https://allinenergy--omnivore.sandbox.my.salesforce.com/services/data/v52.0/sobjects/Opportunity/. Response content: [{'message': 'insufficient access rights on cross-reference id: 7013i000000i5vN', 'errorCode': 'INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY', 'fields': []}]
+2023-07-26 12:14:42,549 - DEBUG - https://allinenergy--omnivore.sandbox.my.salesforce.com:443 "POST /services/data/v52.0/sobjects/Opportunity/ HTTP/1.1" 400 None
+2023-07-26 12:14:42,557 - ERROR - {'Street__c': '9 Horne St', 'Unit__c': 'Unit 1', 'City__c': 'Methuen', 'Zipcode__c': 1844, 'Name': 'Lidia Gamez', 'CloseDate': '2021-07-27T00:00:00.000-07:00', 'StageName': 'Canceled', 'isVHEA__c': False, 'AccountId': '0017600000Z4NRfAAN', 'RecordTypeId': '0128Z000000230CQAQ', 'ID_from_HPC__c': 260538339, 'Cancelation_Reason_s__c': 'No Reason', 'HPC__c': '0013i00000AtGAvAAN', 'CampaignId': '7013i000000i5vNAAQ'}
+2023-07-26 12:14:42,558 - ERROR - failed to update after create
+2023-07-26 12:14:42,558 - ERROR - Malformed request https://allinenergy--omnivore.sandbox.my.salesforce.com/services/data/v52.0/sobjects/Opportunity/. Response content: [{'message': 'insufficient access rights on cross-reference id: 7013i000000i5vN', 'errorCode': 'INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY', 'fields': []}]
+2023-07-26 12:14:42,650 - DEBUG - https://allinenergy--omnivore.sandbox.my.salesforce.com:443 "POST /services/data/v52.0/sobjects/Account/ HTTP/1.1" 400 None
+2023-07-26 12:14:42,839 - DEBUG - https://allinenergy--omnivore.sandbox.my.salesforce.com:443 "POST /services/data/v52.0/sobjects/Opportunity/ HTTP/1.1" 400 None
+2023-07-26 12:14:42,849 - ERROR - {'Street__c': '12 Riverview Ave', 'Unit__c': '', 'City__c': 'Methuen', 'Zipcode__c': 1844, 'Name': 'Gloria Vallera', 'CloseDate': '2020-09-09T00:00:00.000-07:00', 'StageName': 'Canceled', 'isVHEA__c': True, 'AccountId': '0017600000Z4N4WAAV', 'RecordTypeId': '0128Z000000230CQAQ', 'ID_from_HPC__c': 250373222, 'Cancelation_Reason_s__c': 'Not Interested', 'HPC__c': '0013i00000AtGAvAAN', 'CampaignId': '7013i000000i5vNAAQ'}
+2023-07-26 12:14:42,849 - ERROR - failed to update after create
+2023-07-26 12:14:42,849 - ERROR - Malformed request https://allinenergy--omnivore.sandbox.my.salesforce.com/services/data/v52.0/sobjects/Opportunity/. Response content: [{'message': 'insufficient access rights on cross-reference id: 7013i000000i5vN', 'errorCode': 'INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY', 'fields': []}]
+2023-07-26 12:14:42,903 - DEBUG - https://allinenergy--omnivore.sandbox.my.salesforce.com:443 "POST /services/data/v52.0/sobjects/Opportunity/ HTTP/1.1" 400 None
+2023-07-26 12:14:42,911 - WARNING - Connection pool is full, discarding connection: allinenergy--omnivore.sandbox.my.salesforce.com. Connection pool size: 10
+2023-07-26 12:14:42,914 - ERROR - {'Street__c': '121 Cottage Street', 'Unit__c': 'Unit 2', 'City__c': 'Chelsea', 'Zipcode__c': 2150, 'Name': 'Julia Ruiz Libran', 'CloseDate': '2022-01-11T00:00:00.000-07:00', 'StageName': 'Canceled', 'isVHEA__c': False, 'AccountId': '0017600000Z4NRBAA3', 'RecordTypeId': '0128Z000000230CQAQ', 'ID_from_HPC__c': 265685621, 'Cancelation_Reason_s__c': 'Low Income', 'HPC__c': '0013i00000AtGAvAAN', 'CampaignId': '7013i000000i5vqAAA'}
+2023-07-26 12:14:42,914 - ERROR - failed to update after create
+2023-07-26 12:14:42,914 - ERROR - Malformed request https://allinenergy--omnivore.sandbox.my.salesforce.com/services/data/v52.0/sobjects/Opportunity/. Response content: [{'message': 'insufficient access rights on cross-reference id: 7013i000000i5vq', 'errorCode': 'INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY', 'fields': []}]
+2023-07-26 12:14:42,915 - ERROR - Error in Neeeco process.
+2023-07-26 12:14:42,920 - ERROR - Traceback (most recent call last):
+  File "/Users/ankit/Documents/Omnivore_Refactor/Omnivore_Refactor/omnivore/app.py", line 217, in run_neeeco
+    run(self.start_upload_to_salesforce(grouped_opps, NEEECO_ACCID))
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/asyncio/runners.py", line 44, in run
+    return loop.run_until_complete(main)
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/asyncio/base_events.py", line 649, in run_until_complete
+    return future.result()
+  File "/Users/ankit/Documents/Omnivore_Refactor/Omnivore_Refactor/omnivore/app.py", line 205, in start_upload_to_salesforce
+    await gather(*[loop.run_in_executor(None, self.upload_to_salesforce, row, HPC_ID) for row in data])
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/Users/ankit/Documents/Omnivore_Refactor/Omnivore_Refactor/omnivore/app.py", line 185, in upload_to_salesforce
+    raise err
+  File "/Users/ankit/Documents/Omnivore_Refactor/Omnivore_Refactor/omnivore/app.py", line 145, in upload_to_salesforce
+    res: Create = self.sf.sf.Opportunity.create(payload)  # type:ignore
+  File "/Users/ankit/Documents/Omnivore_Refactor/.venv/lib/python3.10/site-packages/simple_salesforce/api.py", line 840, in create
+    result = self._call_salesforce(
+  File "/Users/ankit/Documents/Omnivore_Refactor/.venv/lib/python3.10/site-packages/simple_salesforce/api.py", line 964, in _call_salesforce
+    exception_handler(result, self.name)
+  File "/Users/ankit/Documents/Omnivore_Refactor/.venv/lib/python3.10/site-packages/simple_salesforce/util.py", line 68, in exception_handler
+    raise exc_cls(result.url, result.status_code, name, response_content)
+simple_salesforce.exceptions.SalesforceMalformedRequest: Malformed request https://allinenergy--omnivore.sandbox.my.salesforce.com/services/data/v52.0/sobjects/Opportunity/. Response content: [{'message': 'insufficient access rights on cross-reference id: 0013i00000AtGAv', 'errorCode': 'INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY', 'fields': []}]
+
+2023-07-26 12:14:42,920 - ERROR - Malformed request https://allinenergy--omnivore.sandbox.my.salesforce.com/services/data/v52.0/sobjects/Opportunity/. Response content: [{'message': 'insufficient access rights on cross-reference id: 0013i00000AtGAv', 'errorCode': 'INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY', 'fields': []}]
+2023-07-26 12:14:42,921 - DEBUG - Start Processing Homeworks
+2023-07-26 12:14:49,725 - ERROR - An error occurred: 'ID_from_HPC__c'
+2023-07-26 12:14:49,725 - ERROR - Error in Homeworks process.
+2023-07-26 12:14:49,726 - ERROR - Traceback (most recent call last):
+  File "/Users/ankit/Documents/Omnivore_Refactor/Omnivore_Refactor/omnivore/app.py", line 232, in run_homeworks
+    processed_row_removed = self.remove_already_processed_row(homeworks_output)
+  File "/Users/ankit/Documents/Omnivore_Refactor/Omnivore_Refactor/omnivore/app.py", line 85, in remove_already_processed_row
+    result = data.copy()
+AttributeError: 'NoneType' object has no attribute 'copy'
+
+2023-07-26 12:14:49,726 - ERROR - 'NoneType' object has no attribute 'copy'
+2023-07-26 12:14:49,726 - DEBUG - Start Processing VHI
+2023-07-26 12:14:52,963 - DEBUG - Using selector: KqueueSelector
+2023-07-26 12:14:53,175 - DEBUG - https://allinenergy--omnivore.sandbox.my.salesforce.com:443 "POST /services/data/v52.0/sobjects/Opportunity/ HTTP/1.1" 400 None
+2023-07-26 12:14:53,182 - ERROR - {'Street__c': '50 Loring St', 'Unit__c': '', 'City__c': 'Lawrence', 'Name': 'Eduardo Rosario', 'HEA_Date_And_Time__c': '2022-11-08T13:00:00.000-07:00', 'CloseDate': '2022-11-08T13:00:00.000-07:00', 'StageName': 'Signed Contracts', 'Weatherization_Status__c': 'Completed', 'Weatherization_Date_Time__c': '2023-02-02T00:00:00.000-07:00', 'Final_Contract_Amount__c': 5932.67, 'AccountId': '0017600000Z4NRCAA3', 'RecordTypeId': '0128Z000000230CQAQ', 'ID_from_HPC__c': '2021-0378', 'Cancelation_Reason_s__c': 'Low Income', 'HPC__c': '0013i00001600C3AAI', 'CampaignId': '7013i000000i5vNAAQ'}
+2023-07-26 12:14:53,182 - DEBUG - https://allinenergy--omnivore.sandbox.my.salesforce.com:443 "POST /services/data/v52.0/sobjects/Opportunity/ HTTP/1.1" 400 None
+2023-07-26 12:14:53,182 - ERROR - failed to update after create
+2023-07-26 12:14:53,183 - ERROR - Malformed request https://allinenergy--omnivore.sandbox.my.salesforce.com/services/data/v52.0/sobjects/Opportunity/. Response content: [{'message': 'insufficient access rights on cross-reference id: 7013i000000i5vN', 'errorCode': 'INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY', 'fields': []}]
+2023-07-26 12:14:53,185 - DEBUG - https://allinenergy--omnivore.sandbox.my.salesforce.com:443 "POST /services/data/v52.0/sobjects/Opportunity/ HTTP/1.1" 400 None
+2023-07-26 12:14:53,192 - ERROR - {'Street__c': '74 Ferry st', 'Unit__c': '', 'City__c': 'Lawrence LAWRENCE', 'Name': 'Rodolfo Nunez', 'HEA_Date_And_Time__c': '2022-08-05T10:00:00.000-07:00', 'CloseDate': '2022-08-05T10:00:00.000-07:00', 'StageName': 'Recommended - Unsigned', 'Final_Contract_Amount__c': 9564.89, 'AccountId': '0017600000Z4NSIAA3', 'RecordTypeId': '0123i000000YF7QAAW', 'ID_from_HPC__c': '2022-0942', 'HPC__c': '0013i00001600C3AAI', 'CampaignId': ''}
+2023-07-26 12:14:53,192 - ERROR - failed to update after create
+2023-07-26 12:14:53,192 - ERROR - Malformed request https://allinenergy--omnivore.sandbox.my.salesforce.com/services/data/v52.0/sobjects/Opportunity/. Response content: [{'message': 'insufficient access rights on cross-reference id: 0013i00001600C3', 'errorCode': 'INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY', 'fields': []}]
+2023-07-26 12:14:53,192 - ERROR - {'Street__c': '116-118 Stearns Ave', 'Unit__c': 'Floor 3rd', 'City__c': 'Lawrence', 'Name': 'Jose Queliz-', 'HEA_Date_And_Time__c': '2021-08-25T10:00:00.000-07:00', 'CloseDate': '2021-08-25T10:00:00.000-07:00', 'StageName': 'Signed Contracts', 'Weatherization_Status__c': 'Completed', 'Final_Contract_Amount__c': 4791.6, 'AccountId': '0017600000Z4NRdAAN', 'RecordTypeId': '0128Z000000230CQAQ', 'ID_from_HPC__c': '2021-0347', 'HPC__c': '0013i00001600C3AAI', 'CampaignId': '7013i000000i5vNAAQ'}
+2023-07-26 12:14:53,193 - ERROR - failed to update after create
+2023-07-26 12:14:53,193 - ERROR - Malformed request https://allinenergy--omnivore.sandbox.my.salesforce.com/services/data/v52.0/sobjects/Opportunity/. Response content: [{'message': 'insufficient access rights on cross-reference id: 7013i000000i5vN', 'errorCode': 'INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY', 'fields': []}]
+2023-07-26 12:14:53,197 - DEBUG - https://allinenergy--omnivore.sandbox.my.salesforce.com:443 "POST /services/data/v52.0/sobjects/Opportunity/ HTTP/1.1" 400 None
+2023-07-26 12:14:53,198 - DEBUG - https://allinenergy--omnivore.sandbox.my.salesforce.com:443 "POST /services/data/v52.0/sobjects/Opportunity/ HTTP/1.1" 400 None
+2023-07-26 12:14:53,198 - DEBUG - https://allinenergy--omnivore.sandbox.my.salesforce.com:443 "POST /services/data/v52.0/sobjects/Opportunity/ HTTP/1.1" 400 None
+2023-07-26 12:14:53,204 - ERROR - {'Street__c': '16 gilbert Ave', 'Unit__c': '', 'City__c': 'Haverhill', 'Name': 'Maseray Medley - unit 1', 'HEA_Date_And_Time__c': '2022-02-17T10:00:00.000-07:00', 'CloseDate': '2022-02-17T10:00:00.000-07:00', 'StageName': 'Signed Contracts', 'Health_Safety_Barrier__c': 'Other', 'Weatherization_Status__c': 'Completed', 'Weatherization_Date_Time__c': '2022-09-06T00:00:00.000-07:00', 'Final_Contract_Amount__c': 5426.62, 'AccountId': '0017600000Z4NRgAAN', 'RecordTypeId': '0128Z000000230CQAQ', 'ID_from_HPC__c': '2022-0760A', 'HPC__c': '0013i00001600C3AAI', 'CampaignId': '7013i000000i5vNAAQ'}
+2023-07-26 12:14:53,205 - ERROR - {'Street__c': '50 52 oak st', 'Unit__c': '', 'City__c': 'Lawrence', 'Name': 'Richy Cabrera - unit 1', 'HEA_Date_And_Time__c': '2022-01-05T06:30:00.000-07:00', 'CloseDate': '2022-01-05T06:30:00.000-07:00', 'StageName': 'Recommended - Unsigned', 'Final_Contract_Amount__c': 9222.08, 'AccountId': '0017600000Z4NTRAA3', 'RecordTypeId': '0128Z000000230CQAQ', 'ID_from_HPC__c': '2021-0558', 'Cancelation_Reason_s__c': 'Low Income', 'HPC__c': '0013i00001600C3AAI', 'CampaignId': '7013i000000i5vNAAQ'}
+2023-07-26 12:14:53,205 - DEBUG - https://allinenergy--omnivore.sandbox.my.salesforce.com:443 "POST /services/data/v52.0/sobjects/Opportunity/ HTTP/1.1" 400 None
+2023-07-26 12:14:53,205 - ERROR - failed to update after create
+2023-07-26 12:14:53,205 - ERROR - failed to update after create
+2023-07-26 12:14:53,205 - ERROR - Malformed request https://allinenergy--omnivore.sandbox.my.salesforce.com/services/data/v52.0/sobjects/Opportunity/. Response content: [{'message': 'insufficient access rights on cross-reference id: 7013i000000i5vN', 'errorCode': 'INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY', 'fields': []}]
+2023-07-26 12:14:53,205 - ERROR - {'Street__c': '24 Hillside St', 'Unit__c': 'Flr 2nd', 'City__c': 'Haverhill', 'Name': 'Arianne Santos', 'HEA_Date_And_Time__c': '2022-10-28T13:00:00.000-07:00', 'CloseDate': '2022-10-28T13:00:00.000-07:00', 'StageName': 'No Opportunity', 'Health_Safety_Barrier__c': 'Knob & Tube (Minor)', 'AccountId': '0017600000Z4NIoAAN', 'RecordTypeId': '0128Z000000230CQAQ', 'ID_from_HPC__c': '2022-1096', 'HPC__c': '0013i00001600C3AAI', 'CampaignId': '7013i000000i5vNAAQ'}
+2023-07-26 12:14:53,206 - ERROR - Malformed request https://allinenergy--omnivore.sandbox.my.salesforce.com/services/data/v52.0/sobjects/Opportunity/. Response content: [{'message': 'insufficient access rights on cross-reference id: 7013i000000i5vN', 'errorCode': 'INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY', 'fields': []}]
+2023-07-26 12:14:53,206 - ERROR - failed to update after create
+2023-07-26 12:14:53,206 - ERROR - Malformed request https://allinenergy--omnivore.sandbox.my.salesforce.com/services/data/v52.0/sobjects/Opportunity/. Response content: [{'message': 'insufficient access rights on cross-reference id: 7013i000000i5vN', 'errorCode': 'INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY', 'fields': []}]
+2023-07-26 12:14:53,213 - ERROR - {'Street__c': '61 Wilmot Street', 'Unit__c': '', 'City__c': 'Lawrence', 'Zipcode__c': 1841, 'Name': 'Carlos Matos', 'HEA_Date_And_Time__c': '2022-11-14T13:00:00.000-07:00', 'CloseDate': '2022-11-14T13:00:00.000-07:00', 'StageName': 'Scheduled', 'AccountId': '0017600000Z4NTWAA3', 'RecordTypeId': '0128Z000000230CQAQ', 'ID_from_HPC__c': '2021-0594', 'Cancelation_Reason_s__c': 'Low Income', 'HPC__c': '0013i00001600C3AAI', 'CampaignId': '7013i000000i5vNAAQ'}
+2023-07-26 12:14:53,213 - ERROR - failed to update after create
+2023-07-26 12:14:53,213 - ERROR - Malformed request https://allinenergy--omnivore.sandbox.my.salesforce.com/services/data/v52.0/sobjects/Opportunity/. Response content: [{'message': 'insufficient access rights on cross-reference id: 7013i000000i5vN', 'errorCode': 'INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY', 'fields': []}]
+2023-07-26 12:14:53,230 - DEBUG - https://allinenergy--omnivore.sandbox.my.salesforce.com:443 "POST /services/data/v52.0/sobjects/Opportunity/ HTTP/1.1" 400 None
+2023-07-26 12:14:53,239 - ERROR - {'Street__c': '22- 24 Custer Street', 'Unit__c': '', 'City__c': 'Lawrence', 'Name': 'Nick Ambra 3rd unit', 'HEA_Date_And_Time__c': '2022-02-03T12:00:00.000-07:00', 'CloseDate': '2022-02-03T12:00:00.000-07:00', 'StageName': 'Signed Contracts', 'Weatherization_Status__c': 'Completed', 'Weatherization_Date_Time__c': '2022-08-29T00:00:00.000-07:00', 'Final_Contract_Amount__c': 16745.27, 'AccountId': '0017600000Z4NTgAAN', 'RecordTypeId': '0128Z000000230CQAQ', 'ID_from_HPC__c': '2022-bmf45', 'HPC__c': '0013i00001600C3AAI', 'CampaignId': '7013i000000i5vNAAQ'}
+2023-07-26 12:14:53,239 - DEBUG - https://allinenergy--omnivore.sandbox.my.salesforce.com:443 "POST /services/data/v52.0/sobjects/Opportunity/ HTTP/1.1" 400 None
+2023-07-26 12:14:53,239 - ERROR - failed to update after create
+2023-07-26 12:14:53,240 - ERROR - Malformed request https://allinenergy--omnivore.sandbox.my.salesforce.com/services/data/v52.0/sobjects/Opportunity/. Response content: [{'message': 'insufficient access rights on cross-reference id: 7013i000000i5vN', 'errorCode': 'INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY', 'fields': []}]
+2023-07-26 12:14:53,246 - ERROR - {'Street__c': '52-54 HILLSIDE AVE', 'Unit__c': '', 'City__c': 'Lawrence', 'Name': 'Francisco Horton-', 'HEA_Date_And_Time__c': '2023-02-03T15:00:00.000-07:00', 'CloseDate': '2023-02-03T15:00:00.000-07:00', 'StageName': 'Canceled', 'AccountId': '0017600000Z4NTbAAN', 'RecordTypeId': '0128Z000000230CQAQ', 'ID_from_HPC__c': '2022-1063', 'Cancelation_Reason_s__c': 'Low Income', 'HPC__c': '0013i00001600C3AAI', 'CampaignId': '7013i000000i5vNAAQ'}
+2023-07-26 12:14:53,246 - ERROR - failed to update after create
+2023-07-26 12:14:53,246 - ERROR - Malformed request https://allinenergy--omnivore.sandbox.my.salesforce.com/services/data/v52.0/sobjects/Opportunity/. Response content: [{'message': 'insufficient access rights on cross-reference id: 7013i000000i5vN', 'errorCode': 'INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY', 'fields': []}]
+2023-07-26 12:14:53,247 - ERROR - Error in VHI process.
+2023-07-26 12:14:53,248 - ERROR - Traceback (most recent call last):
+  File "/Users/ankit/Documents/Omnivore_Refactor/Omnivore_Refactor/omnivore/app.py", line 250, in run_vhi
+    run(self.start_upload_to_salesforce(grouped_opps, VHI_ACCID))
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/asyncio/runners.py", line 44, in run
+    return loop.run_until_complete(main)
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/asyncio/base_events.py", line 649, in run_until_complete
+    return future.result()
+  File "/Users/ankit/Documents/Omnivore_Refactor/Omnivore_Refactor/omnivore/app.py", line 205, in start_upload_to_salesforce
+    await gather(*[loop.run_in_executor(None, self.upload_to_salesforce, row, HPC_ID) for row in data])
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/Users/ankit/Documents/Omnivore_Refactor/Omnivore_Refactor/omnivore/app.py", line 185, in upload_to_salesforce
+    raise err
+  File "/Users/ankit/Documents/Omnivore_Refactor/Omnivore_Refactor/omnivore/app.py", line 145, in upload_to_salesforce
+    res: Create = self.sf.sf.Opportunity.create(payload)  # type:ignore
+  File "/Users/ankit/Documents/Omnivore_Refactor/.venv/lib/python3.10/site-packages/simple_salesforce/api.py", line 840, in create
+    result = self._call_salesforce(
+  File "/Users/ankit/Documents/Omnivore_Refactor/.venv/lib/python3.10/site-packages/simple_salesforce/api.py", line 964, in _call_salesforce
+    exception_handler(result, self.name)
+  File "/Users/ankit/Documents/Omnivore_Refactor/.venv/lib/python3.10/site-packages/simple_salesforce/util.py", line 68, in exception_handler
+    raise exc_cls(result.url, result.status_code, name, response_content)
+simple_salesforce.exceptions.SalesforceMalformedRequest: Malformed request https://allinenergy--omnivore.sandbox.my.salesforce.com/services/data/v52.0/sobjects/Opportunity/. Response content: [{'message': 'insufficient access rights on cross-reference id: 7013i000000i5vN', 'errorCode': 'INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY', 'fields': []}]
+
+2023-07-26 12:14:53,248 - ERROR - Malformed request https://allinenergy--omnivore.sandbox.my.salesforce.com/services/data/v52.0/sobjects/Opportunity/. Response content: [{'message': 'insufficient access rights on cross-reference id: 7013i000000i5vN', 'errorCode': 'INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY', 'fields': []}]
+2023-07-26 12:14:53,249 - DEBUG - Finished running Omnivore
