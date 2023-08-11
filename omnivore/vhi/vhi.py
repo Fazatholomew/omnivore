@@ -3,32 +3,9 @@ from pandas import DataFrame, to_datetime, Series
 from datetime import datetime
 from numpy import nan
 import logging
-import time
-
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    filename="logger.log",
-    filemode="w",
-)
 
 # Create a logger object
-logger = logging.getLogger()
-
-# Remove existing handlers to avoid duplication
-for handler in logger.handlers[:]:
-    logger.removeHandler(handler)
-
-# Create a file handler and set its level
-file_handler = logging.FileHandler("logger.log")
-file_handler.setLevel(logging.DEBUG)
-
-# Create a formatter and set it for the file handler
-formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-file_handler.setFormatter(formatter)
-
-# Add the file handler to the logger
-logger.addHandler(file_handler)
+logger = logging.getLogger(__name__)
 
 stageMapper = {
     "Recommended - Unsigned": "Recommended - Unsigned",
@@ -51,7 +28,7 @@ def clean_contact_info(row) -> Series:
         row["Phone"] = toSalesforcePhone(row["Phone"]) or nan
         return row
     except Exception as e:
-        logger.error("An error occurred: %s", str(e))
+        logger.error("An error occurred: %s", str(e), exc_info=True)
 
 
 def vhi(data: DataFrame) -> DataFrame:
@@ -60,7 +37,7 @@ def vhi(data: DataFrame) -> DataFrame:
         data = data[~data["VHI Unique Number"].isna()]
         data = data[~data["Contact: Email"].isna() | ~data["Contact: Phone"].isna()]
     except Exception as e:
-        logger.error("An error occurred: %s", str(e))
+        logger.error("An error occurred: %s", str(e), exc_info=True)
 
     # Rename columns into Salesforce Field
     try:
@@ -77,13 +54,13 @@ def vhi(data: DataFrame) -> DataFrame:
             }
         )
     except Exception as e:
-        logger.error("An error occurred: %s", str(e))
+        logger.error("An error occurred: %s", str(e), exc_info=True)
 
     # Combine street and city
     try:
         data["Street__c"] = data["Address"] + " " + data["Billing City"]
     except Exception as e:
-        logger.error("An error occurred: %s", str(e))
+        logger.error("An error occurred: %s", str(e), exc_info=True)
 
     # Translate stage into stagename and wx status
     try:
@@ -104,7 +81,7 @@ def vhi(data: DataFrame) -> DataFrame:
             (data["Lead Vendor"] == "ABCD"), "Cancelation_Reason_s__c"
         ] = "Low Income"
     except Exception as e:
-        logger.error("An error occurred: %s", str(e))
+        logger.error("An error occurred: %s", str(e), exc_info=True)
 
     # Date and Time
     try:
@@ -121,7 +98,7 @@ def vhi(data: DataFrame) -> DataFrame:
             data["Weatherization_Date_Time__c"], errors="coerce"
         ).dt.strftime("%Y-%m-%d" + "T" + "%H:%M:%S" + ".000-07:00")
     except Exception as e:
-        logger.error("An error occurred: %s", str(e))
+        logger.error("An error occurred: %s", str(e), exc_info=True)
 
     # first name and last name
     try:
@@ -130,13 +107,13 @@ def vhi(data: DataFrame) -> DataFrame:
         )
         data["LastName"] = data["Opportunity Name"].str.extract(r"\s(.*)$")
     except Exception as e:
-        logger.error("An error occurred: %s", str(e))
+        logger.error("An error occurred: %s", str(e), exc_info=True)
 
     # Clean up contact info
     try:
         data = data.apply(clean_contact_info, axis=1)
     except Exception as e:
-        logger.error("An error occurred: %s", str(e))
+        logger.error("An error occurred: %s", str(e), exc_info=True)
 
     return data
 

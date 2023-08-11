@@ -22,48 +22,21 @@ from typing import cast
 from pandas import DataFrame, read_csv
 from asyncio import run, gather, get_event_loop
 from simple_salesforce.exceptions import SalesforceMalformedRequest
-import traceback
 import logging
-import time
-
-import sys
-from pathlib import Path
-
-# Add the project's root directory to the system path
-sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s - %(levelname)s - %(message)s",
-    filename="logger.log",
-    filemode="w",
 )
 
 # Create a logger object
-logger = logging.getLogger()
-
-# Remove existing handlers to avoid duplication
-for handler in logger.handlers[:]:
-    logger.removeHandler(handler)
-
-# Create a file handler and set its level
-file_handler = logging.FileHandler("logger.log")
-file_handler.setLevel(logging.DEBUG)
-
-# Create a formatter and set it for the file handler
-formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-file_handler.setFormatter(formatter)
-
-# Add the file handler to the logger
-logger.addHandler(file_handler)
-
-start_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+logger = logging.getLogger(__name__)
 
 
 class Blueprint:
     def __init__(self) -> None:
         if getenv("EMAIL") or getenv("ENV") == "test":
-            logger.debug("Load Database from SF")
+            logger.info("Load Database from SF")
             self.sf = SalesforceConnection(
                 username=getenv("EMAIL"),
                 consumer_key=getenv(  # type:ignore
@@ -73,7 +46,7 @@ class Blueprint:
             )  # type:ignore
             self.sf.get_salesforce_table()
         self.load_processed_rows()
-        logger.debug("Finsihed loading Database from SF")
+        logger.info("Finsihed loading Database from SF")
 
     def load_processed_rows(self, fileName="./processed_row") -> None:
         """
@@ -155,18 +128,16 @@ class Blueprint:
                                     logger.error(
                                         "failed to create after cancelation reason"
                                     )
-                                    logger.error(e)
+                                    logger.error(e, exc_info=True)
                                     raise e
-                                logger.error(traceback.format_exc())
-                                logger.error(e)
+                                logger.error(e, exc_info=True)
                     except Exception as err:
                         if getenv("ENV") == "staging":
-                            logger.error(payload)
                             logger.error("failed to update")
-                            logger.error(err)
+                            logger.error(payload)
+                            logger.error(err, exc_info=True)
                             raise err
-                        logger.error(traceback.format_exc())
-                        logger.error(err)
+                        logger.error(err, exc_info=True)
                         continue
             else:
                 payload = to_sf_payload(opp, "Opportunity")
@@ -187,12 +158,11 @@ class Blueprint:
                                     self.processed_rows.add(processed_row_id)
                             except Exception as e:
                                 if getenv("ENV") == "staging":
-                                    logger.error(payload)
                                     logger.error("failed to update after create")
-                                    logger.error(e)
+                                    logger.error(payload)
+                                    logger.error(e, exc_info=True)
                                     raise e
-                                logger.error(traceback.format_exc())
-                                logger.error(e)
+                                logger.error(e, exc_info=True)
 
                     if (
                         err.content[0]["errorCode"]
@@ -209,21 +179,19 @@ class Blueprint:
                                 self.processed_rows.add(processed_row_id)
                         except Exception as e:
                             if getenv("ENV") == "staging":
-                                logger.error(payload)
                                 logger.error(
                                     "failed to create after cancelation reason"
                                 )
-                                logger.error(e)
+                                logger.error(payload)
+                                logger.error(e, exc_info=True)
                                 raise e
-                            logger.error(traceback.format_exc())
-                            logger.error(e)
+                            logger.error(e, exc_info=True)
                     if getenv("ENV") == "staging":
                         logger.error(payload)
                         logger.error("failed to update after create")
-                        logger.error(err)
+                        logger.error(err, exc_info=True)
                         raise err
-                    logger.error(traceback.format_exc())
-                    logger.error(err)
+                    logger.error(err, exc_info=True)
 
                 except Exception as e:
                     logger.error("error creating")
@@ -232,8 +200,7 @@ class Blueprint:
                         logger.error("failed to create")
                         logger.error(e)
                         raise e
-                    logger.error(traceback.format_exc())
-                    logger.error(e)
+                    logger.error(e, exc_info=True)
                 continue
 
     async def start_upload_to_salesforce(
@@ -263,8 +230,7 @@ class Blueprint:
             run(self.start_upload_to_salesforce(grouped_opps, NEEECO_ACCID))
         except Exception as e:
             logger.error("Error in Neeeco process.")
-            logger.error(traceback.format_exc())
-            logger.error(e)
+            logger.error(e, exc_info=True)
 
     def run_homeworks(self) -> None:
         """
@@ -282,8 +248,7 @@ class Blueprint:
             run(self.start_upload_to_salesforce(grouped_opps, HOMEWORKS_ACCID))
         except Exception as e:
             logger.error("Error in Homeworks process.")
-            logger.error(traceback.format_exc())
-            logger.error(e)
+            logger.error(e, exc_info=True)
 
     def run_vhi(self) -> None:
         """
@@ -297,20 +262,19 @@ class Blueprint:
             run(self.start_upload_to_salesforce(grouped_opps, VHI_ACCID))
         except Exception as e:
             logger.error("Error in VHI process.")
-            logger.error(traceback.format_exc())
-            logger.error(e)
+            logger.error(e, exc_info=True)
 
     def run(self) -> None:
-        logger.debug("Start Processing Neeeco")
+        logger.info("Start Processing Neeeco")
         self.run_neeeco()
         self.save_processed_rows()
-        logger.debug("Start Processing Homeworks")
+        logger.info("Start Processing Homeworks")
         self.run_homeworks()
         self.save_processed_rows()
-        logger.debug("Start Processing VHI")
+        logger.info("Start Processing VHI")
         self.run_vhi()
         self.save_processed_rows()
-        logger.debug("Finished running Omnivore")
+        logger.info("Finished running Omnivore")
 
 
 if __name__ == "__main__":

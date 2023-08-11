@@ -4,7 +4,6 @@ import re
 from omnivore.utils.aux import toSalesforceEmail
 import logging
 import time
-import sys
 from simple_salesforce.exceptions import (
     SalesforceMalformedRequest,
     SalesforceExpiredSession,
@@ -13,30 +12,10 @@ from simple_salesforce.exceptions import (
     SalesforceAuthenticationFailed,
 )
 
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    filename="logger.log",
-    filemode="w",
-)
 
 # Create a logger object
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
-# Remove existing handlers to avoid duplication
-for handler in logger.handlers[:]:
-    logger.removeHandler(handler)
-
-# Create a file handler and set its level
-file_handler = logging.FileHandler("logger.log")
-file_handler.setLevel(logging.DEBUG)
-
-# Create a formatter and set it for the file handler
-formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-file_handler.setFormatter(formatter)
-
-# Add the file handler to the logger
-logger.addHandler(file_handler)
 
 # // Neeeco words into Salesforce Stage
 stageMapper = {
@@ -90,10 +69,6 @@ owner_renter_mapper = {"Landlord": "Owner", "Tenant": "Renter"}
 
 
 def neeeco(neeeco_input, neeeco_wx_input):
-    start_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-    # Log an info message with the start time
-    logger.debug(f"Neeeco execution started at: {start_time}")
-
     try:
         # Merge the input dataframes and rename columns
         neeeco_output = pd.merge(
@@ -112,7 +87,7 @@ def neeeco(neeeco_input, neeeco_wx_input):
         )
 
     except Exception as e:
-        logger.error("An error occurred: %s", str(e))
+        logger.error("An error occurred: %s", str(e), exc_info=True)
         return
 
     #     // Combine both data
@@ -142,7 +117,7 @@ def neeeco(neeeco_input, neeeco_wx_input):
         neeeco_output = neeeco_output[neeeco_output["ID_from_HPC__c"].notnull()]
         neeeco_output["Street__c"] = neeeco_output["Full Address including zip"]
     except Exception as e:
-        logger.error("An error occurred: %s", str(e))
+        logger.error("An error occurred: %s", str(e), exc_info=True)
 
     try:
         neeeco_output["Name"] = neeeco_output["Name"].str.replace(
@@ -155,7 +130,7 @@ def neeeco(neeeco_input, neeeco_wx_input):
             r"( )$", "", regex=True
         )
     except Exception as e:
-        logger.error("An error occurred: %s", str(e))
+        logger.error("An error occurred: %s", str(e), exc_info=True)
 
     try:
         neeeco_output["Date Of Audit"] = neeeco_output["Date Of Audit_y"].combine_first(
@@ -180,7 +155,7 @@ def neeeco(neeeco_input, neeeco_wx_input):
             "HEA_Date_And_Time__c",
         ] = ""
     except Exception as e:
-        logger.error("An error occurred: %s", str(e))
+        logger.error("An error occurred: %s", str(e), exc_info=True)
 
     try:
         neeeco_output["Date Scheduled in Vcita"] = pd.to_datetime(
@@ -208,7 +183,7 @@ def neeeco(neeeco_input, neeeco_wx_input):
             neeeco_output["CloseDate"] == "nanT00:00:00.000-07:00", "CloseDate"
         ] = neeeco_output["Created"]
     except Exception as e:
-        logger.error("An error occurred: %s", str(e))
+        logger.error("An error occurred: %s", str(e), exc_info=True)
 
     try:
         neeeco_output["StageName"] = "Scheduled"
@@ -223,7 +198,7 @@ def neeeco(neeeco_input, neeeco_wx_input):
             "Cancelation_Reason_s__c",
         ] = neeeco_output["Lead Disqualified"].map(neeecoCancelMapper)
     except Exception as e:
-        logger.error("An error occurred: %s", str(e))
+        logger.error("An error occurred: %s", str(e), exc_info=True)
 
     try:
         #         // Defaulted to No Reason
@@ -252,7 +227,7 @@ def neeeco(neeeco_input, neeeco_wx_input):
             .astype(str)
         )
     except Exception as e:
-        logger.error("An error occurred: %s", str(e))
+        logger.error("An error occurred: %s", str(e), exc_info=True)
 
     try:
         # // Audit completed
@@ -273,7 +248,7 @@ def neeeco(neeeco_input, neeeco_wx_input):
             "StageName",
         ] = "Health & Safety Barrier"
     except Exception as e:
-        logger.error("An error occurred: %s", str(e))
+        logger.error("An error occurred: %s", str(e), exc_info=True)
 
     try:
         #       // Wx Jobs Statuses
@@ -296,7 +271,7 @@ def neeeco(neeeco_input, neeeco_wx_input):
             "Weatherization_Date_Time__c"
         ].replace("nanT00:00:00.000-07:00", "")
     except Exception as e:
-        logger.error("An error occurred: %s", str(e))
+        logger.error("An error occurred: %s", str(e), exc_info=True)
 
     try:
         # neeeco_output["Weatherization_Status__c"]
@@ -340,7 +315,7 @@ def neeeco(neeeco_input, neeeco_wx_input):
             neeeco_output["Date of Audit"] > pd.to_datetime("today"), "StageName"
         ] = "Scheduled"
     except Exception as e:
-        logger.error("An error occurred: %s", str(e))
+        logger.error("An error occurred: %s", str(e), exc_info=True)
 
     try:
         #       // VHEA detection
@@ -349,7 +324,7 @@ def neeeco(neeeco_input, neeeco_wx_input):
             neeeco_output["Related to"].str.contains("VHEA").fillna(False), "isVHEA__c"
         ] = "TRUE"
     except Exception as e:
-        logger.error("An error occurred: %s", str(e))
+        logger.error("An error occurred: %s", str(e), exc_info=True)
 
     neeeco_output["HPC__c"] = "0013i00000AtGAvAAN"
     try:
@@ -365,7 +340,7 @@ def neeeco(neeeco_input, neeeco_wx_input):
             neeeco_output["Name"]
         )
     except Exception as e:
-        logger.error("An error occurred: %s", str(e))
+        logger.error("An error occurred: %s", str(e), exc_info=True)
 
     try:
         for i in neeeco_output["Phone"].index:
@@ -377,7 +352,7 @@ def neeeco(neeeco_input, neeeco_wx_input):
             if len(neeeco_output["Phone"][i]) > 10:
                 neeeco_output["Phone"][i] = neeeco_output["Phone"][i][0:10]
     except Exception as e:
-        logger.error("An error occurred: %s", str(e))
+        logger.error("An error occurred: %s", str(e), exc_info=True)
 
     try:
         neeeco_output["PersonEmail"] = neeeco_output["Email"].apply(toSalesforceEmail)
@@ -406,7 +381,7 @@ def neeeco(neeeco_input, neeeco_wx_input):
         )
         neeeco_output = neeeco_output.replace("", np.nan)
     except Exception as e:
-        logger.error("An error occurred: %s", str(e))
+        logger.error("An error occurred: %s", str(e), exc_info=True)
 
     neeeco_output = neeeco_output.loc[
         :,
@@ -443,14 +418,10 @@ def neeeco(neeeco_input, neeeco_wx_input):
 
     # Calculate rows added in the file
     new = len(neeeco_output) - len(neeeco_input)
-    logging.debug(f"Number of new rows added in Neeeco : {new}")
+    logger.info(f"Number of new rows added in Neeeco : {new}")
 
     # Calculate rows updated in the file
     update = len(neeeco_output) - new
-    logging.debug(f"Number of rows updated in Neeeco : {update}")
-
-    end_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-    # Log an info message with the end time
-    logger.debug(f"Neeeco execution ended at: {end_time}")
+    logger.info(f"Number of rows updated in Neeeco : {update}")
 
     return neeeco_output

@@ -7,30 +7,8 @@ from ..utils.constants import DATETIME_SALESFORCE
 pd.set_option("display.max_columns", 1000)
 pd.options.mode.chained_assignment = None  # type:ignore
 
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    filename="logger.log",
-    filemode="w",
-)
-
 # Create a logger object
-logger = logging.getLogger()
-
-# Remove existing handlers to avoid duplication
-for handler in logger.handlers[:]:
-    logger.removeHandler(handler)
-
-# Create a file handler and set its level
-file_handler = logging.FileHandler("logger.log")
-file_handler.setLevel(logging.DEBUG)
-
-# Create a formatter and set it for the file handler
-formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-file_handler.setFormatter(formatter)
-
-# Add the file handler to the logger
-logger.addHandler(file_handler)
+logger = logging.getLogger(__name__)
 
 # Health And Safety
 hsMapper = {
@@ -51,7 +29,7 @@ def combine_hs(row: pd.Series) -> str | float:
         values = [value for key, value in hsMapper.items() if row[key] == "1"]
         return ";".join(values) or np.nan
     except Exception as e:
-        logger.error("An error occurred: %s", str(e))
+        logger.error("An error occurred: %s", str(e), exc_info=True)
 
 
 def rename_and_merge(homeworks_old_input, homeworks_new_input) -> pd.DataFrame:
@@ -91,7 +69,7 @@ def rename_and_merge(homeworks_old_input, homeworks_new_input) -> pd.DataFrame:
         homeworks_new_input["CloseDate"] = homeworks_new_input["HEA_Date_And_Time__c"]
 
     except Exception as e:
-        logger.error("An error occurred: %s", str(e))
+        logger.error("An error occurred: %s", str(e), exc_info=True)
 
     try:
         homeworks_old_input["Time Stamp HEA Performed"] = (
@@ -131,7 +109,7 @@ def rename_and_merge(homeworks_old_input, homeworks_new_input) -> pd.DataFrame:
             }
         )
     except Exception as e:
-        logger.error("An error occurred: %s", str(e))
+        logger.error("An error occurred: %s", str(e), exc_info=True)
 
     try:
         return pd.merge(
@@ -141,7 +119,7 @@ def rename_and_merge(homeworks_old_input, homeworks_new_input) -> pd.DataFrame:
             on="ID_from_HPC__c",
         )
     except Exception as e:
-        logger.error("An error occurred: %s", str(e))
+        logger.error("An error occurred: %s", str(e), exc_info=True)
 
 
 def homeworks(homeworks_output):
@@ -287,7 +265,7 @@ def homeworks(homeworks_output):
             "Owner_Renter__c_x"
         ].combine_first(homeworks_output["Owner_Renter__c_y"])
     except Exception as e:
-        logger.error("An error occurred: %s", str(e))
+        logger.error("An error occurred: %s", str(e), exc_info=True)
 
     try:
         homeworks_output["StageName"] = homeworks_output["StageName"].map(stageMapper)
@@ -303,7 +281,7 @@ def homeworks(homeworks_output):
             orMapper
         )
     except Exception as e:
-        logger.error("An error occurred: %s", str(e))
+        logger.error("An error occurred: %s", str(e), exc_info=True)
 
     try:
         # mask = homeworks_output["CloseDate"].isna()
@@ -313,7 +291,7 @@ def homeworks(homeworks_output):
         # homeworks_output["CloseDate"] = homeworks_output["CloseDate"].astype(str)
         homeworks_output["CloseDate"] = homeworks_output["CloseDate"].fillna("")
     except Exception as e:
-        logger.error("An error occurred: %s", str(e))
+        logger.error("An error occurred: %s", str(e), exc_info=True)
         logger.error(e)
 
     try:
@@ -330,7 +308,7 @@ def homeworks(homeworks_output):
             "HEA_Date_And_Time__c"
         ].fillna("HEA_Date_And_Time__c")
     except Exception as e:
-        logger.error("An error occurred: %s", str(e))
+        logger.error("An error occurred: %s", str(e), exc_info=True)
 
     try:
         homeworks_output["Weatherization_Date_Time__c"] = pd.to_datetime(
@@ -348,7 +326,7 @@ def homeworks(homeworks_output):
             "Weatherization_Date_Time__c"
         ].fillna("")
     except Exception as e:
-        logger.error("An error occurred: %s", str(e))
+        logger.error("An error occurred: %s", str(e), exc_info=True)
 
     try:
         homeworks_output["Street__c"] = homeworks_output["Street__c_x"].combine_first(
@@ -358,7 +336,7 @@ def homeworks(homeworks_output):
             r"(\d+ [a-zA-Z]\w{2,} \w{1,})"
         )
     except Exception as e:
-        logger.error("An error occurred: %s", str(e))
+        logger.error("An error occurred: %s", str(e), exc_info=True)
 
     homeworks_output["HPC__c"] = "0013i00000AtGGeAAN"
 
@@ -382,7 +360,7 @@ def homeworks(homeworks_output):
             "na@hwe.com", np.nan
         )
     except Exception as e:
-        logger.error("An error occurred: %s", str(e))
+        logger.error("An error occurred: %s", str(e), exc_info=True)
 
     # Combine health and safety
     try:
@@ -390,7 +368,7 @@ def homeworks(homeworks_output):
             combine_hs, axis=1
         )
     except Exception as e:
-        logger.error("An error occurred: %s", str(e))
+        logger.error("An error occurred: %s", str(e), exc_info=True)
 
     homeworks_output = homeworks_output.loc[
         :,
