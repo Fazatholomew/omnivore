@@ -277,6 +277,6 @@ class Blueprint:
         logger.info("Finished running Omnivore")
 
 
-if __name__ == "__main__":
+def main():
     omni = Blueprint()
     omni.run()
