@@ -62,10 +62,14 @@ def rename_and_merge(homeworks_old_input, homeworks_new_input) -> pd.DataFrame:
     overlap.
     """
     try:
-        homeworks_new_input["Operations: Last Scheduled HEA Date"] = pd.to_datetime(
-            homeworks_new_input["Operations: Last Scheduled HEA Date"],
-            format="%m/%d/%Y %I:%M %p",
-            # errors="coerce",
+        homeworks_new_input["Operations: Last Scheduled HEA Date"] = (
+            pd.to_datetime(
+                homeworks_new_input["Operations: Last Scheduled HEA Date"],
+                format="%m/%d/%Y %I:%M %p",
+                # errors="coerce",
+            )
+            .dt.strftime(DATETIME_SALESFORCE)
+            .astype(str)
         )
         homeworks_new_input = homeworks_new_input.rename(
             columns={
@@ -90,15 +94,23 @@ def rename_and_merge(homeworks_old_input, homeworks_new_input) -> pd.DataFrame:
         logger.error("An error occurred: %s", str(e))
 
     try:
-        homeworks_old_input["Time Stamp HEA Performed"] = pd.to_datetime(
-            homeworks_old_input["Time Stamp HEA Performed"],
-            format="%m/%d/%Y %H:%M:%S",
-            # errors="coerce",
+        homeworks_old_input["Time Stamp HEA Performed"] = (
+            pd.to_datetime(
+                homeworks_old_input["Time Stamp HEA Performed"],
+                format="%m/%d/%Y %H:%M:%S",
+                # errors="coerce",
+            )
+            .dt.strftime(DATETIME_SALESFORCE)
+            .astype(str)
         )
-        homeworks_old_input["Created Date"] = pd.to_datetime(
-            homeworks_old_input["Created Date"],
-            format="%m/%d/%Y",
-            # errors="coerce",
+        homeworks_old_input["Created Date"] = (
+            pd.to_datetime(
+                homeworks_old_input["Created Date"],
+                format="%m/%d/%Y",
+                # errors="coerce",
+            )
+            .dt.strftime(DATETIME_SALESFORCE)
+            .astype(str)
         )
         homeworks_old_input = homeworks_old_input.rename(
             columns={
@@ -294,11 +306,11 @@ def homeworks(homeworks_output):
         logger.error("An error occurred: %s", str(e))
 
     try:
-        mask = homeworks_output["CloseDate"].isna()
-        homeworks_output.loc[~mask, "CloseDate"] = homeworks_output.loc[
-            ~mask, "CloseDate"
-        ].dt.strftime(DATETIME_SALESFORCE)
-        homeworks_output["CloseDate"] = homeworks_output["CloseDate"].astype(str)
+        # mask = homeworks_output["CloseDate"].isna()
+        # homeworks_output.loc[~mask, "CloseDate"] = homeworks_output.loc[
+        #     ~mask, "CloseDate"
+        # ].dt.strftime(DATETIME_SALESFORCE)
+        # homeworks_output["CloseDate"] = homeworks_output["CloseDate"].astype(str)
         homeworks_output["CloseDate"] = homeworks_output["CloseDate"].fillna("")
     except Exception as e:
         logger.error("An error occurred: %s", str(e))
@@ -308,12 +320,12 @@ def homeworks(homeworks_output):
         homeworks_output["HEA_Date_And_Time__c"] = homeworks_output[
             "HEA_Date_And_Time__c_y"
         ].combine_first(homeworks_output["HEA_Date_And_Time__c_x"])
-        mask = homeworks_output["HEA_Date_And_Time__c"].isna()
-        homeworks_output.loc[~mask, "HEA_Date_And_Time__c"] = (
-            homeworks_output.loc[~mask, "HEA_Date_And_Time__c"]
-            .dt.strftime(DATETIME_SALESFORCE)
-            .astype(str)
-        )
+        # mask = homeworks_output["HEA_Date_And_Time__c"].isna()
+        # homeworks_output.loc[~mask, "HEA_Date_And_Time__c"] = (
+        #     homeworks_output.loc[~mask, "HEA_Date_And_Time__c"]
+        #     .dt.strftime(DATETIME_SALESFORCE)
+        #     .astype(str)
+        # )
         homeworks_output["HEA_Date_And_Time__c"] = homeworks_output[
             "HEA_Date_And_Time__c"
         ].fillna("HEA_Date_And_Time__c")

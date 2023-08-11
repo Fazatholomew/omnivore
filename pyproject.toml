@@ -22,6 +22,7 @@ test.cmd="pytest -vv -m \"not staging\""
 test.env_file=".env.test"
 staging.cmd="pytest -vv -m staging"
 staging.env_file=".env.staging"
+clean="python clean_sf.py"
 
 [tool.pdm.dev-dependencies]
 test = [

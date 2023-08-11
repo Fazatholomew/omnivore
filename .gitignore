@@ -67,5 +67,7 @@ privatekey.pem
 logger.log
 
 */**/.DS_Store
+.DS_Store
+
 
 __pypackages__/

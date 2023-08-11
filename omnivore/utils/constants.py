@@ -155,7 +155,6 @@ CFP_TOWS = {
     "lanesborough": "7018Z0000033D6u",
     "adams": "7018Z0000033D6u",
     "north adams": "7018Z0000033D6u",
-    "winthrop": "7013i000000i5vqAAA",
     "arlington": "7018Z0000033D6x",
     "brockton": "7018Z0000033D6v",
     "attleboro": "7018Z0000033D6w",
