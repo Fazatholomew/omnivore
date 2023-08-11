@@ -12,7 +12,6 @@ dependencies = [
     "simple-salesforce>=1.12.4",
     "asyncio>=3.4.3",
     "numpy>=1.25.2",
-    "python-dotenv>=1.0.0",
 ]
 requires-python = ">=3.10"
 license = {text = "MIT"}
@@ -22,7 +21,8 @@ test.cmd="pytest -vv -m \"not staging\""
 test.env_file=".env.test"
 staging.cmd="pytest -vv -m staging"
 staging.env_file=".env.staging"
-clean="python clean_sf.py"
+clean.cmd="python clean_sf.py"
+clean.env_file=".env.staging"
 
 [tool.pdm.dev-dependencies]
 test = [
@@ -34,3 +34,6 @@ test = [
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
+
+[tool.pdm.build]
+exclude = ["tests"]

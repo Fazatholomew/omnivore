@@ -25,7 +25,6 @@ from simple_salesforce.exceptions import SalesforceMalformedRequest
 import traceback
 import logging
 import time
-from dotenv import load_dotenv
 
 import sys
 from pathlib import Path
@@ -315,6 +314,5 @@ class Blueprint:
 
 
 if __name__ == "__main__":
-    load_dotenv()
     omni = Blueprint()
     omni.run()
