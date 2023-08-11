@@ -4,30 +4,31 @@ name = "omnivore"
 version = "2.0.0"
 description = "Fully Autonomous Omnivore with PDM for installer"
 authors = [
-    {name = "Ankit Yadav", email = "ankittejyadav@gmail.com"},
+    {name = "Jimmy Hikmatullah", email = "jimmy@allinenergy.org"},
 ]
 dependencies = [
     "pandas>=2.0.3",
     "usaddress>=0.5.10",
     "simple-salesforce>=1.12.4",
-    "dotenv>=0.0.5",
     "asyncio>=3.4.3",
+    "numpy>=1.25.2",
+    "python-dotenv>=1.0.0",
 ]
 requires-python = ">=3.10"
 license = {text = "MIT"}
 
 [tool.pdm.scripts]
-_.env_file = ".env"
-start="python omnivore/app.py"
-neeeco="python omnivore/neeeco.py"
-test="python test_neeeco.py"
-tests="pytest"
-revise="python omnivore/revise/revise.py"
+test.cmd="pytest -vv -m \"not staging\""
+test.env_file=".env.test"
+staging.cmd="pytest -vv -m staging"
+staging.env_file=".env.staging"
 
 [tool.pdm.dev-dependencies]
 test = [
     "pytest>=7.4.0",
     "coverage>=7.2.7",
+    "pytest-cov>=4.1.0",
+    "pytest-asyncio>=0.21.1",
 ]
 [build-system]
 requires = ["pdm-backend"]

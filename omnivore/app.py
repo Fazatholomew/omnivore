@@ -1,20 +1,3 @@
-from os import getenv
-from pickle import load, dump
-from typing import cast
-from pandas import DataFrame, read_csv
-from asyncio import run, gather, get_event_loop
-from simple_salesforce.exceptions import SalesforceMalformedRequest
-import traceback
-import logging
-import time
-from dotenv import load_dotenv
-
-import sys
-from pathlib import Path
-
-# Add the project's root directory to the system path
-sys.path.append(str(Path(__file__).resolve().parents[1]))
-
 # Now you can import the modules using absolute import
 from omnivore.homeworks.homeworks import homeworks, rename_and_merge
 from omnivore.neeeco.neeeco import neeeco
@@ -33,6 +16,22 @@ from omnivore.utils.constants import (
     HOMEWORKS_ACCID,
     VHI_ACCID,
 )
+from os import getenv
+from pickle import load, dump
+from typing import cast
+from pandas import DataFrame, read_csv
+from asyncio import run, gather, get_event_loop
+from simple_salesforce.exceptions import SalesforceMalformedRequest
+import traceback
+import logging
+import time
+from dotenv import load_dotenv
+
+import sys
+from pathlib import Path
+
+# Add the project's root directory to the system path
+sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 logging.basicConfig(
     level=logging.DEBUG,
