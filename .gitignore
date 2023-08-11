@@ -59,8 +59,13 @@ pip-wheel-metadata/
 pytestdebug.log.pdm-python
 
 ### Env Files ###
-.env
+.env.*
 privatekey.pem
+*.pem
 
 ### Logger Files ###
 logger.log
+
+*/**/.DS_Store
+
+__pypackages__/

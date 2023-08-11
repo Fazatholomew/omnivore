@@ -113,6 +113,7 @@ def neeeco(neeeco_input, neeeco_wx_input):
 
     except Exception as e:
         logger.error("An error occurred: %s", str(e))
+        return
 
     #     // Combine both data
     neeeco_output["Final_Contract_Amount__c"] = neeeco_output[

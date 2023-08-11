@@ -44,8 +44,9 @@ stageMapper = {
     "Scheduled": "Scheduled",
 }
 
+
 def clean_contact_info(row) -> Series:
-    try: 
+    try:
         row["PersonEmail"] = toSalesforceEmail(row["PersonEmail"]) or nan
         row["Phone"] = toSalesforcePhone(row["Phone"]) or nan
         return row
@@ -96,8 +97,12 @@ def vhi(data: DataFrame) -> DataFrame:
         data["StageName"] = data["StageName"].map(stageMapper)
         data.loc[(data["StageName"].isna()), "StageName"] = "Canceled"
         data["Cancelation_Reason_s__c"] = nan
-        data.loc[(data["StageName"] == "Canceled"), "Cancelation_Reason_s__c"] = "No Reason"
-        data.loc[(data["Lead Vendor"] == "ABCD"), "Cancelation_Reason_s__c"] = "Low Income"
+        data.loc[
+            (data["StageName"] == "Canceled"), "Cancelation_Reason_s__c"
+        ] = "No Reason"
+        data.loc[
+            (data["Lead Vendor"] == "ABCD"), "Cancelation_Reason_s__c"
+        ] = "Low Income"
     except Exception as e:
         logger.error("An error occurred: %s", str(e))
 
@@ -120,7 +125,9 @@ def vhi(data: DataFrame) -> DataFrame:
 
     # first name and last name
     try:
-        data["FirstName"] = data["Opportunity Name"].str.extract(r"^(.*?)\s(?:\S+\s)*\S+$")
+        data["FirstName"] = data["Opportunity Name"].str.extract(
+            r"^(.*?)\s(?:\S+\s)*\S+$"
+        )
         data["LastName"] = data["Opportunity Name"].str.extract(r"\s(.*)$")
     except Exception as e:
         logger.error("An error occurred: %s", str(e))
