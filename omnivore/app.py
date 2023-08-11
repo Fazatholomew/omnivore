@@ -265,6 +265,8 @@ class Blueprint:
             logger.error(e, exc_info=True)
 
     def run(self) -> None:
+        logger.info("Running on ENV = %s", getenv("ENV"))
+        logger.info("Start Processing Omnivore")
         logger.info("Start Processing Neeeco")
         self.run_neeeco()
         self.save_processed_rows()
@@ -275,8 +277,3 @@ class Blueprint:
         self.run_vhi()
         self.save_processed_rows()
         logger.info("Finished running Omnivore")
-
-
-def main():
-    omni = Blueprint()
-    omni.run()
