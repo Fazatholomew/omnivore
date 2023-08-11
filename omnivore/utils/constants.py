@@ -173,3 +173,5 @@ CFP_TOWS = {
     "tisbury": "7018Z0000026uf6QAA",
     "west tisbury": "7018Z0000026uf6QAA",
 }
+# Salesforce Format
+DATETIME_SALESFORCE = "%Y-%m-%dT%H:%M:%S.000-07:00"

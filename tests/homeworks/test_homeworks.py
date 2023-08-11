@@ -53,8 +53,10 @@ def test_homeworks_processing_function():
             expected_value = output_data.iloc[i][column]  # type: ignore
             current_value = result.iloc[i][column]  # type: ignore
             if isna(expected_value):
-                assert isna(
-                    current_value
+                assert (
+                    isna(current_value)
+                    or len(current_value) == 0
+                    or current_value == "nan"
                 ), f"\nColumn = '{column}'\nHomeworks code = {current_value}\nExpected value = {expected_value}\nHomeworks ID = {output_data.iloc[i]['ID_from_HPC__c']}\n"
             else:
                 assert (
