@@ -23,6 +23,8 @@ staging.cmd="pytest -vv -m staging"
 staging.env_file=".env.staging"
 clean.cmd="python clean_sf.py"
 clean.env_file=".env.staging"
+start.cmd="python -m omnivore"
+start.env_file=".env"
 
 [tool.pdm.dev-dependencies]
 test = [
