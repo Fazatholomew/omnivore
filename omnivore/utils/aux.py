@@ -4,12 +4,13 @@ from .constants import (
     OPPORTUNITY_COLUMNS,
     ACCOUNT_COLUMNS,
     CFP_TOWS,
-    HEA_ID,
+    DATETIME_SALESFORCE,
 )
 from urllib.parse import unquote_plus
 from typing import TypedDict, Dict, Any
 from usaddress import tag, RepeatedLabelError
-from pandas import DataFrame, isna
+from pandas import DataFrame, isna, Series, to_datetime
+from pandas.api.types import is_datetime64_any_dtype
 from .types import Record_Find_Info, Account, Opportunity
 from datetime import datetime
 from collections import OrderedDict
@@ -486,3 +487,18 @@ def extract_firstname_lastname(
     copied[last_name_column] = copied[last_name_column].str.replace(" ", "")
     copied[last_name_column] = copied[last_name_column].fillna(stringed_data)
     return copied
+
+
+def to_sf_datetime(data: Series, format: str | None = None) -> Series:
+    """Convert a series into Salesforce formated datetime
+
+    Keyword arguments:
+    data -- Series with either str or datetime elements
+    format -- strptime format
+    """
+    copied = (
+        data
+        if is_datetime64_any_dtype(data)
+        else to_datetime(data, format=format, errors="coerce")
+    )
+    return copied.dt.strftime(DATETIME_SALESFORCE).astype(str)

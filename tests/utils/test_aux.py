@@ -10,12 +10,13 @@ from omnivore.utils.aux import (
     is_float,
     sanitize_data_for_sf,
     extract_firstname_lastname,
+    to_sf_datetime,
 )
-from pandas import DataFrame
+from pandas import DataFrame, Series
 from numpy import NaN
 from omnivore.utils.constants import HEA_ID
 from datetime import datetime
-from pandas.testing import assert_frame_equal
+from pandas.testing import assert_frame_equal, assert_series_equal
 
 
 def assert_partial_dict(dict_1, dict_2):
@@ -357,7 +358,6 @@ def test_extract_first_name_last_name():
     multi = extract_firstname_lastname(
         DataFrame({"Name": ["Jimmy t Faza", "test"]}), "Name"
     )
-    print(multi)
     assert_frame_equal(
         multi,
         DataFrame(
@@ -367,4 +367,15 @@ def test_extract_first_name_last_name():
                 "LastName": ["Faza", "test"],
             }
         ),
+    )
+
+
+def test_to_sf_datetime():
+    assert_series_equal(
+        to_sf_datetime(Series(["2021-01-01 12:00:00"])),
+        Series(["2021-01-01T12:00:00.000-07:00"]),
+    )
+    assert_series_equal(
+        to_sf_datetime(Series(["02-01-2023"]), "%m-%d-%Y"),
+        Series(["2023-02-01T00:00:00.000-07:00"]),
     )
