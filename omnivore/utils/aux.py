@@ -458,3 +458,31 @@ def sanitize_data_for_sf(data: Any):
     #         account['BillingStreet'] = extracted_address['street'] if not 'BillingStreet' in account else account['BillingStreet']
     #         account['BillingCity'] = extracted_address['city'] if not 'BillingCity' in account else account['BillingCity']
     #         account['BillingPostalCode'] = extracted_address['zipcode'] if not 'BillingPostalCode' in account else account['BillingPostalCode']
+
+
+def extract_firstname_lastname(
+    data: DataFrame,
+    source_column: str,
+    first_name_column="FirstName",
+    last_name_column="LastName",
+) -> DataFrame:
+    """Extact a full name column into First name and Last Name
+
+    Keyword arguments:
+    data -- Dataframe with name source
+    source_column -- Column name with name source
+    first_name_column -- New column name for firstname
+    last_name_column -- New column name for lastname
+    Return: New DataFrame with firstname lastname added column
+    """
+
+    copied = data.copy()
+    stringed_data = copied[source_column].astype(str)
+    copied[first_name_column] = stringed_data.str.extract(r"(.*?(?=[\wäöüß]+$))")
+    copied[last_name_column] = stringed_data.str.extract(r"( \w+)$")
+    copied[first_name_column] = copied[first_name_column].str.replace(
+        r"( )$", "", regex=True
+    )
+    copied[last_name_column] = copied[last_name_column].str.replace(" ", "")
+    copied[last_name_column] = copied[last_name_column].fillna(stringed_data)
+    return copied
