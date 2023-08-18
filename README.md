@@ -2,8 +2,6 @@
 
 *A script to convert All In Energy's vendor data into a All In Energy's salesforce format.**
 
-[![Build Status](https://github.com/Fazatholomew/omnivore/workflows/CI/badge.svg)](https://github.com/Fazatholomew/omnivore/actions)
-
 ## Features
 
 * Converts All In Energy's vendor data into a All In Energy's salesforce format.

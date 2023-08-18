@@ -115,6 +115,7 @@ ACCOUNT_COLUMNS = [
     "All_In_Energy_ID__c",
     "Field_Staff__c",
     "Prefered_Lan__c",
+    "PersonDoNotCall",
 ]
 
 # CFP Town Dict

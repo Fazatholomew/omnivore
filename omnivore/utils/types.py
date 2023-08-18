@@ -1,5 +1,6 @@
 from typing import TypedDict
 
+
 class Opportunity(TypedDict, total=False):
     Id: str
     Street__c: str
@@ -33,6 +34,7 @@ class Opportunity(TypedDict, total=False):
     Legacy_Post_Assessment_Notes__c: str
     Owner_Renter__c: str
 
+
 class Account(TypedDict, total=False):
     Id: str
     BillingStreet: str
@@ -50,6 +52,7 @@ class Account(TypedDict, total=False):
     All_In_Energy_ID__c: str
     Field_Staff__c: str
     Prefered_Lan__c: str
+    PersonDoNotCall: bool
 
 
 class Query(TypedDict, total=True):
@@ -63,7 +66,8 @@ class Record_Find_Info(TypedDict, total=True):
     acc: Account
     opps: list[Opportunity]
 
+
 class Create(TypedDict, total=True):
-  errors: list[str]
-  id: str
-  success: bool
+    errors: list[str]
+    id: str
+    success: bool
