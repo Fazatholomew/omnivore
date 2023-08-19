@@ -70,7 +70,7 @@ def merge_columns(
         secondary_column = f"{column}_{secondary}"
         if primary_column not in data.columns and secondary_column not in data.columns:
             continue
-        data[column] = data[secondary_column].combine_first(data[primary_column])
+        data[column] = data[primary_column].combine_first(data[secondary_column])
     return data
 
 

@@ -14,7 +14,6 @@ def test_homeworks_hsMapper():
     )
 
     data["Health_Safety_Barrier__c"] = data.apply(combine_hs, axis=1)
-    print(data)
     assert data.equals(
         DataFrame(
             [
