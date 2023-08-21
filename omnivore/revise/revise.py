@@ -137,7 +137,7 @@ def revise(data: DataFrame) -> DataFrame:
     ] = "No Reason"
     merged.loc[
         (merged["StageName"] == "Canceled")
-        & (merged["Lead Cancelation_Reason_s__c"].isna()),
+        & (merged["Cancelation_Reason_s__c"].isna()),
         "Cancelation_Reason_s__c",
     ] = "No Reason"
     merged["CloseDate"] = merged["CloseDate"].fillna(merged["HEA_Date_And_Time__c"])
