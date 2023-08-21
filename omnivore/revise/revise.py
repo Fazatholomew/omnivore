@@ -145,6 +145,12 @@ def revise(data: DataFrame) -> DataFrame:
         merged["Weatherization_Date_Time__c"]
     )
 
+    merged["Name"] = merged["FirstName"] + " " + merged["LastName"]
+
+    merged["Street__c"] = (
+        merged["Street__c"] + ", " + merged["City__c"] + ", MA, " + merged["Zipcode__c"]
+    )
+
     for date_column in [
         "CloseDate",
         "HEA_Date_And_Time__c",
