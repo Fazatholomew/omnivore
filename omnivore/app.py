@@ -2,6 +2,7 @@
 from omnivore.homeworks.homeworks import homeworks, rename_and_merge
 from omnivore.neeeco.neeeco import neeeco
 from omnivore.vhi.vhi import vhi
+from omnivore.revise.revise import revise, merge_file_revise
 from omnivore.utils.salesforce import SalesforceConnection, Create
 from omnivore.utils.aux import (
     to_account_and_opportunities,
@@ -15,6 +16,7 @@ from omnivore.utils.constants import (
     CFP_OPP_ID,
     HOMEWORKS_ACCID,
     VHI_ACCID,
+    REVISE_ACCID,
 )
 from os import getenv
 from pickle import load, dump
@@ -264,6 +266,22 @@ class Blueprint:
             logger.error("Error in VHI process.")
             logger.error(e, exc_info=True)
 
+    def run_revise(self) -> None:
+        """
+        Run Revise process
+        """
+        try:
+            hea_data = read_csv(cast(str, getenv("REVISE_DATA_URL")), dtype="object")
+            wx_data = read_csv(cast(str, getenv("REVISE_WX_DATA_URL")), dtype="object")
+            data = merge_file_revise(hea_data, wx_data)
+            processed_row_removed = self.remove_already_processed_row(data)
+            processed_row = revise(processed_row_removed)
+            grouped_opps = to_account_and_opportunities(processed_row)
+            run(self.start_upload_to_salesforce(grouped_opps, REVISE_ACCID))
+        except Exception as e:
+            logger.error("Error in Revise process.")
+            logger.error(e, exc_info=True)
+
     def run(self) -> None:
         logger.info("Running on ENV = %s", getenv("ENV"))
         logger.info("Start Processing Omnivore")
@@ -277,5 +295,9 @@ class Blueprint:
         self.sf.get_salesforce_table()
         logger.info("Start Processing VHI")
         self.run_vhi()
+        self.save_processed_rows()
+        self.sf.get_salesforce_table()
+        logger.info("Start Processing Revise")
+        self.run_revise()
         self.save_processed_rows()
         logger.info("Finished running Omnivore")

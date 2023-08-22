@@ -5,6 +5,7 @@ from omnivore.utils.constants import HEA_ID
 from .neeeco.neeeco_data import output_data
 from .homeworks.homeworks_data import output_data as output_data_homeworks
 from .vhi.vhi_data import output_data as output_data_vhi
+from .revise.revise_data import output_data as output_data_revise
 from datetime import datetime
 from omnivore.utils.aux import find_cfp_campaign
 
@@ -24,6 +25,7 @@ def init_app(monkeypatch):
                         m.setattr(app, "NEEECO_ACCID", "0017600000VQCaXAAX")
                         m.setattr(app, "HOMEWORKS_ACCID", "0017600000VQCacAAH")
                         m.setattr(app, "VHI_ACCID", "0017600000Vb87cAAB")
+                        m.setattr(app, "REVISE_ACCID", "0017600000bL2FtAAK")
                         now = datetime.now()
                         mock_load.return_value = (
                             set()
@@ -145,6 +147,27 @@ def test_app_using_vhi(init_app):
     """
     init_app.run_vhi()
     unique_ids = output_data_vhi["ID_from_HPC__c"].unique().tolist()
+    joined = "', '".join(unique_ids)
+    res = init_app.sf.sf.query_all(
+        f"SELECT ID_from_HPC__c from Opportunity WHERE ID_from_HPC__c IN ('{joined}')"
+    )
+    ids = [current_opp["ID_from_HPC__c"] for current_opp in res["records"]]
+    for current_id in unique_ids:
+        assert current_id in ids
+    assert len(res["records"]) == len(unique_ids)
+
+
+@pytest.mark.staging
+def test_app_using_revise(init_app):
+    """
+    Testing whole app functionility including:
+    - Connecting to SF and query current Database
+    - Fetch Data from GAS
+    - Process data for specific HPC (Revise)
+    - Upload the data to SF
+    """
+    init_app.run_revise()
+    unique_ids = output_data_revise["ID_from_HPC__c"].unique().tolist()
     joined = "', '".join(unique_ids)
     res = init_app.sf.sf.query_all(
         f"SELECT ID_from_HPC__c from Opportunity WHERE ID_from_HPC__c IN ('{joined}')"
