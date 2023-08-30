@@ -6,6 +6,8 @@ from omnivore.utils.aux import (
     toSalesforceEmail,
 )
 
+CAMBRIDGE_DATE_FORMAT = "%m/%d/%Y"
+
 # Create a logger object
 logger = logging.getLogger(__name__)
 
@@ -47,12 +49,24 @@ consulting_column_mapper = {
 }
 
 
-def cambridge_consulting(consulting: DataFrame) -> DataFrame:
-    converted = consulting.rename(columns=consulting_column_mapper)
+def cambridge_general_process(
+    data: DataFrame, column_mapper: dict[str, str]
+) -> DataFrame:
+    converted = data.rename(columns=column_mapper)
     converted["PersonEmail"] = converted["PersonEmail"].apply(toSalesforceEmail)
-    converted["CloseDate"] = converted["CloseDate"].apply(to_sf_datetime)
+    converted["CloseDate"] = to_sf_datetime(
+        converted["CloseDate"], CAMBRIDGE_DATE_FORMAT
+    )
     with_first_name = extract_firstname_lastname(converted, "Customer: Account Name")
     with_first_name["Name"] = (
         with_first_name["FirstName"] + " " + with_first_name["LastName"]
     )
+    with_first_name["Street__c"] = with_first_name["Street__c"] + ", Cambridge, MA"
     return with_first_name
+
+
+def cambridge(
+    consulting_data: DataFrame, quote_data: DataFrame
+) -> tuple[DataFrame, DataFrame]:
+    return cambridge_general_process(consulting_data, consulting_column_mapper)
+    # cambridge_general_process(quote_data, quote_column_mapper),

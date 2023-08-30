@@ -263,7 +263,6 @@ class SalesforceConnection:
                 res: Create = cast(
                     Create, self.sf.Account.create(payload)
                 )  # type:ignore
-                print("creating new account")
                 if res["success"]:
                     for opp in input_records["opps"]:
                         opp["AccountId"] = res["id"]

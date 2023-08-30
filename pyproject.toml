@@ -24,7 +24,7 @@ staging.env_file=".env.staging"
 clean.cmd="python clean_sf.py"
 clean.env_file=".env.staging"
 start.cmd="python -m omnivore"
-start.env_file=".env"
+start.env_file=".env.production"
 
 [tool.pdm.dev-dependencies]
 test = [

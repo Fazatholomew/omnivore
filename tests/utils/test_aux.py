@@ -292,6 +292,12 @@ def test_to_sf_payload():
         "Opportunity",
     ) == {"Name": "test"}
 
+    # Empty array
+    assert to_sf_payload(
+        {"Name": [], "CloseDate": ["boom", "foo"]},
+        "Opportunity",
+    ) == {"Name": "", "CloseDate": "boom;foo"}
+
 
 def test_find_cfp_campaign():
     # No city

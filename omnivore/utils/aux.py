@@ -326,7 +326,7 @@ def to_sf_payload(
     return {
         key: sanitize_data_for_sf(data[key])
         for key in columns
-        if key in data and not isna(data[key])
+        if key in data and (isinstance(data[key], list) or not isna(data[key]))
     }
 
 

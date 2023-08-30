@@ -69,5 +69,6 @@ logger.log
 */**/.DS_Store
 .DS_Store
 
+processed_row
 
 __pypackages__/
