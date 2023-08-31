@@ -19,6 +19,7 @@ quote_column_mapper = {
 }
 
 consulting_column_mapper = {
+    "Survey ID": "ID_from_HPC__c",
     "Customer email": "PersonEmail",
     "Contact Mailing Address": "Street__c",
     "Number of units in building": "Number_of_Units_in_the_Building_Condo_As__c",
