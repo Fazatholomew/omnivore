@@ -59,6 +59,7 @@ class Opportunity(TypedDict, total=False):
     Did_you_find_your_consultation_helpful__c: str
     Were_your_advisors_helpful__c: str
     Open_feedback_what_should_we_know__c: str
+    Billable_Time_Spent__c: str
 
 
 class Account(TypedDict, total=False):

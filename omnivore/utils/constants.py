@@ -124,6 +124,7 @@ OPPORTUNITY_COLUMNS = [
     "Did_you_find_your_consultation_helpful__c",
     "Were_your_advisors_helpful__c",
     "Open_feedback_what_should_we_know__c",
+    "Billable_Time_Spent__c",
 ]
 # Account columns to fetch
 ACCOUNT_COLUMNS = [
