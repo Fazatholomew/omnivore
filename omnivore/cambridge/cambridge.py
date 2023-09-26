@@ -11,6 +11,8 @@ CAMBRIDGE_DATE_FORMAT = "%m/%d/%Y"
 # Create a logger object
 logger = logging.getLogger(__name__)
 
+yes_no_mapper = {"Yes": True, "No": False}
+
 quote_column_mapper = {
     "Email": "PersonEmail",
     "Customer Name: Billing Address Line 1": "Street__c",
@@ -34,7 +36,8 @@ consulting_column_mapper = {
     "Cooling system age": "Cooling_System_Age__c",
     "Hot water fuel": "Hot_Water_Fuel__c",
     "Hot water system type": "Hot_Water_System_Type__c",
-    "Hot water system age": "Existing_Solar__c",
+    "Hot water system age": "Hot_Water_System_Age__c",
+    "Existing solar": "Existing_Solar__c",
     "Roof age": "Roof_Age__c",
     "Electrical panel capacity": "Electrical_Panel_Capacity__c",
     "Number of spaces": "Number_of_Spaces__c",
@@ -63,6 +66,17 @@ exclude_quote_column = [
     "Customer: Billing Address Line 1",
     "Customer Name: Billing Address Line 2",
 ]
+
+# decarb_mapper = {
+#     "EV / EBike technologies": "EV / EBike technologies",
+#     "Heat pumps": "Heat pumps",
+#     "Hot water heaters": "Hot water heaters",
+#     "Household appliances": "Household appliances",
+#     "Kitchen appliances": "	Kitchen appliances",
+#     "Solar PV": "Solar PV",
+#     "Thermal solar": "Thermal solar",
+#     "Yard equipment": "Yard equipment	",
+# }
 
 
 def combine_notes(row: Series, column_mapper: list[str]):
@@ -125,5 +139,15 @@ def cambridge(
     quote = quote.reset_index(drop=True)
     combined = concat(
         [consultation, quote],
+    )
+    combined["Existing_Solar__c"] = combined["Existing_Solar__c"].map(yes_no_mapper)
+    combined["Existing_EV_Charging__c"] = combined["Existing_EV_Charging__c"].map(
+        yes_no_mapper
+    )
+    combined["StageName"] = "Not Yet Scheduled"
+    combined["Number_of_Units_in_the_Building_Condo_As__c"] = (
+        combined["Number_of_Units_in_the_Building_Condo_As__c"]
+        .fillna("")
+        .str.replace("0", "")
     )
     return combined.reset_index(drop=True)

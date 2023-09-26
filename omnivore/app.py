@@ -1,4 +1,5 @@
 # Now you can import the modules using absolute import
+from omnivore.cambridge.cambridge import cambridge
 from omnivore.homeworks.homeworks import homeworks, rename_and_merge
 from omnivore.neeeco.neeeco import neeeco
 from omnivore.vhi.vhi import vhi
@@ -17,6 +18,8 @@ from omnivore.utils.constants import (
     HOMEWORKS_ACCID,
     VHI_ACCID,
     REVISE_ACCID,
+    CAMBRIDGE_ACCID,
+    CAMBRIDGE_OPP_ID,
 )
 from os import getenv
 from pickle import load, dump
@@ -38,7 +41,6 @@ logger = logging.getLogger(__name__)
 class Blueprint:
     def __init__(self) -> None:
         if getenv("EMAIL") or getenv("ENV") == "test":
-            logger.info("Load Database from SF")
             self.sf = SalesforceConnection(
                 username=getenv("EMAIL"),
                 consumer_key=getenv(  # type:ignore
@@ -46,9 +48,8 @@ class Blueprint:
                 ),
                 privatekey_file=getenv("PRIVATEKEY_FILE"),
             )  # type:ignore
-            self.sf.get_salesforce_table()
         self.load_processed_rows()
-        logger.info("Finsihed loading Database from SF")
+        logger.info("Connection to Salesforce is successful")
 
     def load_processed_rows(self, fileName="./processed_row") -> None:
         """
@@ -95,8 +96,11 @@ class Blueprint:
                     self.processed_rows.add(processed_row_id)
                     continue
             opp["HPC__c"] = HPC_ID
-            opp["CampaignId"] = find_cfp_campaign(opp)
-            opp["RecordTypeId"] = CFP_OPP_ID if opp["CampaignId"] else HEA_ID
+            if HPC_ID == CAMBRIDGE_ACCID:
+                opp["RecordTypeId"] = CAMBRIDGE_OPP_ID
+            else:
+                opp["CampaignId"] = find_cfp_campaign(opp)
+                opp["RecordTypeId"] = CFP_OPP_ID if opp["CampaignId"] else HEA_ID
             if "Id" in opp:
                 if len(opp["Id"]) > 3:
                     payload = to_sf_payload(opp, "Opportunity")
@@ -286,8 +290,39 @@ class Blueprint:
             logger.error("Error in Revise process.")
             logger.error(e, exc_info=True)
 
+    def run_cambridge(self) -> None:
+        """
+        Run Cambridge process
+        """
+        try:
+            consultation_data = read_csv(
+                cast(str, getenv("CAMBRIDGE_DATA_URL")), dtype="object"
+            )
+            quote_data = read_csv(
+                cast(str, getenv("CAMBIRDGE_QUOTE_DATA_URL")), dtype="object"
+            )
+            consultation_data = consultation_data[
+                ~consultation_data["Date of Communication"].isna()
+            ]
+            quote_data = quote_data[~quote_data["HP Quote: Created Date"].isna()]
+            processed_consultation_removed = self.remove_already_processed_row(
+                consultation_data
+            )
+            processed_quote_removed = self.remove_already_processed_row(quote_data)
+            processed_row = cambridge(
+                processed_consultation_removed, processed_quote_removed
+            )
+            grouped_opps = to_account_and_opportunities(processed_row)
+            run(self.start_upload_to_salesforce(grouped_opps, CAMBRIDGE_ACCID))
+        except Exception as e:
+            logger.error("Error in Revise process.")
+            logger.error(e, exc_info=True)
+
     def run(self) -> None:
         logger.info("Running on ENV = %s", getenv("ENV"))
+        logger.info("Load Database from SF")
+        self.sf.get_salesforce_table()
+        logger.info("Finsihed loading Database from SF")
         logger.info("Start Processing Omnivore")
         logger.info("Start Processing Neeeco")
         self.run_neeeco()
@@ -304,4 +339,6 @@ class Blueprint:
         logger.info("Start Processing Revise")
         self.run_revise()
         self.save_processed_rows()
+        self.sf.get_salesforce_table(True)
+        self.run_cambridge()
         logger.info("Finished running Omnivore")

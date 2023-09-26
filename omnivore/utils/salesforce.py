@@ -6,6 +6,7 @@ from .constants import (
     CFP_ACCOUNT_ID,
     OPPORTUNITY_COLUMNS,
     ACCOUNT_COLUMNS,
+    CAMBRIDGE_OPP_ID,
 )
 from .aux import extractId, toSalesforceEmail, toSalesforcePhone, to_sf_payload
 from typing import Dict, cast
@@ -47,7 +48,7 @@ class SalesforceConnection:
             str, Account
         ] = {}  # Where all Accounts are, indexed by Account ID
 
-    def get_salesforce_table(self):
+    def get_salesforce_table(self, is_cambridge=False):
         """
         Create multiple look up table that reflect current SF Database
         """
@@ -55,7 +56,7 @@ class SalesforceConnection:
         res: Query = cast(
             Query,
             self.sf.query_all(
-                f"SELECT {', '.join(OPPORTUNITY_COLUMNS)} FROM Opportunity WHERE RecordTypeID IN ('{OPPS_RECORD_TYPE}')"
+                f"SELECT {', '.join(OPPORTUNITY_COLUMNS)} FROM Opportunity WHERE RecordTypeID IN ('{CAMBRIDGE_OPP_ID if is_cambridge else OPPS_RECORD_TYPE}')"
             ),
         )
         # Generating dummies
@@ -68,7 +69,7 @@ class SalesforceConnection:
         #   dump(res, opp_file)
         for opportunity in res["records"]:
             opportunity = cast(Opportunity, opportunity)
-            if not opportunity["AccountId"] in self.accId_to_oppIds:
+            if opportunity["AccountId"] not in self.accId_to_oppIds:
                 self.accId_to_oppIds[opportunity["AccountId"]] = []
             self.accId_to_oppIds[opportunity["AccountId"]].append(opportunity["Id"])
             self.ids_to_oppId[f"{opportunity['ID_from_HPC__c']}"] = opportunity["Id"]
@@ -110,7 +111,7 @@ class SalesforceConnection:
         not_yet_queried = [
             accId
             for accId in self.accId_to_oppIds.keys()
-            if not accId in self.accId_to_acc and type(accId) == type("aaa")
+            if accId not in self.accId_to_acc and type(accId) == type("aaa")
         ]
         joined_ids = "', '".join(not_yet_queried)
         if len(joined_ids) == 0:
@@ -254,8 +255,8 @@ class SalesforceConnection:
             payload = to_sf_payload(input_records["acc"])
             payload["RecordTypeId"] = PERSON_ACCOUNT_ID
             # Final check on required field of lastname
-            if not "LastName" in payload:
-                if not "FirstName" in payload:
+            if "LastName" not in payload:
+                if "FirstName" not in payload:
                     print("No First name")
                     print(payload)
                 payload["LastName"] = payload["FirstName"]

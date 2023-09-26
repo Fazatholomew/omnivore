@@ -68,6 +68,7 @@ def test_remove_processed_row(sf, dataframe, mocking_open):
         dummy_processed.add("".join(dataframe.values.tolist()[0]).lower())
         MockSf.return_value = dummy_processed
         omni = Blueprint()
+        omni.sf.get_salesforce_table()
         MockSf.assert_called_once()
         mocking_open.assert_called_once()
         # Test processed row
@@ -87,6 +88,7 @@ def test_remove_processed_row(sf, dataframe, mocking_open):
 @pytest.mark.asyncio
 async def test_upload_to_salesforce(sf):
     omni = Blueprint()
+    omni.sf.get_salesforce_table()
     # Test don't omnivore
     data: list[Record_Find_Info] = [
         Record_Find_Info(
@@ -155,6 +157,7 @@ def test_saving_processed_row():
                 with patch("omnivore.app.dump") as mock_dump:
                     mock_load.return_value = set()
                     omni = Blueprint()
+                    omni.sf.get_salesforce_table()
                     omni.processed_rows.add("test test")
                     omni.save_processed_rows()
                     mocked_open.assert_called_with("./processed_row", "wb")

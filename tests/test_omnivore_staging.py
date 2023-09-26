@@ -31,6 +31,7 @@ def init_app(monkeypatch):
                             set()
                         )  # Empty processed row so in the beginning everything is processed
                         omni = app.Blueprint()
+                        omni.sf.get_salesforce_table()
                         yield omni
                         # Delete created records
                         opps = omni.sf.sf.query_all(
