@@ -33,6 +33,32 @@ class Opportunity(TypedDict, total=False):
     Cancelation_Reason_s__c: str
     Legacy_Post_Assessment_Notes__c: str
     Owner_Renter__c: str
+    # Cambridge
+    Primary_Heating_Fuel__c: str
+    Description: str
+    Number_of_Units_in_the_Building_Condo_As__c: str
+    Number_of_Floors__c: str
+    Square_Footage__c: str
+    Building_Age__c: str
+    Heating_System_Age__c: str
+    Cooling_System_Age__c: str
+    Hot_Water_Fuel__c: str
+    Hot_Water_System_Type__c: str
+    Existing_Solar__c: str
+    Roof_Age__c: str
+    Electrical_Panel_Capacity__c: str
+    Number_of_Spaces__c: str
+    Existing_EV_Charging__c: str
+    Which_decarb_technologies_interest_you__c: str
+    Map_Lot_ID_Cambridge_Property_Assessors__c: str
+    Building_Envelope__c: str
+    Relationship_to_Building__c: str
+    Owner_Property_Management_Email__c: str
+    Owner_Property_Management_Name__c: str
+    Owner_Property_Management_Phone__c: str
+    Did_you_find_your_consultation_helpful__c: str
+    Were_your_advisors_helpful__c: str
+    Open_feedback_what_should_we_know__c: str
 
 
 class Account(TypedDict, total=False):

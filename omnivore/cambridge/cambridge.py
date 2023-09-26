@@ -14,8 +14,9 @@ logger = logging.getLogger(__name__)
 quote_column_mapper = {
     "Email": "PersonEmail",
     "Customer Name: Billing Address Line 1": "Street__c",
-    "Existing Heating Fuel": "Heating_Fuel__c",
+    "Existing Heating Fuel": "Primary_Heating_Fuel__c",
     "Customer Notes from Submission": "Description",
+    "Created Date": "CloseDate",
 }
 
 consulting_column_mapper = {
@@ -47,6 +48,7 @@ consulting_column_mapper = {
     "Cambridge - found consultation helpful?": "Did_you_find_your_consultation_helpful__c",
     "Cambridge - advisor answered questions?": "Were_your_advisors_helpful__c",
     "Cambridge - consultation feedback?": "Open_feedback_what_should_we_know__c",
+    "Billable Time Spent": "Billable_Time_Spent__c",
 }
 
 

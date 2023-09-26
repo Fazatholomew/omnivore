@@ -36,7 +36,7 @@ pdm install
 EMAIL=test@allinenergy.org.test
 CONSUMER_KEY=alksjnfdlkjfnsdkjfnkjsdnfkajnsdfasdf
 PRIVATEKEY_FILE=key.pem
-ENV=staging
+ENV=test
 ```
 
 4. Run the script

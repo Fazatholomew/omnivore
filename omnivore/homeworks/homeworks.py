@@ -76,7 +76,7 @@ def rename_and_merge(homeworks_old_input, homeworks_new_input) -> pd.DataFrame:
             pd.to_datetime(
                 homeworks_old_input["Time Stamp HEA Performed"],
                 format="%m/%d/%Y %H:%M:%S",
-                # errors="coerce",
+                errors="coerce",
             )
             .dt.strftime(DATETIME_SALESFORCE)
             .astype(str)
@@ -85,7 +85,7 @@ def rename_and_merge(homeworks_old_input, homeworks_new_input) -> pd.DataFrame:
             pd.to_datetime(
                 homeworks_old_input["Created Date"],
                 format="%m/%d/%Y",
-                # errors="coerce",
+                errors="coerce",
             )
             .dt.strftime(DATETIME_SALESFORCE)
             .astype(str)
@@ -112,6 +112,8 @@ def rename_and_merge(homeworks_old_input, homeworks_new_input) -> pd.DataFrame:
         logger.error("An error occurred: %s", str(e), exc_info=True)
 
     try:
+        logger.debug(homeworks_new_input.columns)
+        logger.debug(homeworks_old_input.columns)
         return pd.merge(
             left=homeworks_new_input,
             right=homeworks_old_input,
