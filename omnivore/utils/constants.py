@@ -177,6 +177,7 @@ CFP_TOWS = {
     "salem": "7013i000000i5vOAAQ",
     "beverly": "7013i000000i5vOAAQ",
     "shelburne falls": "7013i000000i5vPAAQ",
+    "shelburne": "7013i000000i5vPAAQ",
     "wareham": "7013i000000i5vsAAA",
     "westborough": "7013i000000i5vmAAA",
     "quincy": "7013i000000i5vZAAQ",
@@ -203,6 +204,7 @@ CFP_TOWS = {
     "oak bluffs": "7018Z0000026uf6QAA",
     "tisbury": "7018Z0000026uf6QAA",
     "west tisbury": "7018Z0000026uf6QAA",
+    "watertown": "7018Z0000033D71",
 }
 # Salesforce Format
 DATETIME_SALESFORCE = "%Y-%m-%dT%H:%M:%S.000-07:00"

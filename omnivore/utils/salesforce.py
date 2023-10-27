@@ -270,7 +270,7 @@ class SalesforceConnection:
                         found_opps.append(opp)
             except SalesforceMalformedRequest as e:
                 if e.content[0]["errorCode"] == "DUPLICATES_DETECTED":
-                    current_id = e.content[0]["duplicateResut"]["matchResults"][0][
+                    current_id = e.content[0]["duplicateResult"]["matchResults"][0][
                         "matchRecords"
                     ][0]["record"]["Id"]
                     for opp in input_records["opps"]:

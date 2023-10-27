@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import logging
 from ..utils.constants import DATETIME_SALESFORCE
+from ..utils.aux import to_sf_datetime
 
 pd.set_option("display.max_columns", 1000)
 pd.options.mode.chained_assignment = None  # type:ignore
@@ -32,23 +33,36 @@ def combine_hs(row: pd.Series) -> str | float:
         logger.error("An error occurred: %s", str(e), exc_info=True)
 
 
-def rename_and_merge(homeworks_old_input, homeworks_new_input) -> pd.DataFrame:
+def rename_and_merge(_homeworks_old_input, _homeworks_new_input) -> pd.DataFrame:
     """
     Homeworks sends 2 files. Old input only contains completed HEAs whereas
     new input contains canceled and scheduled ones. Sometimes they overlap.
     This functions rename the columns and combines them in case there's an
     overlap.
     """
+    homeworks_new_input = _homeworks_new_input.copy()
+    homeworks_old_input = _homeworks_old_input.copy()
+    # Bulk upload old data:
+    # homeworks_new_input[
+    #     "Operations: Operations ID & Payzer Memo"
+    # ] = homeworks_new_input["Operations: Operations ID & Payzer Memo"].fillna(
+    #     homeworks_new_input["Operations: Deal: Deal ID"]
+    # )
+    # homeworks_old_input[
+    #     "Operations: Operations ID & Payzer Memo"
+    # ] = homeworks_old_input["Operations: Operations ID & Payzer Memo"].fillna(
+    #     homeworks_old_input["Operations: Unique ID"]
+    # )
     try:
-        homeworks_new_input["Operations: Last Scheduled HEA Date"] = (
-            pd.to_datetime(
-                homeworks_new_input["Operations: Last Scheduled HEA Date"],
-                format="%m/%d/%Y %I:%M %p",
-                # errors="coerce",
-            )
-            .dt.strftime(DATETIME_SALESFORCE)
-            .astype(str)
+        homeworks_new_input["Operations: Last Scheduled HEA Date"] = to_sf_datetime(
+            homeworks_new_input["Operations: Last Scheduled HEA Date"],
+            format="%m/%d/%Y %I:%M %p",
         )
+        homeworks_new_input["Created Date"] = to_sf_datetime(
+            homeworks_new_input["Created Date"],
+            format="%m/%d/%Y",
+        )
+
         homeworks_new_input = homeworks_new_input.rename(
             columns={
                 "Account: Primary Contact: First Name": "FirstName",
@@ -64,9 +78,9 @@ def rename_and_merge(homeworks_old_input, homeworks_new_input) -> pd.DataFrame:
                 "Account: Account Name": "Street__c",
                 "Operations: Last Scheduled HEA Date": "HEA_Date_And_Time__c",
                 "Reason for Canceled": "Cancelation_Reason_s__c",
+                "Created Date": "CloseDate",
             }
         )
-        homeworks_new_input["CloseDate"] = homeworks_new_input["HEA_Date_And_Time__c"]
 
     except Exception as e:
         logger.error("An error occurred: %s", str(e), exc_info=True)
@@ -75,7 +89,7 @@ def rename_and_merge(homeworks_old_input, homeworks_new_input) -> pd.DataFrame:
         homeworks_old_input["Time Stamp HEA Performed"] = (
             pd.to_datetime(
                 homeworks_old_input["Time Stamp HEA Performed"],
-                format="%m/%d/%Y %H:%M:%S",
+                format="%m/%d/%Y %I:%M %p",
                 errors="coerce",
             )
             .dt.strftime(DATETIME_SALESFORCE)
@@ -112,8 +126,6 @@ def rename_and_merge(homeworks_old_input, homeworks_new_input) -> pd.DataFrame:
         logger.error("An error occurred: %s", str(e), exc_info=True)
 
     try:
-        logger.debug(homeworks_new_input.columns)
-        logger.debug(homeworks_old_input.columns)
         return pd.merge(
             left=homeworks_new_input,
             right=homeworks_old_input,

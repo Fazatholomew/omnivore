@@ -338,9 +338,10 @@ def find_cfp_campaign(data: Opportunity) -> str:
         return ""
     if isna(data["City__c"]):
         return ""
-    return (
-        CFP_TOWS[data["City__c"].lower()] if data["City__c"].lower() in CFP_TOWS else ""
-    )
+    for key, value in CFP_TOWS.items():
+        if key in data["City__c"].lower():
+            return value
+    return ""
 
 
 def is_float(num: Any) -> bool:
