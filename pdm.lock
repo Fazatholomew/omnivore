@@ -335,6 +335,16 @@ files = [
 ]
 
 [[package]]
+name = "more-itertools"
+version = "10.1.0"
+requires_python = ">=3.8"
+summary = "More routines for operating on iterables, beyond itertools"
+files = [
+    {file = "more-itertools-10.1.0.tar.gz", hash = "sha256:626c369fa0eb37bac0291bce8259b332fd59ac792fa5497b59837309cd5b114a"},
+    {file = "more_itertools-10.1.0-py3-none-any.whl", hash = "sha256:64e0735fcfdc6f3464ea133afe8ea4483b1c5fe3a3d69852e6503b43a0b222e6"},
+]
+
+[[package]]
 name = "numpy"
 version = "1.25.2"
 requires_python = ">=3.9"
@@ -396,6 +406,19 @@ files = [
     {file = "pandas-2.0.3-cp311-cp311-win32.whl", hash = "sha256:694888a81198786f0e164ee3a581df7d505024fbb1f15202fc7db88a71d84ebd"},
     {file = "pandas-2.0.3-cp311-cp311-win_amd64.whl", hash = "sha256:6a21ab5c89dcbd57f78d0ae16630b090eec626360085a4148693def5452d8a6b"},
     {file = "pandas-2.0.3.tar.gz", hash = "sha256:c02f372a88e0d17f36d3093a644c73cfc1788e876a7c4bcb4020a77512e2043c"},
+]
+
+[[package]]
+name = "pendulum"
+version = "2.1.2"
+requires_python = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+summary = "Python datetimes made easy"
+dependencies = [
+    "python-dateutil<3.0,>=2.6",
+    "pytzdata>=2020.1",
+]
+files = [
+    {file = "pendulum-2.1.2.tar.gz", hash = "sha256:b06a0ca1bfe41c990bbf0c029f0b6501a7f2ec4e38bfec730712015e8860f207"},
 ]
 
 [[package]]
@@ -535,6 +558,16 @@ files = [
 ]
 
 [[package]]
+name = "pytzdata"
+version = "2020.1"
+requires_python = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+summary = "The Olson timezone database for Python."
+files = [
+    {file = "pytzdata-2020.1-py2.py3-none-any.whl", hash = "sha256:e1e14750bcf95016381e4d472bad004eef710f2d6417240904070b3d6654485f"},
+    {file = "pytzdata-2020.1.tar.gz", hash = "sha256:3efa13b335a00a8de1d345ae41ec78dd11c9f8807f522d39850f2dd828681540"},
+]
+
+[[package]]
 name = "requests"
 version = "2.31.0"
 requires_python = ">=3.7"
@@ -578,17 +611,19 @@ files = [
 
 [[package]]
 name = "simple-salesforce"
-version = "1.12.4"
+version = "1.12.5"
 summary = "A basic Salesforce.com REST API client."
 dependencies = [
     "cryptography",
+    "more-itertools",
+    "pendulum",
     "pyjwt",
     "requests>=2.22.0",
     "zeep",
 ]
 files = [
-    {file = "simple-salesforce-1.12.4.tar.gz", hash = "sha256:e9205f8041226c8273f020448c7fbd37999d481d25edd67f9bf86dc159cd3939"},
-    {file = "simple_salesforce-1.12.4-py2.py3-none-any.whl", hash = "sha256:87f1ac1363987ebf9b7a66ac9e7395534ec3f5a9545e08b664cb695dc085b1ac"},
+    {file = "simple-salesforce-1.12.5.tar.gz", hash = "sha256:ef65f72438e3b215619f6835d3d4356e147adf3a7ece6896d239127dd6aefcd1"},
+    {file = "simple_salesforce-1.12.5-py2.py3-none-any.whl", hash = "sha256:07029575385d04132babfd6e19c1c8068c859d616a45dab07bbf9875bdc5ab93"},
 ]
 
 [[package]]
