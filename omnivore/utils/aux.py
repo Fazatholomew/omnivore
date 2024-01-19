@@ -2,6 +2,7 @@ from re import sub, match
 from .constants import (
     AIE_ID_SEPARATOR,
     OPPORTUNITY_COLUMNS,
+    CAMBRIDGE_OPPORTUNITY_COLUMNS,
     ACCOUNT_COLUMNS,
     CFP_TOWS,
     DATETIME_SALESFORCE,
@@ -190,12 +191,12 @@ def to_account_and_opportunities(data: DataFrame) -> list[Record_Find_Info]:
             # Name
             full_name = []
             # First Name Last Name for Account
-            if hasattr(row, "FirstName") and not "FirstName" in current_account:
+            if hasattr(row, "FirstName") and "FirstName" not in current_account:
                 first_name = getattr(row, "FirstName")
                 current_account["FirstName"] = first_name
                 full_name.append(first_name)
 
-            if hasattr(row, "LastName") and not "LastName" in current_account:
+            if hasattr(row, "LastName") and "LastName" not in current_account:
                 last_name = getattr(row, "LastName")
                 current_account["LastName"] = last_name
                 full_name.append(last_name)
@@ -204,8 +205,8 @@ def to_account_and_opportunities(data: DataFrame) -> list[Record_Find_Info]:
             # current_opp['Name'] =  ' '.join(full_name) if len(current_opps) == 0 else f"{' '.join(full_name)} unit {len(current_opps)}"
 
             # Rest of data
-            for column in OPPORTUNITY_COLUMNS:
-                if hasattr(row, column) and not column in current_opp:
+            for column in OPPORTUNITY_COLUMNS + CAMBRIDGE_OPPORTUNITY_COLUMNS:
+                if hasattr(row, column) and column not in current_opp:
                     current_opp[column] = getattr(row, column)
 
             # Add tempId
@@ -322,7 +323,11 @@ def to_sf_payload(
     """
     Transform payload to only include SF Field.
     """
-    columns = OPPORTUNITY_COLUMNS if object_type == "Opportunity" else ACCOUNT_COLUMNS
+    columns = (
+        OPPORTUNITY_COLUMNS + CAMBRIDGE_OPPORTUNITY_COLUMNS
+        if object_type == "Opportunity"
+        else ACCOUNT_COLUMNS
+    )
     return {
         key: sanitize_data_for_sf(data[key])
         for key in columns
@@ -487,6 +492,9 @@ def extract_firstname_lastname(
     )
     copied[last_name_column] = copied[last_name_column].str.replace(" ", "")
     copied[last_name_column] = copied[last_name_column].fillna(stringed_data)
+    for current_column in [source_column, first_name_column, last_name_column]:
+        mask = copied[current_column].isna() | (copied[current_column] == "")
+        copied.loc[mask, current_column] = data["Name"]
     return copied
 
 
@@ -502,4 +510,8 @@ def to_sf_datetime(data: Series, format: str | None = None) -> Series:
         if is_datetime64_any_dtype(data)
         else to_datetime(data, format=format, errors="coerce")
     )
-    return copied.dt.strftime(DATETIME_SALESFORCE).astype(str)
+    return copied.dt.strftime(DATETIME_SALESFORCE)
+
+
+def save_output_df(data: DataFrame, name: str = "General"):
+    data.to_csv(f"Debug {name}.csv", index=False)

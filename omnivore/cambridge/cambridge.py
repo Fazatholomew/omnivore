@@ -1,10 +1,11 @@
 import logging
-from pandas import DataFrame, Series, concat
+from pandas import DataFrame, Series, concat, isna
 from omnivore.utils.aux import (
     extract_firstname_lastname,
     to_sf_datetime,
     toSalesforceEmail,
 )
+from re import findall
 
 CAMBRIDGE_DATE_FORMAT = "%m/%d/%Y"
 
@@ -57,6 +58,61 @@ consulting_column_mapper = {
     "Customer: Account Name": "Name",
 }
 
+relationship_mapper = {
+    "Building Owner": "Building owner",
+    "Building owner": "Building owner",
+    "Property Manager": "Property Manager",
+    "Trustee / Board Member": "Trustee / Board Member",
+    "Trustee/Board Member": "Trustee / Board Member",
+    "Unit Owner": "Unit owner",
+    "Unit owner": "Unit owner",
+}
+
+new_ecology_column_mapper = {
+    "ID": "ID_from_HPC__c",
+    "Notes": "Description",
+    # "Status": "Stage",
+    "Billable Time Spent": "Billable_Time_Spent__c",
+    "Timestamp": "CloseDate",
+    "Name": "Name",
+    "Your email": "PersonEmail",
+    "Contact Mailing Address": "Street__c",
+    "Current heating fuel": "Primary_Heating_Fuel__c",
+    "What problem(s) are you facing?": "What_problem_s_are_you_facing_cambridge__c",
+    "Have you completed a Mass Save Energy Audit in the past 5 years? ": "Previous_Mass_Save_assessment__c",
+    "What decarb technologies are you interested in pursuing? ": "Which_decarb_technologies_interest_you__c",
+    "Consultation Date": "Consultation_Date__c",
+    "Map Lot ID Cambridge Property Assessors database:": "Map_Lot_ID_Cambridge_Property_Assessors__c",
+    "Number of units": "Number_of_Units_in_the_Building_Condo_As__c",
+    "Number of floors": "Number_of_Floors__c",
+    "Building Envelope:": "Building_Envelope__c",
+    "Building Age": "Building_Age__c",
+    "Heating system age": "Heating_System_Age__c",
+    "Hot water fuel": "Hot_Water_Fuel__c",
+    "Hot water system type": "Hot_Water_System_Type__c",
+    "Hot water system age": "Hot_Water_System_Age__c",
+    "Existing solar": "Existing_Solar__c",
+    "Roof age": "Roof_Age__c",
+    "Electrical panel capacity": "Electrical_Panel_Capacity__c",
+    "What is known about electrical service to building and to individual units?": "What_is_known_about_cambridge__c",
+    "Building common areas or non-residential uses: Separate mechanicals? Who pays?": "Building_common_areas_or_cambridge__c",
+    "Number of Parking spaces: (Number)": "Number_of_Spaces__c",
+    "Location": "Location_IOM__c",
+    "Ventilation system for indoor parking?": "Ventilation_system_for_indoor_cambridge__c",
+    "Existing EV charging": "Existing_EV_Charging__c",
+    "Client Relationship to building:": "Relationship_to_Building__c",
+    "Building Owner / Property Management Email:": "Owner_Property_Management_Email__c",
+    "Building Owner / Property Management Phone:": "Owner_Property_Management_Phone__c",
+    "Building Owner / Property Management Name:": "Owner_Property_Management_Name__c",
+    "Expected Follow Up Date: ": "Expected_Follow_Up_Date__c",
+    "Site Visit Date": "Site_Visit_Date_date__c",
+    "Action (Multi-Select Picklist)": "Cambridge_Decarb_Action__c",  # Cambridge Action
+    "Milestone 1 Date Estimate": "Milestone_1_Date_cambridge__c",
+    "Milestone 2 Date": "Milestone_2_Date_cambridge__c",
+    "Milestone 3 Date": "Milestone_3_Date_cambridge__c",
+    "Milestone 4 Date": "Milestone_4_Date_cambridge__c",
+}
+
 exclude_consulting_column = [
     "Customer: Billing Address Line 1",
     "Customer: Billing Address Line 2",
@@ -78,6 +134,49 @@ exclude_quote_column = [
 #     "Yard equipment": "Yard equipment	",
 # }
 
+number_ranges = [
+    "1-4",
+    "5-10",
+    "11-25",
+    "26-50",
+]
+
+building_age_ranges = ["1700-1799", "1800-1899", "1900-1950", "1951-1999"]
+
+
+def determine_building_age_range(number: str) -> str:
+    if isna(number) or number.lower() == "nan":
+        return ""
+    numbers = findall(r"\d+", number)
+    if len(numbers) == 0:
+        return ""
+    current_number = int(numbers[0])
+    if current_number > 1999:
+        return "2000+"
+    if current_number < 1700:
+        return "pre-1700"
+    for ranges in building_age_ranges:
+        lower_bound, upper_bound = ranges.split("-")
+        if int(lower_bound) <= current_number and int(upper_bound) >= current_number:
+            return ranges
+    return ""
+
+
+def determine_number_range(number: str) -> str:
+    if isna(number) or number.lower() == "nan":
+        return "1-4"
+    numbers = findall(r"\d+", number)
+    if len(numbers) == 0:
+        return "1-4"
+    current_number = int(numbers[0])
+    if current_number > 50:
+        return "50+"
+    for ranges in number_ranges:
+        lower_bound, upper_bound = ranges.split("-")
+        if int(lower_bound) <= current_number and int(upper_bound) >= current_number:
+            return ranges
+    return "1-4"
+
 
 def combine_notes(row: Series, column_mapper: list[str]):
     notes = []
@@ -95,21 +194,15 @@ def combine_notes(row: Series, column_mapper: list[str]):
 
 
 def cambridge_general_process(
-    data: DataFrame, column_mapper: dict[str, str], no_column_inlcuded: list[str]
+    data: DataFrame,
+    column_mapper: dict[str, str],
+    no_column_inlcuded: list[str] = [],
+    date_format: str = CAMBRIDGE_DATE_FORMAT,
 ) -> DataFrame:
     converted = data.rename(columns=column_mapper)
-    converted["PersonEmail"] = converted["PersonEmail"].apply(toSalesforceEmail)
-    converted["CloseDate"] = to_sf_datetime(
-        converted["CloseDate"], CAMBRIDGE_DATE_FORMAT
-    )
-    with_first_name = extract_firstname_lastname(converted, "Name")
-    with_first_name["Name"] = (
-        with_first_name["FirstName"] + " " + with_first_name["LastName"]
-    )
-    with_first_name["Street__c"] = with_first_name["Street__c"] + ", Cambridge, MA"
-    if "Description" not in data.columns:
-        data["Description"] = ""
-    with_first_name = with_first_name.apply(
+    if "Description" not in converted.columns:
+        converted["Description"] = ""
+    converted = converted.apply(
         combine_notes,
         axis=1,
         args=(
@@ -118,36 +211,118 @@ def cambridge_general_process(
             + no_column_inlcuded,
         ),
     )
+    converted["PersonEmail"] = converted["PersonEmail"].apply(toSalesforceEmail)
+    converted["CloseDate"] = to_sf_datetime(converted["CloseDate"], date_format)
+    with_first_name = extract_firstname_lastname(converted, "Name")
+    with_first_name["Name"] = (
+        with_first_name["FirstName"] + " " + with_first_name["LastName"]
+    )
+    with_first_name["Street__c"] = with_first_name["Street__c"] + ", Cambridge, MA"
 
     return with_first_name
 
 
+def new_ecology(_data: DataFrame) -> DataFrame:
+    data = _data[~_data["ID"].isna()].copy()
+    for column in [
+        "Consultation Date",
+        "Milestone 1 Date Estimate",
+        "Milestone 2 Date",
+        "Milestone 3 Date",
+        "Milestone 4 Date",
+        "Site Visit Date",
+        "Expected Follow Up Date: ",
+    ]:
+        data[column] = to_sf_datetime(data[column], CAMBRIDGE_DATE_FORMAT)
+    data["Action (Multi-Select Picklist)"] = (
+        data["Action (Multi-Select Picklist)"]
+        .str.replace(
+            "Recommended decarbonization actions and next steps",
+            "Recommended decarbonization actions",
+        )
+        .str.replace(", ", ";")
+        .str.replace(",", ";")
+    )
+    return data
+
+
 def cambridge(
-    consulting_data: DataFrame, quote_data: DataFrame
-) -> tuple[DataFrame, DataFrame]:
-    consultation = cambridge_general_process(
-        consulting_data,
-        consulting_column_mapper,
-        exclude_consulting_column,
-    )
-    consultation = consultation.reset_index(drop=True)
-    quote = cambridge_general_process(
-        quote_data,
-        quote_column_mapper,
-        exclude_quote_column,
-    )
-    quote = quote.reset_index(drop=True)
-    combined = concat(
-        [consultation, quote],
-    )
+    consulting_data: DataFrame, quote_data: DataFrame, _new_ecology_data: DataFrame
+) -> DataFrame:
+    new_ecology_data = new_ecology(_new_ecology_data)
+    processed = []
+    for current_data in [
+        {
+            "data": consulting_data,
+            "column_mapper": consulting_column_mapper,
+            "exclude_column": exclude_consulting_column,
+            "type": "Consultation",
+        },
+        {
+            "data": quote_data,
+            "column_mapper": quote_column_mapper,
+            "exclude_column": exclude_quote_column,
+            "type": "Quote",
+        },
+        {
+            "data": new_ecology_data,
+            "column_mapper": new_ecology_column_mapper,
+            "date_format": "%m/%d/%Y %H:%M:%S",
+            "type": "New Ecology",
+        },
+    ]:
+        result = cambridge_general_process(
+            current_data["data"],
+            current_data["column_mapper"],
+            current_data["exclude_column"] if "exclude_column" in current_data else [],
+            current_data["date_format"]
+            if "date_format" in current_data
+            else CAMBRIDGE_DATE_FORMAT,
+        )
+        result = result.reset_index(drop=True)
+        result["Cambridge_Data_Sorce__c"] = current_data["type"]
+        if "stage_mapper" in current_data:
+            result["StageName"] = result["StageName"].rename(
+                current_data["stage_mapper"]
+            )
+        else:
+            result["StageName"] = "Not Yet Scheduled"
+        processed.append(result)
+
+    combined = concat(processed, ignore_index=True)
     combined["Existing_Solar__c"] = combined["Existing_Solar__c"].map(yes_no_mapper)
     combined["Existing_EV_Charging__c"] = combined["Existing_EV_Charging__c"].map(
         yes_no_mapper
     )
-    combined["StageName"] = "Not Yet Scheduled"
     combined["Number_of_Units_in_the_Building_Condo_As__c"] = (
         combined["Number_of_Units_in_the_Building_Condo_As__c"]
-        .fillna("")
-        .str.replace("0", "")
+        .fillna("1")
+        .str.replace("0", "1")
     )
+    combined["Which_decarb_technologies_interest_you__c"] = (
+        combined["Which_decarb_technologies_interest_you__c"]
+        .str.replace(", ", ";")
+        .str.replace(",", ";")
+    )
+    for current_column in [
+        "Cooling_System_Age__c",
+        "Heating_System_Age__c",
+        "Hot_Water_System_Age__c",
+        "Roof_Age__c",
+        "Total_Square_Footage__c",
+        "Number_of_Spaces__c",
+    ]:
+        if current_column in combined:
+            combined[current_column] = combined[current_column].str.extract("(\d+)")
+    mask = combined["Name"].isna() | (combined["Name"] == "")
+    combined.loc[mask, "Name"] = combined["FirstName"] + " " + combined["LastName"]
+    combined["Number_of_Units_in_the_Building_Condo_As__c"] = combined[
+        "Number_of_Units_in_the_Building_Condo_As__c"
+    ].apply(determine_number_range)
+    combined["Building_Age__c"] = combined["Building_Age__c"].apply(
+        determine_building_age_range
+    )
+    combined["Relationship_to_Building__c"] = combined[
+        "Relationship_to_Building__c"
+    ].map(relationship_mapper)
     return combined.reset_index(drop=True)

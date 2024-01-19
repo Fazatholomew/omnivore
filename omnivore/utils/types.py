@@ -60,6 +60,20 @@ class Opportunity(TypedDict, total=False):
     Were_your_advisors_helpful__c: str
     Open_feedback_what_should_we_know__c: str
     Billable_Time_Spent__c: str
+    What_problem_s_are_you_facing_cambridge__c: str
+    Consultation_Date__c: str
+    What_is_known_about_cambridge__c: str
+    Building_common_areas_or_cambridge__c: str
+    Location_IOM__c: str
+    Ventilation_system_for_indoor_cambridge__c: str
+    Site_Visit_Date_date__c: str
+    Milestone_1_Date_cambridge__c: str
+    Milestone_2_Date_cambridge__c: str
+    Milestone_3_Date_cambridge__c: str
+    Milestone_4_Date_cambridge__c: str
+    Expected_Follow_Up_Date__c: str
+    Total_Square_Footage__c: str
+    Cambridge_Data_Sorce__c: str
 
 
 class Account(TypedDict, total=False):

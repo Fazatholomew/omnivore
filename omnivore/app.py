@@ -9,6 +9,7 @@ from omnivore.utils.aux import (
     to_account_and_opportunities,
     to_sf_payload,
     find_cfp_campaign,
+    save_output_df,
 )
 from omnivore.utils.types import Record_Find_Info
 from omnivore.utils.constants import (
@@ -104,14 +105,21 @@ class Blueprint:
             if "Id" in opp:
                 if len(opp["Id"]) > 3:
                     payload = to_sf_payload(opp, "Opportunity")
+                    if opp["ID_from_HPC__c"] == "1":
+                        print("payload")
+                        print(opp)
+                        print(payload)
                     current_id = payload.pop("Id")
                     try:
                         res = self.sf.sf.Opportunity.update(
                             current_id, payload
                         )  # type:ignore
-                        if cast(int, res) > 200:
+                        if cast(int, res) > 200 and cast(int, res) < 300:
                             self.processed_rows.add(processed_row_id)
                             # Reporting
+                        if cast(int, res) > 399:
+                            logger.error(res)
+                        logger.debug(res)
                     except SalesforceMalformedRequest as err:
                         if (
                             err.content[0]["errorCode"]
@@ -126,8 +134,10 @@ class Blueprint:
                                 res = self.sf.sf.Opportunity.create(
                                     payload
                                 )  # type:ignore
-                                if cast(int, res) > 200:
+                                if cast(int, res) > 200 and cast(int, res) < 300:
                                     self.processed_rows.add(processed_row_id)
+                                if cast(int, res) > 399:
+                                    logger.error(res)
                             except Exception as e:
                                 if getenv("ENV") == "staging":
                                     logger.error(payload)
@@ -137,6 +147,8 @@ class Blueprint:
                                     logger.error(e, exc_info=True)
                                     raise e
                                 logger.error(e, exc_info=True)
+                        else:
+                            logger.error(err, exc_info=True)
                     except Exception as err:
                         if getenv("ENV") == "staging":
                             logger.error("failed to update")
@@ -160,8 +172,10 @@ class Blueprint:
                                 res = self.sf.sf.Opportunity.update(
                                     maybe_id[1], payload
                                 )  # type:ignore
-                                if cast(int, res) > 200:
+                                if cast(int, res) > 200 and cast(int, res) < 300:
                                     self.processed_rows.add(processed_row_id)
+                                if cast(int, res) > 399:
+                                    logger.error(res)
                             except Exception as e:
                                 if getenv("ENV") == "staging":
                                     logger.error("failed to update after create")
@@ -181,8 +195,10 @@ class Blueprint:
                                 "Cancelation_Reason_s__c"
                             ] = "No Reason"  # Default reason
                             res = self.sf.sf.Opportunity.create(payload)  # type:ignore
-                            if cast(int, res) > 200:
+                            if cast(int, res) > 200 and cast(int, res) < 300:
                                 self.processed_rows.add(processed_row_id)
+                            if cast(int, res) > 399:
+                                logger.error(res)
                         except Exception as e:
                             if getenv("ENV") == "staging":
                                 logger.error(
@@ -299,6 +315,12 @@ class Blueprint:
             quote_data = read_csv(
                 cast(str, getenv("CAMBIRDGE_QUOTE_DATA_URL")), dtype="object"
             )
+            new_ecology_data = read_csv(
+                cast(str, getenv("CAMBIRDGE_NEW_ECOLOGY_DATA_URL")),
+                dtype="object",
+                encoding="Windows-1252",
+            )
+
             consultation_data = consultation_data[
                 ~consultation_data["Date of Communication"].isna()
             ]
@@ -307,13 +329,19 @@ class Blueprint:
                 consultation_data
             )
             processed_quote_removed = self.remove_already_processed_row(quote_data)
-            processed_row = cambridge(
-                processed_consultation_removed, processed_quote_removed
+            processed_new_ecology_removed = self.remove_already_processed_row(
+                new_ecology_data
             )
+            processed_row = cambridge(
+                processed_consultation_removed,
+                processed_quote_removed,
+                processed_new_ecology_removed,
+            )
+            # save_output_df(processed_row, "Cambridge")
             grouped_opps = to_account_and_opportunities(processed_row)
             run(self.start_upload_to_salesforce(grouped_opps, CAMBRIDGE_ACCID))
         except Exception as e:
-            logger.error("Error in Revise process.")
+            logger.error("Error in Cambridge process.")
             logger.error(e, exc_info=True)
 
     def run(self) -> None:
@@ -340,4 +368,5 @@ class Blueprint:
         self.sf.get_salesforce_table(True)
         logger.info("Start Processing Cambridge")
         self.run_cambridge()
+        self.save_processed_rows()
         logger.info("Finished running Omnivore")

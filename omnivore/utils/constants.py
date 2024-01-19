@@ -100,10 +100,12 @@ OPPORTUNITY_COLUMNS = [
     "Legacy_Post_Assessment_Notes__c",
     "HPC__c",
     "CampaignId",
-    # Cambridge
     "Primary_Heating_Fuel__c",
     "Description",
     "Number_of_Units_in_the_Building_Condo_As__c",
+]
+
+CAMBRIDGE_OPPORTUNITY_COLUMNS = [
     "Number_of_Floors__c",
     "Square_Footage__c",
     "Building_Age__c",
@@ -127,6 +129,20 @@ OPPORTUNITY_COLUMNS = [
     "Were_your_advisors_helpful__c",
     "Open_feedback_what_should_we_know__c",
     "Billable_Time_Spent__c",
+    "What_problem_s_are_you_facing_cambridge__c",
+    "Consultation_Date__c",
+    "What_is_known_about_cambridge__c",
+    "Building_common_areas_or_cambridge__c",
+    "Location_IOM__c",
+    "Ventilation_system_for_indoor_cambridge__c",
+    "Site_Visit_Date_date__c",
+    "Milestone_1_Date_cambridge__c",
+    "Milestone_2_Date_cambridge__c",
+    "Milestone_3_Date_cambridge__c",
+    "Milestone_4_Date_cambridge__c",
+    "Expected_Follow_Up_Date__c",
+    "Total_Square_Footage__c",
+    "Cambridge_Data_Sorce__c",
 ]
 # Account columns to fetch
 ACCOUNT_COLUMNS = [
@@ -152,7 +168,7 @@ ACCOUNT_COLUMNS = [
 # CFP Town Dict
 
 CFP_TOWS = {
-    "williamstown": "7013i000000i5vMAAQ",
+    "williamstown": "7018Z0000033D6u",
     "boston": "7013i000000i5vRAAQ",
     "pittsfield": "7013i000000i5vWAAQ",
     "springfield": "7013i000000i5vWAAQ",
