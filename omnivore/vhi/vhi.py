@@ -1,4 +1,4 @@
-from omnivore.utils.aux import toSalesforceEmail, toSalesforcePhone
+from omnivore.utils.aux import toSalesforceEmail, toSalesforcePhone, save_output_df
 from pandas import DataFrame, to_datetime, Series
 from datetime import datetime
 from numpy import nan
@@ -65,21 +65,21 @@ def vhi(data: DataFrame) -> DataFrame:
     # Translate stage into stagename and wx status
     try:
         data["Weatherization_Status__c"] = nan
-        data.loc[
-            (data["StageName"] == "Wx Scheduled"), "Weatherization_Status__c"
-        ] = "Scheduled"
-        data.loc[
-            (data["StageName"] == "Wx Completed"), "Weatherization_Status__c"
-        ] = "Completed"
+        data.loc[(data["StageName"] == "Wx Scheduled"), "Weatherization_Status__c"] = (
+            "Scheduled"
+        )
+        data.loc[(data["StageName"] == "Wx Completed"), "Weatherization_Status__c"] = (
+            "Completed"
+        )
         data["StageName"] = data["StageName"].map(stageMapper)
         data.loc[(data["StageName"].isna()), "StageName"] = "Canceled"
         data["Cancelation_Reason_s__c"] = nan
-        data.loc[
-            (data["StageName"] == "Canceled"), "Cancelation_Reason_s__c"
-        ] = "No Reason"
-        data.loc[
-            (data["Lead Vendor"] == "ABCD"), "Cancelation_Reason_s__c"
-        ] = "Low Income"
+        data.loc[(data["StageName"] == "Canceled"), "Cancelation_Reason_s__c"] = (
+            "No Reason"
+        )
+        data.loc[(data["Lead Vendor"] == "ABCD"), "Cancelation_Reason_s__c"] = (
+            "Low Income"
+        )
     except Exception as e:
         logger.error("An error occurred: %s", str(e), exc_info=True)
 
@@ -115,6 +115,7 @@ def vhi(data: DataFrame) -> DataFrame:
     except Exception as e:
         logger.error("An error occurred: %s", str(e), exc_info=True)
 
+    # save_output_df(data, "VHI")
     return data
 
     # # Calculate rows added in the file

@@ -74,6 +74,8 @@ class Opportunity(TypedDict, total=False):
     Expected_Follow_Up_Date__c: str
     Total_Square_Footage__c: str
     Cambridge_Data_Sorce__c: str
+    Site_Visit_cambridge__c: str
+    Building_size_cambridge__c: int
 
 
 class Account(TypedDict, total=False):

@@ -128,9 +128,9 @@ class Blueprint:
                         ):
                             # Canceled stage needs a cancelation reason
                             try:
-                                payload[
-                                    "Cancelation_Reason_s__c"
-                                ] = "No Reason"  # Default reason
+                                payload["Cancelation_Reason_s__c"] = (
+                                    "No Reason"  # Default reason
+                                )
                                 res = self.sf.sf.Opportunity.create(
                                     payload
                                 )  # type:ignore
@@ -191,9 +191,9 @@ class Blueprint:
                     ):
                         # Canceled stage needs a cancelation reason
                         try:
-                            payload[
-                                "Cancelation_Reason_s__c"
-                            ] = "No Reason"  # Default reason
+                            payload["Cancelation_Reason_s__c"] = (
+                                "No Reason"  # Default reason
+                            )
                             res = self.sf.sf.Opportunity.create(payload)  # type:ignore
                             if cast(int, res) > 200 and cast(int, res) < 300:
                                 self.processed_rows.add(processed_row_id)
@@ -347,26 +347,26 @@ class Blueprint:
     def run(self) -> None:
         logger.info("Running on ENV = %s", getenv("ENV"))
         logger.info("Load Database from SF")
-        self.sf.get_salesforce_table()
-        logger.info("Finsihed loading Database from SF")
-        logger.info("Start Processing Omnivore")
-        logger.info("Start Processing Neeeco")
-        self.run_neeeco()
-        self.save_processed_rows()
-        self.sf.get_salesforce_table()
-        logger.info("Start Processing Homeworks")
-        self.run_homeworks()
-        self.save_processed_rows()
+        # self.sf.get_salesforce_table()
+        # logger.info("Finsihed loading Database from SF")
+        # logger.info("Start Processing Omnivore")
+        # logger.info("Start Processing Neeeco")
+        # self.run_neeeco()
+        # self.save_processed_rows()
+        # self.sf.get_salesforce_table()
+        # logger.info("Start Processing Homeworks")
+        # self.run_homeworks()
+        # self.save_processed_rows()
         self.sf.get_salesforce_table()
         logger.info("Start Processing VHI")
         self.run_vhi()
         self.save_processed_rows()
-        self.sf.get_salesforce_table()
-        logger.info("Start Processing Revise")
-        self.run_revise()
-        self.save_processed_rows()
-        self.sf.get_salesforce_table(True)
-        logger.info("Start Processing Cambridge")
-        self.run_cambridge()
-        self.save_processed_rows()
-        logger.info("Finished running Omnivore")
+        # self.sf.get_salesforce_table()
+        # logger.info("Start Processing Revise")
+        # self.run_revise()
+        # self.save_processed_rows()
+        # self.sf.get_salesforce_table(True)
+        # logger.info("Start Processing Cambridge")
+        # self.run_cambridge()
+        # self.save_processed_rows()
+        # logger.info("Finished running Omnivore")

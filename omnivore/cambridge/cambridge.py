@@ -4,7 +4,9 @@ from omnivore.utils.aux import (
     extract_firstname_lastname,
     to_sf_datetime,
     toSalesforceEmail,
+    DATETIME_SALESFORCE,
 )
+from datetime import datetime
 from re import findall
 
 CAMBRIDGE_DATE_FORMAT = "%m/%d/%Y"
@@ -28,7 +30,7 @@ consulting_column_mapper = {
     "Survey ID": "ID_from_HPC__c",
     "Customer email": "PersonEmail",
     "Contact Mailing Address": "Street__c",
-    "Number of units in building": "Number_of_Units_in_the_Building_Condo_As__c",
+    "Number of units in building": "Building_size_cambridge__c",
     "Number of floors in building": "Number_of_Floors__c",
     "Square footage": "Square_Footage__c",
     "Building age": "Building_Age__c",
@@ -71,7 +73,7 @@ relationship_mapper = {
 new_ecology_column_mapper = {
     "ID": "ID_from_HPC__c",
     "Notes": "Description",
-    # "Status": "Stage",
+    "Status": "StageName",
     "Billable Time Spent": "Billable_Time_Spent__c",
     "Timestamp": "CloseDate",
     "Name": "Name",
@@ -83,7 +85,7 @@ new_ecology_column_mapper = {
     "What decarb technologies are you interested in pursuing? ": "Which_decarb_technologies_interest_you__c",
     "Consultation Date": "Consultation_Date__c",
     "Map Lot ID Cambridge Property Assessors database:": "Map_Lot_ID_Cambridge_Property_Assessors__c",
-    "Number of units": "Number_of_Units_in_the_Building_Condo_As__c",
+    "Number of units": "Building_size_cambridge__c",
     "Number of floors": "Number_of_Floors__c",
     "Building Envelope:": "Building_Envelope__c",
     "Building Age": "Building_Age__c",
@@ -106,6 +108,7 @@ new_ecology_column_mapper = {
     "Building Owner / Property Management Name:": "Owner_Property_Management_Name__c",
     "Expected Follow Up Date: ": "Expected_Follow_Up_Date__c",
     "Site Visit Date": "Site_Visit_Date_date__c",
+    "Site Visit": "Site_Visit_cambridge__c",
     "Action (Multi-Select Picklist)": "Cambridge_Decarb_Action__c",  # Cambridge Action
     "Milestone 1 Date Estimate": "Milestone_1_Date_cambridge__c",
     "Milestone 2 Date": "Milestone_2_Date_cambridge__c",
@@ -140,6 +143,20 @@ number_ranges = [
     "11-25",
     "26-50",
 ]
+
+"""
+Site Visit
+Requested
+Scheduled
+Complete
+Not Needed
+Status
+Our Court
+Complete
+Terminated
+Client Court
+Repeat Client
+"""
 
 building_age_ranges = ["1700-1799", "1800-1899", "1900-1950", "1951-1999"]
 
@@ -213,6 +230,9 @@ def cambridge_general_process(
     )
     converted["PersonEmail"] = converted["PersonEmail"].apply(toSalesforceEmail)
     converted["CloseDate"] = to_sf_datetime(converted["CloseDate"], date_format)
+    converted["CloseDate"] = converted["CloseDate"].fillna(
+        datetime.now().strftime(DATETIME_SALESFORCE)
+    )
     with_first_name = extract_firstname_lastname(converted, "Name")
     with_first_name["Name"] = (
         with_first_name["FirstName"] + " " + with_first_name["LastName"]
@@ -275,9 +295,11 @@ def cambridge(
             current_data["data"],
             current_data["column_mapper"],
             current_data["exclude_column"] if "exclude_column" in current_data else [],
-            current_data["date_format"]
-            if "date_format" in current_data
-            else CAMBRIDGE_DATE_FORMAT,
+            (
+                current_data["date_format"]
+                if "date_format" in current_data
+                else CAMBRIDGE_DATE_FORMAT
+            ),
         )
         result = result.reset_index(drop=True)
         result["Cambridge_Data_Sorce__c"] = current_data["type"]
@@ -294,13 +316,12 @@ def cambridge(
     combined["Existing_EV_Charging__c"] = combined["Existing_EV_Charging__c"].map(
         yes_no_mapper
     )
-    combined["Number_of_Units_in_the_Building_Condo_As__c"] = (
-        combined["Number_of_Units_in_the_Building_Condo_As__c"]
-        .fillna("1")
-        .str.replace("0", "1")
+    combined["Building_size_cambridge__c"] = (
+        combined["Building_size_cambridge__c"].fillna("1").str.replace("0", "1")
     )
     combined["Which_decarb_technologies_interest_you__c"] = (
         combined["Which_decarb_technologies_interest_you__c"]
+        .fillna("")
         .str.replace(", ", ";")
         .str.replace(",", ";")
     )
@@ -317,7 +338,7 @@ def cambridge(
     mask = combined["Name"].isna() | (combined["Name"] == "")
     combined.loc[mask, "Name"] = combined["FirstName"] + " " + combined["LastName"]
     combined["Number_of_Units_in_the_Building_Condo_As__c"] = combined[
-        "Number_of_Units_in_the_Building_Condo_As__c"
+        "Building_size_cambridge__c"
     ].apply(determine_number_range)
     combined["Building_Age__c"] = combined["Building_Age__c"].apply(
         determine_building_age_range

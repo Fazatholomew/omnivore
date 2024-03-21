@@ -143,6 +143,8 @@ CAMBRIDGE_OPPORTUNITY_COLUMNS = [
     "Expected_Follow_Up_Date__c",
     "Total_Square_Footage__c",
     "Cambridge_Data_Sorce__c",
+    "Site_Visit_cambridge__c",
+    "Building_size_cambridge__c",
 ]
 # Account columns to fetch
 ACCOUNT_COLUMNS = [

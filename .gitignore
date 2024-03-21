@@ -72,4 +72,5 @@ logger.log
 processed_row
 */**/Debug*.csv
 
+*/**/.DS_Store
 __pypackages__/
