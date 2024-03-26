@@ -181,12 +181,11 @@ def to_account_and_opportunities(data: DataFrame) -> list[Record_Find_Info]:
             if hasattr(row, "Street__c"):
                 extracted_address = extract_address(getattr(row, "Street__c"))
                 # Set Account address if not set yet
-                if not "BillingStreet" in current_account:
-                    for key, value in address_keys.items():
-                        if key in extracted_address:
-                            current_opp[value[0]] = extracted_address[key]
-                            if key != "unit":
-                                current_account[value[1]] = extracted_address[key]
+                for key, value in address_keys.items():
+                    if key in extracted_address:
+                        current_opp[value[0]] = extracted_address[key]
+                        if key != "unit":
+                            current_account[value[1]] = extracted_address[key]
 
             # Name
             full_name = []
@@ -259,12 +258,11 @@ def to_account_and_opportunities(data: DataFrame) -> list[Record_Find_Info]:
             if hasattr(row, "Street__c"):
                 extracted_address = extract_address(getattr(row, "Street__c"))
                 # Set Account address if not set yet
-                if not "BillingStreet" in current_account:
-                    for key, value in address_keys.items():
-                        if key in extracted_address:
-                            current_opp[value[0]] = extracted_address[key]
-                            if key != "unit":
-                                current_account[value[1]] = extracted_address[key]
+                for key, value in address_keys.items():
+                    if key in extracted_address:
+                        current_opp[value[0]] = extracted_address[key]
+                        if key != "unit":
+                            current_account[value[1]] = extracted_address[key]
                 #   current_account['BillingStreet'] = extracted_address['street'] if not 'BillingStreet' in current_account else current_account['BillingStreet']
                 #   current_account['BillingCity'] = extracted_address['city'] if not 'BillingCity' in current_account else current_account['BillingCity']
                 #   current_account['BillingPostalCode'] = extracted_address['zipcode'] if not 'BillingPostalCode' in current_account else current_account['BillingPostalCode']

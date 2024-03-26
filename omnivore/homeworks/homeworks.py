@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import logging
 from ..utils.constants import DATETIME_SALESFORCE
-from ..utils.aux import to_sf_datetime
+from ..utils.aux import to_sf_datetime, save_output_df
 
 pd.set_option("display.max_columns", 1000)
 pd.options.mode.chained_assignment = None  # type:ignore
@@ -79,6 +79,7 @@ def rename_and_merge(_homeworks_old_input, _homeworks_new_input) -> pd.DataFrame
                 "Operations: Last Scheduled HEA Date": "HEA_Date_And_Time__c",
                 "Reason for Canceled": "Cancelation_Reason_s__c",
                 "Created Date": "CloseDate",
+                "Operations: Account: Preferred Language": "Prefered_Lan__c",
             }
         )
 
@@ -245,39 +246,13 @@ def homeworks(homeworks_output):
 
     #     // Combine both data
     try:
-        homeworks_output["FirstName"] = homeworks_output["FirstName_x"].combine_first(
-            homeworks_output["FirstName_y"]
-        )
-        homeworks_output["LastName"] = homeworks_output["LastName_x"].combine_first(
-            homeworks_output["LastName_y"]
-        )
-        homeworks_output["StageName"] = homeworks_output["StageName_x"].combine_first(
-            homeworks_output["StageName_y"]
-        )
-        homeworks_output["CloseDate"] = homeworks_output["CloseDate_y"].combine_first(
-            homeworks_output["CloseDate_x"]
-        )
-        homeworks_output["Phone"] = homeworks_output["Phone_x"].combine_first(
-            homeworks_output["Phone_y"]
-        )
-        homeworks_output["PersonEmail"] = homeworks_output[
-            "PersonEmail_x"
-        ].combine_first(homeworks_output["PersonEmail_y"])
-        homeworks_output["HEA Visit Result"] = homeworks_output[
-            "HEA Visit Result_x"
-        ].combine_first(homeworks_output["HEA Visit Result_y"])
-        homeworks_output["City__c"] = homeworks_output["City__c_x"].combine_first(
-            homeworks_output["City__c_y"]
-        )
-        homeworks_output["Weatherization_Status__c"] = homeworks_output[
-            "Weatherization_Status__c_x"
-        ].combine_first(homeworks_output["Weatherization_Status__c_y"])
-        homeworks_output["Weatherization_Date_Time__c"] = homeworks_output[
-            "Weatherization_Date_Time__c_x"
-        ].combine_first(homeworks_output["Weatherization_Date_Time__c_y"])
-        homeworks_output["Owner_Renter__c"] = homeworks_output[
-            "Owner_Renter__c_x"
-        ].combine_first(homeworks_output["Owner_Renter__c_y"])
+        for column in homeworks_output.columns:
+            if "_x" in column:
+                column_name = column[:-2]
+                if f"{column_name}_y" in homeworks_output.columns:
+                    homeworks_output[column_name] = homeworks_output[
+                        f"{column_name}_x"
+                    ].combine_first(homeworks_output[f"{column_name}_y"])
     except Exception as e:
         logger.error("An error occurred: %s", str(e), exc_info=True)
 
@@ -310,15 +285,6 @@ def homeworks(homeworks_output):
 
     try:
         homeworks_output["HEA_Date_And_Time__c"] = homeworks_output[
-            "HEA_Date_And_Time__c_y"
-        ].combine_first(homeworks_output["HEA_Date_And_Time__c_x"])
-        # mask = homeworks_output["HEA_Date_And_Time__c"].isna()
-        # homeworks_output.loc[~mask, "HEA_Date_And_Time__c"] = (
-        #     homeworks_output.loc[~mask, "HEA_Date_And_Time__c"]
-        #     .dt.strftime(DATETIME_SALESFORCE)
-        #     .astype(str)
-        # )
-        homeworks_output["HEA_Date_And_Time__c"] = homeworks_output[
             "HEA_Date_And_Time__c"
         ].fillna("HEA_Date_And_Time__c")
     except Exception as e:
@@ -343,16 +309,11 @@ def homeworks(homeworks_output):
         logger.error("An error occurred: %s", str(e), exc_info=True)
 
     try:
-        homeworks_output["Street__c"] = homeworks_output["Street__c_x"].combine_first(
-            homeworks_output["Street__c_y"]
-        )
         homeworks_output["Street__c"] = homeworks_output["Street__c"].str.extract(
             r"(\d+ [a-zA-Z]\w{2,} \w{1,})"
         )
     except Exception as e:
         logger.error("An error occurred: %s", str(e), exc_info=True)
-
-    homeworks_output["HPC__c"] = "0013i00000AtGGeAAN"
 
     try:
         for i in homeworks_output["Phone"].index:
@@ -384,31 +345,14 @@ def homeworks(homeworks_output):
     except Exception as e:
         logger.error("An error occurred: %s", str(e), exc_info=True)
 
-    homeworks_output = homeworks_output.loc[
-        :,
-        [
-            col
-            for col in [
-                "PersonEmail",
-                "FirstName",
-                "LastName",
-                "HEA_Date_And_Time__c",
-                "CloseDate",
-                "StageName",
-                "Owner_Renter__c",
-                "Street__c",
-                "City__c",
-                "ID_from_HPC__c",
-                "Weatherization_Status__c",
-                "Weatherization_Date_Time__c",
-                "Cancelation_Reason_s__c",
-                "Phone",
-                "Health_Safety_Barrier__c",
-                "tempId",
-            ]
-            if col in homeworks_output.columns
-        ],
-    ]
+    homeworks_output["Prefered_Lan__c"] = homeworks_output[
+        "Prefered_Lan__c"
+    ].str.replace("Chinese(Mandarin)", "Mandarin")
+    homeworks_output["Prefered_Lan__c"] = homeworks_output[
+        "Prefered_Lan__c"
+    ].str.replace("Chinese(Cantonese)", "Cantonese")
+
+    save_output_df(homeworks_output, "Homeworks")
 
     return homeworks_output
 

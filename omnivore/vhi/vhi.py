@@ -1,5 +1,11 @@
-from omnivore.utils.aux import toSalesforceEmail, toSalesforcePhone, save_output_df
-from pandas import DataFrame, to_datetime, Series
+from omnivore.utils.aux import (
+    toSalesforceEmail,
+    toSalesforcePhone,
+    save_output_df,
+    to_sf_datetime,
+    DATETIME_SALESFORCE,
+)
+from pandas import DataFrame, Series
 from datetime import datetime
 from numpy import nan
 import logging
@@ -14,11 +20,22 @@ stageMapper = {
     "Permit Approved": "Recommended - Unsigned",
     "Wx Completed": "Signed Contracts",
     "Wx Scheduled": "Signed Contracts",
+    "Wx Cancelled": "Signed Contracts",
+    "Complete": "No Opportunity",
     "Rescheduling Process": "Canceled",
     "Canceled": "Canceled",
     "Health & Safety Barrier": "Health & Safety Barrier",
     "No Opportunity": "No Opportunity",
     "Scheduled": "Scheduled",
+    "Sent to Rise for Approval": "Not Yet Scheduled",
+    "Qualified": "Not Yet Scheduled",
+    "Not Yet Scheduled": "Not Yet Scheduled",
+}
+
+wxMapper = {
+    "Wx Completed": "Completed",
+    "Wx Scheduled": "Scheduled",
+    "Wx Cancelled": "Cancelled",
 }
 
 
@@ -35,7 +52,7 @@ def vhi(data: DataFrame) -> DataFrame:
     # Removing unprocessable rows
     try:
         data = data[~data["VHI Unique Number"].isna()]
-        data = data[~data["Contact: Email"].isna() | ~data["Contact: Phone"].isna()]
+        # data = data[~data["Contact: Email"].isna() | ~data["Contact: Phone"].isna()]
     except Exception as e:
         logger.error("An error occurred: %s", str(e), exc_info=True)
 
@@ -64,13 +81,7 @@ def vhi(data: DataFrame) -> DataFrame:
 
     # Translate stage into stagename and wx status
     try:
-        data["Weatherization_Status__c"] = nan
-        data.loc[(data["StageName"] == "Wx Scheduled"), "Weatherization_Status__c"] = (
-            "Scheduled"
-        )
-        data.loc[(data["StageName"] == "Wx Completed"), "Weatherization_Status__c"] = (
-            "Completed"
-        )
+        data["Weatherization_Status__c"] = data["StageName"].map(wxMapper)
         data["StageName"] = data["StageName"].map(stageMapper)
         data.loc[(data["StageName"].isna()), "StageName"] = "Canceled"
         data["Cancelation_Reason_s__c"] = nan
@@ -85,18 +96,18 @@ def vhi(data: DataFrame) -> DataFrame:
 
     # Date and Time
     try:
-        data["CloseDate"] = to_datetime(
-            data["HEA_Date_And_Time__c"], errors="coerce"
-        ).dt.strftime("%Y-%m-%d" + "T" + "%H:%M:%S" + ".000-07:00")
-        data.loc[(data["CloseDate"].isna()), "CloseDate"] = datetime.now().strftime(
-            "%Y-%m-%d" + "T" + "%H:%M:%S" + ".000-07:00"
+        data["CloseDate"] = to_sf_datetime(
+            data["HEA_Date_And_Time__c"], "%m/%d/%Y, %I:%M %p"
         )
-        data["HEA_Date_And_Time__c"] = to_datetime(
-            data["HEA_Date_And_Time__c"], errors="coerce"
-        ).dt.strftime("%Y-%m-%d" + "T" + "%H:%M:%S" + ".000-07:00")
-        data["Weatherization_Date_Time__c"] = to_datetime(
-            data["Weatherization_Date_Time__c"], errors="coerce"
-        ).dt.strftime("%Y-%m-%d" + "T" + "%H:%M:%S" + ".000-07:00")
+        data.loc[(data["CloseDate"].isna()), "CloseDate"] = datetime.now().strftime(
+            DATETIME_SALESFORCE
+        )
+        data["HEA_Date_And_Time__c"] = to_sf_datetime(
+            data["HEA_Date_And_Time__c"], "%m/%d/%Y, %I:%M %p"
+        )
+        data["Weatherization_Date_Time__c"] = to_sf_datetime(
+            data["Weatherization_Date_Time__c"], "%m/%d/%Y, %I:%M %p"
+        )
     except Exception as e:
         logger.error("An error occurred: %s", str(e), exc_info=True)
 
@@ -115,9 +126,11 @@ def vhi(data: DataFrame) -> DataFrame:
     except Exception as e:
         logger.error("An error occurred: %s", str(e), exc_info=True)
 
-    # save_output_df(data, "VHI")
-    return data
+    no_address_removed = data[~data["Address"].isna()]
 
+    save_output_df(no_address_removed, "VHI")
+
+    return no_address_removed
     # # Calculate rows added in the file
     # new = len(data) - len(neeeco_input)
     # logging.debug(f"Number of new rows added in VHI : {new}")

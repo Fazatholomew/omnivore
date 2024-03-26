@@ -14,6 +14,10 @@ from .types import Account, Opportunity, Record_Find_Info, Query, Create
 from os import getenv
 from pandas import isna
 from simple_salesforce.exceptions import SalesforceMalformedRequest
+import logging
+
+# Create a logger object
+logger = logging.getLogger(__name__)
 
 # from pickle import dump
 # from random import sample
@@ -33,20 +37,20 @@ class SalesforceConnection:
         )
         # the key is Account ID. Value is a list with opportunity record. details
         self.accId_to_oppIds: Dict[str, list[str]] = {}
-        self.email_to_accId: Dict[
-            str, str
-        ] = {}  # the key is email. Value is Account ID assoiated with the email
-        self.phone_to_accId: Dict[
-            str, str
-        ] = {}  # the key is phone. Value is Account ID assoiated with the phone
+        self.email_to_accId: Dict[str, str] = (
+            {}
+        )  # the key is email. Value is Account ID assoiated with the email
+        self.phone_to_accId: Dict[str, str] = (
+            {}
+        )  # the key is phone. Value is Account ID assoiated with the phone
         # the key could AIE ID or ID from HPC. Value is Opportunity ID assoiated with the id
         self.ids_to_oppId: Dict[str, str] = {}
-        self.oppId_to_opp: Dict[
-            str, Opportunity
-        ] = {}  # Where all opps are, indexed by Opportunity ID
-        self.accId_to_acc: Dict[
-            str, Account
-        ] = {}  # Where all Accounts are, indexed by Account ID
+        self.oppId_to_opp: Dict[str, Opportunity] = (
+            {}
+        )  # Where all opps are, indexed by Opportunity ID
+        self.accId_to_acc: Dict[str, Account] = (
+            {}
+        )  # Where all Accounts are, indexed by Account ID
 
     def get_salesforce_table(self, is_cambridge=False):
         """
@@ -178,6 +182,7 @@ class SalesforceConnection:
                     continue
                 # This is new Opp, create a new one by flagging empty ID but with Account ID
                 opp["AccountId"] = account_id
+                input_records["acc"]["Id"] = account_id
                 found_opps.append(opp)
                 continue
 
@@ -214,6 +219,7 @@ class SalesforceConnection:
                                     continue
                                 # This is new Opp, create a new one by flagging empty ID but with Account ID
                                 opp["AccountId"] = account_id
+                                input_records["acc"]["Id"] = account_id
                                 found_opps.append(opp)
                                 continue
 
@@ -246,6 +252,7 @@ class SalesforceConnection:
                                     continue
                                 # This is new Opp, create a new one by flagging empty ID but with Account ID
                                 opp["AccountId"] = account_id
+                                input_records["acc"]["Id"] = account_id
                                 found_opps.append(opp)
                                 continue
             # Account Not found break
@@ -262,11 +269,12 @@ class SalesforceConnection:
                 payload["LastName"] = payload["FirstName"]
             try:
                 res: Create = cast(
-                    Create, self.sf.Account.create(payload)
+                    Create, self.sf.Account.create(to_sf_payload(payload))
                 )  # type:ignore
                 if res["success"]:
                     for opp in input_records["opps"]:
                         opp["AccountId"] = res["id"]
+                        input_records["acc"]["Id"] = account_id
                         found_opps.append(opp)
             except SalesforceMalformedRequest as e:
                 if e.content[0]["errorCode"] == "DUPLICATES_DETECTED":
@@ -275,6 +283,7 @@ class SalesforceConnection:
                     ][0]["record"]["Id"]
                     for opp in input_records["opps"]:
                         opp["AccountId"] = current_id
+                        input_records["acc"]["Id"] = account_id
                         found_opps.append(opp)
                 else:
                     raise e

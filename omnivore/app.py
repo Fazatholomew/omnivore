@@ -28,6 +28,7 @@ from typing import cast
 from pandas import DataFrame, read_csv
 from asyncio import run, gather, get_event_loop
 from simple_salesforce.exceptions import SalesforceMalformedRequest
+from hashlib import md5
 import logging
 
 logging.basicConfig(
@@ -86,6 +87,20 @@ class Blueprint:
             # No need to process if empty opp
             return
         found_records = self.sf.find_records(data)
+        try:
+            res = self.sf.sf.Account.update(
+                found_records[0]["AccountId"], to_sf_payload(data["acc"])
+            )
+            if cast(int, res) > 399:
+                logger.error(res)
+            logger.debug(res)
+        except Exception as err:
+            if getenv("ENV") == "staging":
+                logger.error("failed to update")
+                logger.error(data["acc"])
+                logger.error(err, exc_info=True)
+                raise err
+            logger.error(err, exc_info=True)
         for opp in found_records:
             # Remove and keep tempId for processed row
             processed_row_id = (
@@ -266,8 +281,14 @@ class Blueprint:
             homeworks_output = rename_and_merge(old_data, new_data)
             processed_row_removed = self.remove_already_processed_row(homeworks_output)
             processed_row = homeworks(processed_row_removed)
+            processed_row = processed_row[~processed_row["ID_from_HPC__c"].isna()]
             grouped_opps = to_account_and_opportunities(processed_row)
+            # from json import dump
+
+            # with open("homeworks accounts.json", "w") as current_file:
+            #     dump(grouped_opps, current_file)
             run(self.start_upload_to_salesforce(grouped_opps, HOMEWORKS_ACCID))
+            # save_output_df(processed_row, "Homeworks")
         except Exception as e:
             logger.error("Error in Homeworks process.")
             logger.error(e, exc_info=True)
@@ -279,6 +300,13 @@ class Blueprint:
         try:
             data = read_csv(cast(str, getenv("VHI_DATA_URL")), dtype="object")
             processed_row_removed = self.remove_already_processed_row(data)
+            processed_row_removed["VHI Unique Number"] = processed_row_removed[
+                "VHI Unique Number"
+            ].fillna(
+                processed_row_removed["Opportunity Name"].apply(
+                    lambda x: md5(x.encode("utf-8")).hexdigest()
+                )
+            )
             processed_row = vhi(processed_row_removed)
             grouped_opps = to_account_and_opportunities(processed_row)
             run(self.start_upload_to_salesforce(grouped_opps, VHI_ACCID))
@@ -347,20 +375,20 @@ class Blueprint:
     def run(self) -> None:
         logger.info("Running on ENV = %s", getenv("ENV"))
         logger.info("Load Database from SF")
-        # self.sf.get_salesforce_table()
-        # logger.info("Finsihed loading Database from SF")
+        self.sf.get_salesforce_table()
+        logger.info("Finsihed loading Database from SF")
         # logger.info("Start Processing Omnivore")
         # logger.info("Start Processing Neeeco")
         # self.run_neeeco()
         # self.save_processed_rows()
         # self.sf.get_salesforce_table()
-        # logger.info("Start Processing Homeworks")
-        # self.run_homeworks()
+        logger.info("Start Processing Homeworks")
+        self.run_homeworks()
         # self.save_processed_rows()
-        self.sf.get_salesforce_table()
-        logger.info("Start Processing VHI")
-        self.run_vhi()
-        self.save_processed_rows()
+        # self.sf.get_salesforce_table()
+        # logger.info("Start Processing VHI")
+        # self.run_vhi()
+        # self.save_processed_rows()
         # self.sf.get_salesforce_table()
         # logger.info("Start Processing Revise")
         # self.run_revise()
