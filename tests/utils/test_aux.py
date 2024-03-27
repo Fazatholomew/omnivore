@@ -206,6 +206,13 @@ def test_extract_address():
 
 
 def test_to_account_and_opp():
+    def make_intermediate_dict(input, contact_field="PersonEmail"):
+        # Use dict to map contact info, for reproducable tests
+        results = {}
+        for row in input:
+            results[row["acc"][contact_field]] = row
+        return results
+
     # One Contact info
     data = DataFrame(
         {"PersonEmail": [], "Street__c": [], "FirstName": [], "LastName": []}
@@ -222,9 +229,10 @@ def test_to_account_and_opp():
     )
     result = to_account_and_opportunities(data)
     assert len(result) == 2
-    assert result[1]["acc"]["PersonEmail"] == "test@gmail.com"
-    assert len(result[1]["opps"]) == 2
-    assert result[0]["opps"][0]["ID_from_HPC__c"] == "asdffffff"
+    temporary_dict = make_intermediate_dict(result)
+    assert temporary_dict["test@gmail.com"]["acc"]["FirstName"] == "Jimmy"
+    assert len(temporary_dict["test@gmail.com"]["opps"]) == 2
+    assert temporary_dict["test1@gmail.com"]["opps"][0]["ID_from_HPC__c"] == "asdffffff"
     # Two contact info
     data = DataFrame(
         {
@@ -238,9 +246,10 @@ def test_to_account_and_opp():
     )
     result = to_account_and_opportunities(data)
     assert len(result) == 2
-    assert result[1]["acc"]["PersonEmail"] == "test@gmail.com"
-    assert len(result[1]["opps"]) == 2
-    assert result[0]["opps"][0]["ID_from_HPC__c"] == "asdffffff"
+    temporary_dict = make_intermediate_dict(result, "Phone")
+    assert temporary_dict["9163308234"]["acc"]["PersonEmail"] == "test@gmail.com"
+    assert len(temporary_dict["9163308234"]["opps"]) == 2
+    assert temporary_dict["11111111"]["opps"][0]["ID_from_HPC__c"] == "asdffffff"
     data = DataFrame(
         {
             "Phone": [NaN, "11111111", "9163308234"],
@@ -253,9 +262,24 @@ def test_to_account_and_opp():
     )
     result = to_account_and_opportunities(data)
     assert len(result) == 2
-    assert result[1]["acc"]["PersonEmail"] == "test@gmail.com"
-    assert len(result[1]["opps"]) == 2
-    assert result[0]["opps"][0]["ID_from_HPC__c"] == "asdffffff"
+    temporary_dict = make_intermediate_dict(result)
+    assert temporary_dict["test@gmail.com"]["acc"]["FirstName"] == "Jimmy"
+    assert len(temporary_dict["test@gmail.com"]["opps"]) == 2
+    assert temporary_dict["test1@gmail.com"]["opps"][0]["ID_from_HPC__c"] == "asdffffff"
+
+    # No phone or email
+    data = DataFrame(
+        {
+            "Phone": [NaN, "", ""],
+            "PersonEmail": ["", NaN, NaN],
+            "Street__c": ["test", "test", "test"],
+            "FirstName": ["Jimmy", "not Jimmy", "yes Jimmy"],
+            "LastName": ["last", "last", "last"],
+            "ID_from_HPC__c": ["sdfasf", "asdffffff", "fffff"],
+        }
+    )
+    result = to_account_and_opportunities(data)
+    assert len(result) == 3
 
 
 def test_to_sf_payload():
