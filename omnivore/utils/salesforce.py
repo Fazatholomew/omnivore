@@ -1,4 +1,5 @@
 from simple_salesforce import Salesforce
+from copy import deepcopy
 from .constants import (
     PERSON_ACCOUNT_ID,
     HEA_ID,
@@ -138,12 +139,13 @@ class SalesforceConnection:
                 self.phone_to_accId[cleaned_phone] = account["Id"]
             self.accId_to_acc[account["Id"]] = account
 
-    def find_records(self, input_records: Record_Find_Info) -> list[Opportunity]:
+    def find_records(self, _input_records: Record_Find_Info) -> list[Opportunity]:
         """
         Match record in salesforce using Email, Phone, AIE ID, ID from HPC.
         The input has phone and email to recognize which account the opportunities belong.
         """
         found_opps: list[Opportunity] = []
+        input_records: Record_Find_Info = deepcopy(_input_records)
         for opp in input_records["opps"]:
             # Search matched using AIE ID and ID from HPC
             # If found, store new value in found_opps and continue the loop
@@ -187,10 +189,7 @@ class SalesforceConnection:
                 continue
 
             # No Account ID yet, search using email and phone
-            if "PersonEmail" in input_records["acc"] and (
-                isna(input_records["acc"]["PersonEmail"])
-                or len(input_records["acc"]["PersonEmail"]) == 0
-            ):
+            if "PersonEmail" in input_records["acc"]:
                 # Search using Email
                 if input_records["acc"]["PersonEmail"]:
                     if not isna(input_records["acc"]["PersonEmail"]):
@@ -226,10 +225,7 @@ class SalesforceConnection:
                                 found_opps.append(opp)
                                 continue
 
-            if "Phone" in input_records["acc"](
-                isna(input_records["acc"]["Phone"])
-                or len(input_records["acc"]["Phone"]) == 0
-            ):
+            if "Phone" in input_records["acc"]:
                 # Search using Phone
                 if input_records["acc"]["Phone"]:
                     if not isna(input_records["acc"]["Phone"]):  # type: ignoref
@@ -275,12 +271,15 @@ class SalesforceConnection:
             try:
                 res: Create = cast(
                     Create, self.sf.Account.create(to_sf_payload(payload))
-                )  # type:ignore
+                )
                 if res["success"]:
                     for opp in input_records["opps"]:
                         opp["AccountId"] = res["id"]
-                        input_records["acc"]["Id"] = account_id
+                        input_records["acc"]["Id"] = res["id"]
                         found_opps.append(opp)
+                if len(res["errors"]) > 0:
+                    for error in res["errors"]:
+                        logger.error(error)
             except SalesforceMalformedRequest as e:
                 if e.content[0]["errorCode"] == "DUPLICATES_DETECTED":
                     current_id = e.content[0]["duplicateResult"]["matchResults"][0][
@@ -288,9 +287,10 @@ class SalesforceConnection:
                     ][0]["record"]["Id"]
                     for opp in input_records["opps"]:
                         opp["AccountId"] = current_id
-                        input_records["acc"]["Id"] = account_id
+                        input_records["acc"]["Id"] = current_id
                         found_opps.append(opp)
                 else:
                     raise e
+            print(found_opps)
             return found_opps
         return found_opps

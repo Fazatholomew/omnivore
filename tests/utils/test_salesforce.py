@@ -72,6 +72,7 @@ def test_find_records_phone_search(sf: SalesforceConnection):
         ],
     )
     output_data = sf.find_records(input_data)
+    print(output_data)
     assert "Id" not in output_data[0]
     assert output_data[1]["AccountId"] == "0018Z00002ifJUkQAM"
 
