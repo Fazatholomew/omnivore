@@ -469,7 +469,7 @@ def extract_firstname_lastname(
     copied[last_name_column] = copied[last_name_column].fillna(stringed_data)
     for current_column in [source_column, first_name_column, last_name_column]:
         mask = copied[current_column].isna() | (copied[current_column] == "")
-        copied.loc[mask, current_column] = data["Name"]
+        copied.loc[mask, current_column] = data[source_column]
     return copied
 
 

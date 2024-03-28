@@ -393,7 +393,7 @@ def test_extract_first_name_last_name():
         DataFrame(
             {
                 "Name": ["Jimmy t Faza", "test"],
-                "FirstName": ["Jimmy t", ""],
+                "FirstName": ["Jimmy t", "test"],
                 "LastName": ["Faza", "test"],
             }
         ),
