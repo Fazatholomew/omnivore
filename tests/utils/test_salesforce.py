@@ -72,7 +72,7 @@ def test_find_records_phone_search(sf: SalesforceConnection):
         ],
     )
     output_data = sf.find_records(input_data)
-    assert not "Id" in output_data[0]
+    assert "Id" not in output_data[0]
     assert output_data[1]["AccountId"] == "0018Z00002ifJUkQAM"
 
 
@@ -90,7 +90,7 @@ def test_find_records_email_search(sf: SalesforceConnection):
     assert output_data[0]["AccountId"] == "0013i00002YLCJ0AAP"
     assert output_data[0]["Id"] == "0063i00000EcBUeAAN"
     assert sf.oppId_to_opp["0063i00000EcBUeAAN"]["ID_from_HPC__c"] == "testID"
-    assert not "Id" in output_data[1]
+    assert "Id" not in output_data[1]
     assert output_data[1]["AccountId"] == "0013i00002YLCJ0AAP"
 
 
@@ -115,5 +115,5 @@ def test_find_records_no_Account():
         MockSf.return_value.Account.create.assert_called_with(input_data["acc"])
         assert output_data[0]["AccountId"] == "new Account Id"
         assert output_data[1]["AccountId"] == "new Account Id"
-        assert not "Id" in output_data[0]
-        assert not "Id" in output_data[1]
+        assert "Id" not in output_data[0]
+        assert "Id" not in output_data[1]

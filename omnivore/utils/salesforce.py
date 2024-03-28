@@ -115,7 +115,7 @@ class SalesforceConnection:
         not_yet_queried = [
             accId
             for accId in self.accId_to_oppIds.keys()
-            if accId not in self.accId_to_acc and type(accId) == type("aaa")
+            if accId not in self.accId_to_acc and isinstance(accId, str)
         ]
         joined_ids = "', '".join(not_yet_queried)
         if len(joined_ids) == 0:
@@ -187,7 +187,10 @@ class SalesforceConnection:
                 continue
 
             # No Account ID yet, search using email and phone
-            if "PersonEmail" in input_records["acc"]:
+            if "PersonEmail" in input_records["acc"] and (
+                isna(input_records["acc"]["PersonEmail"])
+                or len(input_records["acc"]["PersonEmail"]) == 0
+            ):
                 # Search using Email
                 if input_records["acc"]["PersonEmail"]:
                     if not isna(input_records["acc"]["PersonEmail"]):
@@ -223,7 +226,10 @@ class SalesforceConnection:
                                 found_opps.append(opp)
                                 continue
 
-            if "Phone" in input_records["acc"]:
+            if "Phone" in input_records["acc"](
+                isna(input_records["acc"]["Phone"])
+                or len(input_records["acc"]["Phone"]) == 0
+            ):
                 # Search using Phone
                 if input_records["acc"]["Phone"]:
                     if not isna(input_records["acc"]["Phone"]):  # type: ignoref
@@ -264,8 +270,7 @@ class SalesforceConnection:
             # Final check on required field of lastname
             if "LastName" not in payload:
                 if "FirstName" not in payload:
-                    print("No First name")
-                    print(payload)
+                    payload["LastName"] = "Unknown"
                 payload["LastName"] = payload["FirstName"]
             try:
                 res: Create = cast(
