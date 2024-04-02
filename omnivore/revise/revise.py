@@ -114,16 +114,16 @@ def revise(data: DataFrame) -> DataFrame:
     merged["StageName"] = merged["StageName"].map(stage_mapper)
     merged["Cancelation_Reason_s__c"] = ""
     merged["Do_Not_Contact__c"] = False
-    merged.loc[
-        merged["Lead Status"] != "Visit Scheduled", "StageName"
-    ] = "Not Yet Scheduled"
+    merged.loc[merged["Lead Status"] != "Visit Scheduled", "StageName"] = (
+        "Not Yet Scheduled"
+    )
     merged.loc[merged["Lead Status"] == "Not Eligible", "StageName"] = "Canceled"
-    merged.loc[
-        merged["Lead Status"] == "Not Eligible", "Cancelation_Reason_s__c"
-    ] = "5+ units"
-    merged.loc[
-        ~merged["Weatherization_Date_Time__c_y"].isna(), "StageName"
-    ] = "Signed Contracts"
+    merged.loc[merged["Lead Status"] == "Not Eligible", "Cancelation_Reason_s__c"] = (
+        "5+ units"
+    )
+    merged.loc[~merged["Weatherization_Date_Time__c_y"].isna(), "StageName"] = (
+        "Signed Contracts"
+    )
     merged.loc[
         ~merged["Weatherization_Date_Time__c_y"].isna(), "Weatherization_Status__c"
     ] = "Completed"
@@ -161,4 +161,5 @@ def revise(data: DataFrame) -> DataFrame:
 
     merged["PersonEmail"] = merged["PersonEmail"].apply(toSalesforceEmail)
     merged["Phone"] = merged["Phone"].apply(toSalesforcePhone)
+    merged = merged.drop_duplicates(["ID_from_HPC__c"])
     return merged

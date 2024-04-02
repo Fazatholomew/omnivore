@@ -127,6 +127,8 @@ def vhi(data: DataFrame) -> DataFrame:
         logger.error("An error occurred: %s", str(e), exc_info=True)
 
     no_address_removed = data[~data["Address"].isna()]
+    no_address_removed["FirstName"] = no_address_removed["FirstName"].fillna("")
+    no_address_removed["LastName"] = no_address_removed["LastName"].fillna("Unknown")
 
     save_output_df(no_address_removed, "VHI")
 

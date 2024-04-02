@@ -65,7 +65,11 @@ hsStageMapper = {
 }
 
 # Owner / Renter
-owner_renter_mapper = {"Landlord": "Owner", "Tenant": "Renter"}
+owner_renter_mapper = {
+    "Landlord": "Owner",
+    "Tenant": "Renter",
+    "Homeowner/Landlord": "Owner",
+}
 
 
 def neeeco(neeeco_input, neeeco_wx_input):
@@ -308,9 +312,9 @@ def neeeco(neeeco_input, neeeco_wx_input):
         #         // If date is still in the future, stage is scheduled
         neeeco_output["Date of Audit"] = pd.to_datetime(neeeco_output["Date of Audit"])
 
-        neeeco_output.loc[
-            neeeco_output["Date of Audit"] == "", "Date of Audit"
-        ] = pd.to_datetime("today")
+        neeeco_output.loc[neeeco_output["Date of Audit"] == "", "Date of Audit"] = (
+            pd.to_datetime("today")
+        )
         neeeco_output.loc[
             neeeco_output["Date of Audit"] > pd.to_datetime("today"), "StageName"
         ] = "Scheduled"

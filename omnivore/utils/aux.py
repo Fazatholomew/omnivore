@@ -145,6 +145,13 @@ def extract_address(input_data: Any) -> Address:
     # extrating zipcode
     if "ZipCode" in result[0]:
         extracted_address["zipcode"] = result[0]["ZipCode"][:10]
+    for city in CFP_TOWS.keys():
+        if city in extracted_address["unit"].lower():
+            extracted_address["unit"] = (
+                extracted_address["unit"].lower().replace(f" {city}", "")
+            )
+            extracted_address["city"] = city
+            break
     return extracted_address
 
 

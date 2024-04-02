@@ -263,6 +263,7 @@ class Blueprint:
             wx_data = read_csv(cast(str, getenv("NEEECO_WX_DATA_URL")), dtype="object")
             processed_row_removed = self.remove_already_processed_row(raw_data)
             processed_row = neeeco(processed_row_removed, wx_data)
+            processed_row = processed_row[~processed_row["ID_from_HPC__c"].isna()]
             grouped_opps = to_account_and_opportunities(processed_row)
             run(self.start_upload_to_salesforce(grouped_opps, NEEECO_ACCID))
         except Exception as e:
@@ -308,6 +309,7 @@ class Blueprint:
                 )
             )
             processed_row = vhi(processed_row_removed)
+            processed_row = processed_row[~processed_row["ID_from_HPC__c"].isna()]
             grouped_opps = to_account_and_opportunities(processed_row)
             run(self.start_upload_to_salesforce(grouped_opps, VHI_ACCID))
         except Exception as e:
@@ -326,6 +328,7 @@ class Blueprint:
             data = merge_file_revise(hea_data, wx_data)
             processed_row_removed = self.remove_already_processed_row(data)
             processed_row = revise(processed_row_removed)
+            processed_row = processed_row[~processed_row["ID_from_HPC__c"].isna()]
             grouped_opps = to_account_and_opportunities(processed_row)
             run(self.start_upload_to_salesforce(grouped_opps, REVISE_ACCID))
         except Exception as e:
@@ -377,17 +380,17 @@ class Blueprint:
         logger.info("Load Database from SF")
         self.sf.get_salesforce_table()
         logger.info("Finsihed loading Database from SF")
-        # logger.info("Start Processing Omnivore")
+        logger.info("Start Processing Omnivore")
         # logger.info("Start Processing Neeeco")
         # self.run_neeeco()
         # self.save_processed_rows()
         # self.sf.get_salesforce_table()
-        logger.info("Start Processing Homeworks")
-        self.run_homeworks()
+        # logger.info("Start Processing Homeworks")
+        # self.run_homeworks()
         # self.save_processed_rows()
         # self.sf.get_salesforce_table()
-        # logger.info("Start Processing VHI")
-        # self.run_vhi()
+        logger.info("Start Processing VHI")
+        self.run_vhi()
         # self.save_processed_rows()
         # self.sf.get_salesforce_table()
         # logger.info("Start Processing Revise")
@@ -397,4 +400,4 @@ class Blueprint:
         # logger.info("Start Processing Cambridge")
         # self.run_cambridge()
         # self.save_processed_rows()
-        # logger.info("Finished running Omnivore")
+        logger.info("Finished running Omnivore")
