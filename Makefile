@@ -20,3 +20,6 @@ clean:
 
 start:
 		dotenv -f .env.production run -- python -m omnivore
+
+dashboard-dev:
+		@dotenv -f .env.dashboard.dev run -- flask run
