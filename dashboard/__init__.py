@@ -1,20 +1,28 @@
 # -*- encoding: utf-8 -*-
-"""
-Copyright (c) 2019 - present AppSeed.us
-"""
-
 import os
-
-# import Flask
 from flask import Flask
 
-from .config import Config
+from dashboard import dummies
+from dashboard.models import db
 
-# Inject Flask magic
-app = Flask(__name__)
 
-# load Configuration
-app.config.from_object(Config)
+def create_app(config_class="dashboard.config.Config"):
+    app = Flask(__name__)
+    app.config.from_object(config_class)
 
-# Import routing to render the pages
-from dashboard import views
+    db.init_app(app)
+
+    with app.app_context():
+        db.create_all()
+
+    @app.cli.command("dummies")
+    def add_dummy_data():
+        for dummy in dummies.generate_dummies():
+            db.session.add(dummy)
+        db.session.commit()
+
+    from dashboard.views import init_routes
+
+    init_routes(app)
+
+    return app

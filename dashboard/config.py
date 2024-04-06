@@ -5,14 +5,18 @@ Copyright (c) 2019 - present AppSeed.us
 
 import os
 
+
 class Config(object):
 
     basedir = os.path.abspath(os.path.dirname(__file__))
 
-    DEBUG = (os.getenv('DEBUG', 'False') == 'True')
+    DEBUG = os.getenv("DEBUG", "False") == "True"
 
     # Assets Management
-    ASSETS_ROOT = os.getenv('ASSETS_ROOT', '/static/assets')
+    ASSETS_ROOT = os.getenv("ASSETS_ROOT", "/static/assets")
 
     # App Config - the minimal footprint
-    SECRET_KEY = os.getenv('SECRET_KEY', 'S#perS3crEt_9999')
+    SECRET_KEY = os.getenv("SECRET_KEY", "S#perS3crEt_9999")
+
+    SQLALCHEMY_DATABASE_URI = "sqlite:///omnivore.db"
+    SQLALCHEMY_TRACK_MODIFICATIONS = False

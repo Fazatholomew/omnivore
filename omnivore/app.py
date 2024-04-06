@@ -34,7 +34,13 @@ import logging
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s - %(levelname)s - %(message)s",
+    filename="omnivore.log",
+    filemode="a",
 )
+
+fh = logging.FileHandler("omnivore.log")
+fh.setLevel(logging.INFO)  # Or another level
+
 
 # Create a logger object
 logger = logging.getLogger(__name__)

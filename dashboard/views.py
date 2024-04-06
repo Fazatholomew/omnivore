@@ -1,86 +1,123 @@
 # -*- encoding: utf-8 -*-
-"""
-Copyright (c) 2019 - present AppSeed.us
-"""
 
 # Flask modules
-from flask import render_template, request, redirect
+from flask import render_template, request, redirect, Flask, Response
 from jinja2 import TemplateNotFound
 
-# App modules
-from dashboard import app
+from dashboard.models import Telemetry, HPC, Data
+from dashboard import db
+
+from sqlalchemy import inspect
 
 
-# App main route + generic routing
-@app.route("/", defaults={"path": "index.html"})
-@app.route("/")
-def index():
-    try:
-        return render_template(
-            "pages/index.html", segment="dashboard", parent="dashboard"
+def init_routes(app: Flask):
+    # App main route + generic routing
+    @app.route("/", defaults={"path": "index.html"})
+    @app.route("/")
+    def index():
+        latest_entry = (
+            db.session.query(Telemetry)
+            .order_by(Telemetry.created_date.asc())
+            .limit(2)
+            .all()
         )
-    except TemplateNotFound:
-        return render_template("pages/index.html"), 404
 
+        last_run = (
+            latest_entry[0].created_date - latest_entry[1].created_date
+        ).total_seconds()
 
-# Pages
+        compared_stats = [
+            {
+                "title": "Last Run",
+                "value": (
+                    "Today"
+                    if last_run // 86400 == 0
+                    else f"{int(abs(last_run // 86400))} days ago"
+                ),
+                "icon": "ni-world",
+            },
+            {
+                "title": "Total Runtime",
+                "value": f'{(latest_entry[0].total_statistic["total_runtime"] / 3600):.2f} Minutes',
+                "percent": (
+                    (
+                        latest_entry[0].total_statistic["total_runtime"]
+                        - latest_entry[1].total_statistic["total_runtime"]
+                    )
+                    / latest_entry[0].total_statistic["total_runtime"]
+                )
+                * 100,
+                "icon": "ni-paper-diploma",
+            },
+            {
+                "title": "Total Record Processed",
+                "value": latest_entry[0].total_statistic["total_records"],
+                "percent": (
+                    (
+                        latest_entry[0].total_statistic["total_records"]
+                        - latest_entry[1].total_statistic["total_records"]
+                    )
+                    / latest_entry[0].total_statistic["total_records"]
+                )
+                * 100,
+                "icon": "ni-cart",
+            },
+        ]
+        hpcs = [
+            {
+                **{
+                    c.key: getattr(hpc, c.key) for c in inspect(hpc).mapper.column_attrs
+                },
+                "row_errors": hpc.row_errors,
+            }
+            for hpc in latest_entry[0].hpcs
+        ]
+        data_sources = [
+            {
+                c.key: (
+                    getattr(current_data, c.key).strftime("%B %d, %Y")
+                    if c.key == "created_date"
+                    else getattr(current_data, c.key)
+                )
+                for c in inspect(current_data).mapper.column_attrs
+            }
+            for current_data in latest_entry[0].data.values()
+        ]
+        try:
+            return render_template(
+                "pages/index.html",
+                segment="Telemetry",
+                parent="Omnivore",
+                compared_stats=compared_stats,
+                data=latest_entry[0],
+                hpcs=hpcs,
+                data_sources=data_sources,
+            )
+        except TemplateNotFound:
+            return render_template("pages/index.html"), 404
 
+    # Pages
 
-@app.route("/pages/tables/")
-def pages_tables():
-    return render_template("pages/tables.html", segment="tables", parent="pages")
+    @app.route("/hpc/<string:hpc>/")
+    def hpc(hpc: str):
+        return render_template("pages/tables.html", segment=hpc, parent="HPC")
 
+    @app.route("/pages/logs/")
+    def pages_logs():
+        return render_template("pages/logs.html", segment="logs", parent="Omnivore")
 
-@app.route("/pages/billing/")
-def pages_billing():
-    return render_template("pages/billing.html", segment="billing", parent="pages")
+    @app.route("/api/logs/")
+    def api_logs():
+        def generate():
+            with open("omnivore.log") as f:
+                while True:
+                    line = f.readline()
+                    if not line:
+                        break
+                    yield line  # Convert newlines to HTML breaks
 
+        return Response(generate(), mimetype="text/html")
 
-@app.route("/pages/virtual-reality/")
-def pages_virtual_reality():
-    return render_template(
-        "pages/virtual-reality.html", segment="virtual_reality", parent="pages"
-    )
-
-
-@app.route("/pages/rtl/")
-def pages_rtl():
-    return render_template("pages/rtl.html", segment="rtl", parent="pages")
-
-
-@app.route("/pages/profile/")
-def pages_profile():
-    return render_template("pages/profile.html", segment="profile", parent="pages")
-
-
-@app.route("/accounts/login/")
-def accounts_login():
-    return render_template("accounts/login.html", segment="login", parent="accounts")
-
-
-@app.route("/accounts/register/")
-def accounts_register():
-    return render_template(
-        "accounts/register.html", segment="register", parent="accounts"
-    )
-
-
-@app.route("/accounts/password-change/")
-def accounts_password_change():
-    return render_template(
-        "accounts/password_change.html", segment="password_change", parent="accounts"
-    )
-
-
-@app.route("/accounts/password-change-done/")
-def accounts_password_change_done():
-    return render_template(
-        "accounts/password_change_done.html",
-        segment="password_change_done",
-        parent="accounts",
-    )
-
-
-@app.template_filter(name="replace_value")
-def replace_value(value, arg):
-    return value.replace(arg, " ").title()
+    @app.template_filter(name="replace_value")
+    def replace_value(value, arg):
+        return value.replace(arg, " ").title()

@@ -1,4 +1,6 @@
-from dashboard import app
+from dashboard import create_app
+
+app = create_app()
 
 DEBUG = app.config["DEBUG"]
 
