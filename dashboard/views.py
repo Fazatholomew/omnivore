@@ -100,7 +100,57 @@ def init_routes(app: Flask):
 
     @app.route("/hpc/<string:hpc>/")
     def hpc(hpc: str):
-        return render_template("pages/tables.html", segment=hpc, parent="HPC")
+        latest_entry = (
+            db.session.query(HPC)
+            .filter_by(name=hpc)
+            .order_by(HPC.created_date.asc())
+            .limit(2)
+            .all()
+        )
+
+        last_run = (
+            latest_entry[0].created_date - latest_entry[1].created_date
+        ).total_seconds()
+
+        compared_stats = [
+            {
+                "title": "Last Run",
+                "value": (
+                    "Today"
+                    if last_run // 86400 == 0
+                    else f"{int(abs(last_run // 86400))} days ago"
+                ),
+                "icon": "ni-world",
+            },
+            {
+                "title": "Total Runtime",
+                "value": f"{(latest_entry[0].runtime / 3600):.2f} Minutes",
+                "percent": (
+                    (latest_entry[0].runtime - latest_entry[1].runtime)
+                    / latest_entry[0].runtime
+                )
+                * 100,
+                "icon": "ni-paper-diploma",
+            },
+            {
+                "title": "Total Record Processed",
+                "value": latest_entry[0].output,
+                "percent": (
+                    (latest_entry[0].output - latest_entry[1].output)
+                    / latest_entry[0].output
+                )
+                * 100,
+                "icon": "ni-cart",
+            },
+        ]
+        print(type(latest_entry[0].examples))
+        return render_template(
+            "pages/hpc.html",
+            compared_stats=compared_stats,
+            data=latest_entry[0],
+            segment=hpc,
+            parent="HPC",
+        )
 
     @app.route("/pages/logs/")
     def pages_logs():

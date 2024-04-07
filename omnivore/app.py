@@ -267,11 +267,22 @@ class Blueprint:
         try:
             raw_data = read_csv(cast(str, getenv("NEEECO_DATA_URL")), dtype="object")
             wx_data = read_csv(cast(str, getenv("NEEECO_WX_DATA_URL")), dtype="object")
+            sample_input = raw_data.sample(10)
+            sample_wx = wx_data[
+                wx_data["HEA - Last, First, Address"].isin(raw_data["Related to"])
+            ]
+            save_output_df(sample_input, "Neeeco Input", "json")
+            save_output_df(sample_wx, "Neeeco Wx Input", "json")
             processed_row_removed = self.remove_already_processed_row(raw_data)
             processed_row = neeeco(processed_row_removed, wx_data)
             processed_row = processed_row[~processed_row["ID_from_HPC__c"].isna()]
-            grouped_opps = to_account_and_opportunities(processed_row)
-            run(self.start_upload_to_salesforce(grouped_opps, NEEECO_ACCID))
+            save_output_df(
+                processed_row[processed_row["ID_from_HPC__c"].isin(sample_input["ID"])],
+                "Neeeco output",
+                "json",
+            )
+            # grouped_opps = to_account_and_opportunities(processed_row)
+            # run(self.start_upload_to_salesforce(grouped_opps, NEEECO_ACCID))
         except Exception as e:
             logger.error("Error in Neeeco process.")
             logger.error(e, exc_info=True)
@@ -285,16 +296,26 @@ class Blueprint:
             old_data = read_csv(
                 cast(str, getenv("HOMEWORKS_COMPLETED_DATA_URL")), dtype="object"
             )
+            data_sample_completed = old_data.sample(10)
+            data_sample = new_data.sample(10)
+            save_output_df(data_sample_completed, "Homeworks Completed", "json")
+            save_output_df(data_sample, "Homeworks Input", "json")
             homeworks_output = rename_and_merge(old_data, new_data)
             processed_row_removed = self.remove_already_processed_row(homeworks_output)
             processed_row = homeworks(processed_row_removed)
+            save_output_df(
+                processed_row[
+                    processed_row["ID_from_HPC__c"].isin(
+                        data_sample_completed["Operations: Operations ID & Payzer Memo"]
+                    )
+                ],
+                "Homeworks Input",
+                "json",
+            )
             processed_row = processed_row[~processed_row["ID_from_HPC__c"].isna()]
-            grouped_opps = to_account_and_opportunities(processed_row)
-            # from json import dump
+            # grouped_opps = to_account_and_opportunities(processed_row)
 
-            # with open("homeworks accounts.json", "w") as current_file:
-            #     dump(grouped_opps, current_file)
-            run(self.start_upload_to_salesforce(grouped_opps, HOMEWORKS_ACCID))
+            # run(self.start_upload_to_salesforce(grouped_opps, HOMEWORKS_ACCID))
             # save_output_df(processed_row, "Homeworks")
         except Exception as e:
             logger.error("Error in Homeworks process.")
@@ -306,6 +327,8 @@ class Blueprint:
         """
         try:
             data = read_csv(cast(str, getenv("VHI_DATA_URL")), dtype="object")
+            data_sample = data.sample(10)
+            save_output_df(data_sample, "Valley Home Instulation Input", "json")
             processed_row_removed = self.remove_already_processed_row(data)
             processed_row_removed["VHI Unique Number"] = processed_row_removed[
                 "VHI Unique Number"
@@ -315,9 +338,18 @@ class Blueprint:
                 )
             )
             processed_row = vhi(processed_row_removed)
+            save_output_df(
+                processed_row[
+                    processed_row["ID_from_HPC__c"].isin(
+                        data_sample["VHI Unique Number"]
+                    )
+                ],
+                "Valley Home Instulation Output",
+                "json",
+            )
             processed_row = processed_row[~processed_row["ID_from_HPC__c"].isna()]
-            grouped_opps = to_account_and_opportunities(processed_row)
-            run(self.start_upload_to_salesforce(grouped_opps, VHI_ACCID))
+            # grouped_opps = to_account_and_opportunities(processed_row)
+            # run(self.start_upload_to_salesforce(grouped_opps, VHI_ACCID))
         except Exception as e:
             logger.error("Error in VHI process.")
             logger.error(e, exc_info=True)
@@ -329,14 +361,31 @@ class Blueprint:
         try:
             hea_data = read_csv(cast(str, getenv("REVISE_DATA_URL")), dtype="object")
             wx_data = read_csv(cast(str, getenv("REVISE_WX_DATA_URL")), dtype="object")
-            hea_data = hea_data[hea_data["Client Number"] != "Client Number"].copy()
-            wx_data = wx_data[wx_data["Client Number"] != "Client Number"].copy()
+            hea_data = hea_data[
+                hea_data["Company / Account"] != "Company / Account"
+            ].copy()
+            wx_data = wx_data[wx_data["Account Name"] != "Account Name"].copy()
+            data_sample = hea_data.sample(10)
+            wx_data_sample = wx_data[
+                wx_data["Account Name"].isin(hea_data["Company / Account"])
+            ]
+            save_output_df(data_sample, "Revise Input", "json")
+            save_output_df(wx_data_sample, "Revise Wx Input", "json")
             data = merge_file_revise(hea_data, wx_data)
             processed_row_removed = self.remove_already_processed_row(data)
             processed_row = revise(processed_row_removed)
+            save_output_df(
+                processed_row[
+                    processed_row["ID_from_HPC__c"].isin(
+                        data_sample["Company / Account"]
+                    )
+                ],
+                "Revise Wx Input",
+                "json",
+            )
             processed_row = processed_row[~processed_row["ID_from_HPC__c"].isna()]
-            grouped_opps = to_account_and_opportunities(processed_row)
-            run(self.start_upload_to_salesforce(grouped_opps, REVISE_ACCID))
+            # grouped_opps = to_account_and_opportunities(processed_row)
+            # run(self.start_upload_to_salesforce(grouped_opps, REVISE_ACCID))
         except Exception as e:
             logger.error("Error in Revise process.")
             logger.error(e, exc_info=True)
@@ -384,14 +433,14 @@ class Blueprint:
     def run(self) -> None:
         logger.info("Running on ENV = %s", getenv("ENV"))
         logger.info("Load Database from SF")
-        self.sf.get_salesforce_table()
+        # self.sf.get_salesforce_table()
         logger.info("Finsihed loading Database from SF")
         logger.info("Start Processing Omnivore")
-        # logger.info("Start Processing Neeeco")
+        logger.info("Start Processing Neeeco")
         # self.run_neeeco()
         # self.save_processed_rows()
         # self.sf.get_salesforce_table()
-        # logger.info("Start Processing Homeworks")
+        logger.info("Start Processing Homeworks")
         # self.run_homeworks()
         # self.save_processed_rows()
         # self.sf.get_salesforce_table()
@@ -399,7 +448,7 @@ class Blueprint:
         self.run_vhi()
         # self.save_processed_rows()
         # self.sf.get_salesforce_table()
-        # logger.info("Start Processing Revise")
+        logger.info("Start Processing Revise")
         # self.run_revise()
         # self.save_processed_rows()
         # self.sf.get_salesforce_table(True)

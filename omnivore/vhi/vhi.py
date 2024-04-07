@@ -55,7 +55,6 @@ def vhi(data: DataFrame) -> DataFrame:
         # data = data[~data["Contact: Email"].isna() | ~data["Contact: Phone"].isna()]
     except Exception as e:
         logger.error("An error occurred: %s", str(e), exc_info=True)
-
     # Rename columns into Salesforce Field
     try:
         data = data.rename(
@@ -129,8 +128,6 @@ def vhi(data: DataFrame) -> DataFrame:
     no_address_removed = data[~data["Address"].isna()]
     no_address_removed["FirstName"] = no_address_removed["FirstName"].fillna("")
     no_address_removed["LastName"] = no_address_removed["LastName"].fillna("Unknown")
-
-    save_output_df(no_address_removed, "VHI")
 
     return no_address_removed
     # # Calculate rows added in the file

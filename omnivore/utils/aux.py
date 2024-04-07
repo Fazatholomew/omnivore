@@ -15,6 +15,7 @@ from pandas.api.types import is_datetime64_any_dtype
 from .types import Record_Find_Info, Account, Opportunity
 from datetime import datetime
 from collections import OrderedDict
+from json import dump
 
 
 class Address(TypedDict, total=False):
@@ -495,5 +496,10 @@ def to_sf_datetime(data: Series, format: str | None = None) -> Series:
     return copied.dt.strftime(DATETIME_SALESFORCE)
 
 
-def save_output_df(data: DataFrame, name: str = "General"):
-    data.to_csv(f"Debug {name}.csv", index=False)
+def save_output_df(data: DataFrame, name: str = "General", file_type: str = "csv"):
+    if file_type == "csv":
+        data.to_csv(f"Debug {name}.csv", index=False)
+    if file_type == "json":
+        data.to_json(
+            f"Debug {name}.json", index=False, orient="records", date_format="iso"
+        )

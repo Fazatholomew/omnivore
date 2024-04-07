@@ -1,15 +1,38 @@
 from dashboard.models import Telemetry, HPC, Data
 from datetime import datetime, timedelta
+from json import load, dumps
+from os import listdir
+
+
+def generate_examples():
+    results = {}
+    for current_file in listdir("dashboard/dummies/"):
+        if "json" not in current_file:
+            continue
+        splited = current_file.split(" ")
+        if "Valley" in current_file:
+            hpc_name = "Valley Home Insulation"
+            data_name = splited[-1].replace(".json", "")
+        else:
+            hpc_name = splited[1]
+            data_name = " ".join(splited[2:]).replace(".json", "")
+        with open(f"dashboard/dummies/{current_file}") as current_json:
+            current_data = load(current_json)
+            if hpc_name not in results:
+                results[hpc_name] = {}
+            results[hpc_name][data_name] = current_data
+    return results
 
 
 def generate_dummies():
+    examples = generate_examples()
     return [
         Telemetry(id="test"),
         HPC(
             name="Homeworks",
             start_time=datetime.now() - timedelta(minutes=100),
             end_time=datetime.now(),
-            examples="",
+            examples=examples["Homeworks"],
             input=1223,
             output=734,
             acc_created=300,
@@ -22,7 +45,7 @@ def generate_dummies():
             name="Neeeco",
             start_time=datetime.now() - timedelta(minutes=20),
             end_time=datetime.now(),
-            examples="",
+            examples=examples["Neeeco"],
             input=500,
             output=233,
             acc_created=100,
@@ -35,7 +58,7 @@ def generate_dummies():
             name="Revise",
             start_time=datetime.now() - timedelta(minutes=1),
             end_time=datetime.now(),
-            examples="",
+            examples=examples["Revise"],
             input=322,
             output=123,
             acc_created=50,
@@ -48,7 +71,7 @@ def generate_dummies():
             name="Valley Home Insulation",
             start_time=datetime.now() - timedelta(minutes=0.1),
             end_time=datetime.now(),
-            examples="",
+            examples=examples["Valley Home Insulation"],
             input=165,
             output=90,
             acc_created=33,
