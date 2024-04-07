@@ -10,8 +10,8 @@
   <div class="row">
     <div class="col-lg-12 mb-lg-0 mb-4">
       <div class="card z-index-2">
-        <div class="card-body overflow-auto h-100 p-3" id="log-container">
-          <pre><code class="language-log"></code></pre>
+        <div class="card-body p-3" id="log-container">
+          <pre style="max-height: 75vh; overflow-y: auto;"><code class="language-log overflow-auto"></code></pre>
         </div>
       </div>
     </div>
@@ -39,7 +39,7 @@
       .then(data => {
         const logContainer = document.querySelector('#log-container code');
         logContainer.textContent = data; // Use textContent to escape HTML
-        Prism.highlightAllUnder(logContainer.parentNode); // Re-highlight the new logs
+        Prism.highlightAllUnder(logContainer.parentNode);
       });
   }
 
