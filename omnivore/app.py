@@ -267,15 +267,17 @@ class Blueprint:
         try:
             raw_data = read_csv(cast(str, getenv("NEEECO_DATA_URL")), dtype="object")
             wx_data = read_csv(cast(str, getenv("NEEECO_WX_DATA_URL")), dtype="object")
+            raw_data = raw_data[~raw_data["ID_from_HPC__c"].isna()]
             sample_input = raw_data.sample(10)
             sample_wx = wx_data[
-                wx_data["HEA - Last, First, Address"].isin(raw_data["Related to"])
+                wx_data["HEA - Last, First, Address"].isin(sample_input["Related to"])
             ]
             save_output_df(sample_input, "Neeeco Input", "json")
             save_output_df(sample_wx, "Neeeco Wx Input", "json")
             processed_row_removed = self.remove_already_processed_row(raw_data)
             processed_row = neeeco(processed_row_removed, wx_data)
             processed_row = processed_row[~processed_row["ID_from_HPC__c"].isna()]
+            processed_row = processed_row.drop_duplicates(["ID_from_HPC__c"])
             save_output_df(
                 processed_row[processed_row["ID_from_HPC__c"].isin(sample_input["ID"])],
                 "Neeeco output",
@@ -298,18 +300,19 @@ class Blueprint:
             )
             data_sample_completed = old_data.sample(10)
             data_sample = new_data.sample(10)
-            save_output_df(data_sample_completed, "Homeworks Completed", "json")
-            save_output_df(data_sample, "Homeworks Input", "json")
+            save_output_df(data_sample_completed, "Homeworks Completed Input", "json")
+            save_output_df(data_sample, "Homeworks Input Canceled", "json")
             homeworks_output = rename_and_merge(old_data, new_data)
             processed_row_removed = self.remove_already_processed_row(homeworks_output)
             processed_row = homeworks(processed_row_removed)
+            processed_row = processed_row.drop_duplicates(["ID_from_HPC__c"])
             save_output_df(
                 processed_row[
                     processed_row["ID_from_HPC__c"].isin(
                         data_sample_completed["Operations: Operations ID & Payzer Memo"]
                     )
                 ],
-                "Homeworks Input",
+                "Homeworks Output",
                 "json",
             )
             processed_row = processed_row[~processed_row["ID_from_HPC__c"].isna()]
@@ -327,8 +330,6 @@ class Blueprint:
         """
         try:
             data = read_csv(cast(str, getenv("VHI_DATA_URL")), dtype="object")
-            data_sample = data.sample(10)
-            save_output_df(data_sample, "Valley Home Instulation Input", "json")
             processed_row_removed = self.remove_already_processed_row(data)
             processed_row_removed["VHI Unique Number"] = processed_row_removed[
                 "VHI Unique Number"
@@ -337,7 +338,10 @@ class Blueprint:
                     lambda x: md5(x.encode("utf-8")).hexdigest()
                 )
             )
+            data_sample = processed_row_removed.sample(10)
+            save_output_df(data_sample, "Valley Home Instulation Input", "json")
             processed_row = vhi(processed_row_removed)
+            processed_row = processed_row.drop_duplicates(["ID_from_HPC__c"])
             save_output_df(
                 processed_row[
                     processed_row["ID_from_HPC__c"].isin(
@@ -367,23 +371,24 @@ class Blueprint:
             wx_data = wx_data[wx_data["Account Name"] != "Account Name"].copy()
             data_sample = hea_data.sample(10)
             wx_data_sample = wx_data[
-                wx_data["Account Name"].isin(hea_data["Company / Account"])
+                wx_data["Account Name"].isin(data_sample["Company / Account"])
             ]
             save_output_df(data_sample, "Revise Input", "json")
             save_output_df(wx_data_sample, "Revise Wx Input", "json")
             data = merge_file_revise(hea_data, wx_data)
             processed_row_removed = self.remove_already_processed_row(data)
             processed_row = revise(processed_row_removed)
+            processed_row = processed_row[~processed_row["ID_from_HPC__c"].isna()]
+            processed_row = processed_row.drop_duplicates(["ID_from_HPC__c"])
             save_output_df(
                 processed_row[
                     processed_row["ID_from_HPC__c"].isin(
                         data_sample["Company / Account"]
                     )
                 ],
-                "Revise Wx Input",
+                "Revise Output",
                 "json",
             )
-            processed_row = processed_row[~processed_row["ID_from_HPC__c"].isna()]
             # grouped_opps = to_account_and_opportunities(processed_row)
             # run(self.start_upload_to_salesforce(grouped_opps, REVISE_ACCID))
         except Exception as e:
@@ -437,11 +442,11 @@ class Blueprint:
         logger.info("Finsihed loading Database from SF")
         logger.info("Start Processing Omnivore")
         logger.info("Start Processing Neeeco")
-        # self.run_neeeco()
+        self.run_neeeco()
         # self.save_processed_rows()
         # self.sf.get_salesforce_table()
         logger.info("Start Processing Homeworks")
-        # self.run_homeworks()
+        self.run_homeworks()
         # self.save_processed_rows()
         # self.sf.get_salesforce_table()
         logger.info("Start Processing VHI")
@@ -449,7 +454,7 @@ class Blueprint:
         # self.save_processed_rows()
         # self.sf.get_salesforce_table()
         logger.info("Start Processing Revise")
-        # self.run_revise()
+        self.run_revise()
         # self.save_processed_rows()
         # self.sf.get_salesforce_table(True)
         # logger.info("Start Processing Cambridge")

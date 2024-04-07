@@ -352,8 +352,6 @@ def homeworks(homeworks_output):
         "Prefered_Lan__c"
     ].str.replace("Chinese(Cantonese)", "Cantonese")
 
-    save_output_df(homeworks_output, "Homeworks")
-
     return homeworks_output
 
     # # Calculate rows added in the file
