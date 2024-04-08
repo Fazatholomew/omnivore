@@ -10,6 +10,12 @@ def create_app(config_class="dashboard.config.Config"):
     app = Flask(__name__)
     app.config.from_object(config_class)
 
+    if app.debug:
+        import logging
+
+        file_handler = logging.FileHandler("omnivore_dashboard.log")
+        app.logger.addHandler(file_handler)
+
     db.init_app(app)
 
     with app.app_context():
