@@ -48,7 +48,7 @@
               <thead>
                 <tr>
                   {% for column, value in table_data[0].items() %}
-                  <th class="text-uppercase text-light text-xxs font-weight-bolder opacity-9">{{ column }}</th>
+                  <th class="text-uppercase text-dark text-xxs font-weight-bolder opacity-9">{{ column }}</th>
                   {% endfor %}
                 </tr>
               </thead>
@@ -56,7 +56,7 @@
                 {% for row in table_data %}
                 <tr>
                   {% for current_column, current_value in row.items() %}
-                  <td class="text-light text-sm">{{current_value}}
+                  <td class="text-dark text-sm">{{current_value}}
                   </td>
                   {% endfor %}
                 </tr>
