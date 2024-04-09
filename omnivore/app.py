@@ -267,7 +267,7 @@ class Blueprint:
         try:
             raw_data = read_csv(cast(str, getenv("NEEECO_DATA_URL")), dtype="object")
             wx_data = read_csv(cast(str, getenv("NEEECO_WX_DATA_URL")), dtype="object")
-            raw_data = raw_data[~raw_data["ID_from_HPC__c"].isna()]
+            raw_data = raw_data[~raw_data["ID"].isna()]
             sample_input = raw_data.sample(10)
             sample_wx = wx_data[
                 wx_data["HEA - Last, First, Address"].isin(sample_input["Related to"])
