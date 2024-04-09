@@ -1,11 +1,18 @@
 <aside class="sidenav navbar navbar-vertical navbar-expand-xs border-0 border-radius-xl my-3 fixed-start ms-3 "
   id="sidenav-main">
   <div class="sidenav-header">
-    <i class="fas fa-times p-3 cursor-pointer text-secondary opacity-5 position-absolute end-0 top-0 d-none d-xl-none"
-      aria-hidden="true" id="iconSidenav"></i>
     <a class="navbar-brand m-0" href="/">
-      <img src="{{ url_for('static', filename = 'assets/img/logo-ct-dark.png' )}}" class="navbar-brand-img h-100"
-        alt="main_logo">
+      <?xml version="1.0" encoding="utf-8"?>
+      <svg viewBox="0 0 500 500" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="width: 20%;" class="navbar-brand-img h-100">
+        <g transform="matrix(0.2780659794807434, 0, 0, -0.2780659794807434, -97.5413818359375, 594.9623413085938)"
+          fill="#597bb3" stroke="none">
+          <path
+            d="M658 2069 c-195 -46 -262 -292 -123 -447 l43 -48 -26 -74 c-34 -101 -41 -261 -18 -381 31 -155 123 -316 252 -440 115 -109 242 -191 388 -249 l71 -28 50 20 c376 148 610 398 671 716 8 40 14 102 14 137 0 73 -24 207 -46 260 l-15 36 46 51 c142 158 69 407 -133 449 -76 15 -147 -1 -208 -48 l-46 -35 -48 21 c-80 35 -169 51 -280 51 -108 0 -241 -24 -300 -55 -28 -15 -31 -14 -74 19 -26 20 -66 39 -96 45 -58 12 -70 12 -122 0z m125 -166 c10 -10 25 -32 32 -50 8 -18 25 -38 39 -44 22 -10 32 -7 78 24 99 65 164 82 318 81 152 -1 207 -15 308 -82 68 -45 97 -38 129 29 38 80 114 90 174 22 28 -33 31 -41 27 -90 -4 -44 -11 -60 -38 -88 -19 -19 -39 -35 -46 -35 -19 0 -64 -40 -64 -58 0 -9 18 -53 40 -97 74 -148 77 -294 7 -469 -56 -141 -159 -268 -287 -351 -107 -70 -164 -90 -250 -90 -65 1 -85 6 -151 37 -193 90 -334 247 -406 449 -21 61 -26 92 -26 179 -1 119 10 164 61 268 41 81 39 95 -17 124 -94 48 -128 137 -81 214 34 54 108 67 153 27z" />
+          <path
+            d="M922 1508 c-26 -26 -3 -86 39 -100 14 -5 10 -30 -40 -269 -22 -100 -20 -123 14 -190 52 -102 130 -161 245 -185 89 -18 155 -8 243 39 70 37 111 81 148 162 l29 61 -30 144 c-53 251 -52 224 -13 254 34 28 43 62 21 84 -7 7 -40 12 -79 12 -52 0 -72 -4 -93 -21 -36 -29 -36 -32 25 -341 26 -132 25 -141 -18 -189 -47 -52 -86 -69 -161 -69 -76 0 -119 18 -167 71 -36 41 -37 44 -32 98 4 31 17 112 31 181 42 215 42 215 11 244 -24 23 -37 26 -94 26 -39 0 -72 -5 -79 -12z" />
+          <path d="M1130 1121 c0 -43 4 -53 30 -75 56 -47 124 -47 180 0 28 24 31 32 28 73 l-3 46 -117 3 -118 3 0 -50z" />
+        </g>
+      </svg>
       <span class="ms-1 font-weight-bold">Omnivore</span>
     </a>
   </div>
@@ -73,8 +80,7 @@
       {% set hpcs = ['Homeworks', 'Neeeco', 'Revise', 'Valley Home Insulation'] %}
       {% for hpc in hpcs %}
       <li class="nav-item">
-        <a class="nav-link {% if hpc in segment %} active {% endif %} "
-          href="{{url_for('hpc', hpc=hpc)}}">
+        <a class="nav-link {% if hpc in segment %} active {% endif %} " href="{{url_for('hpc', hpc=hpc)}}">
           <div
             class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
             {{hpc[0].upper()}}
