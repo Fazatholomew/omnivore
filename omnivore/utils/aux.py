@@ -8,7 +8,7 @@ from .constants import (
     DATETIME_SALESFORCE,
 )
 from urllib.parse import unquote_plus
-from typing import TypedDict, Dict, Any, Callable
+from typing import TypedDict, Dict, Any, Callable, Iterable
 from usaddress import tag, RepeatedLabelError
 from pandas import DataFrame, isna, Series, to_datetime
 from pandas.api.types import is_datetime64_any_dtype
@@ -16,6 +16,10 @@ from .types import Record_Find_Info, Account, Opportunity
 from datetime import datetime
 from collections import OrderedDict
 from json import dump
+import logging
+
+# Create a logger object
+logger = logging.getLogger(__name__)
 
 
 class Address(TypedDict, total=False):
@@ -167,137 +171,181 @@ def to_account_and_opportunities(input: DataFrame) -> list[Record_Find_Info]:
         ("Phone", toSalesforcePhone),
         ("PersonEmail", toSalesforceEmail),
     ]
-    if (
-        contact_fields[0][0] not in input.columns
-        and contact_fields[1][0] not in input.columns
-    ):
-        # don't process if there are no contact columns
-        return []
-    for row in input.itertuples():
-        available_columns = []
-        for field, func in contact_fields:
-            if hasattr(row, field):
-                current_contact_info = func(getattr(row, field))
-                if len(current_contact_info) > 6:
-                    available_columns.append((field, current_contact_info))
-                    # (field_name, value)
-        length_of_available_columns = len(available_columns)
-        current_opp = Opportunity()
-        current_account = Account()
-        current_opps = []
+    try:
+        if (
+            contact_fields[0][0] not in input.columns
+            and contact_fields[1][0] not in input.columns
+        ):
+            # don't process if there are no contact columns
+            return []
+        for row in input.itertuples():
+            try:
+                available_columns = []
+                for field, func in contact_fields:
+                    if hasattr(row, field):
+                        current_contact_info = func(getattr(row, field))
+                        if len(current_contact_info) > 6:
+                            available_columns.append((field, current_contact_info))
+                            # (field_name, value)
+                length_of_available_columns = len(available_columns)
+                current_opp = Opportunity()
+                current_account = Account()
+                current_opps = []
 
-        if length_of_available_columns > 0:
-            # Contact info is available
-            if length_of_available_columns == 1:
-                contact_key = available_columns[0][1]
-                if contact_key not in mappings:
-                    mappings[contact_key] = contact_key
+                if length_of_available_columns > 0:
+                    # Contact info is available
+                    if length_of_available_columns == 1:
+                        contact_key = available_columns[0][1]
+                        if contact_key not in mappings:
+                            mappings[contact_key] = contact_key
 
-            if length_of_available_columns == 2:
-                if (
-                    available_columns[0][1] in mappings
-                    and available_columns[1][1] in mappings
-                ):
-                    # Both are set
-                    contact_key = mappings[available_columns[0][1]]
+                    if length_of_available_columns == 2:
+                        if (
+                            available_columns[0][1] in mappings
+                            and available_columns[1][1] in mappings
+                        ):
+                            # Both are set
+                            contact_key = mappings[available_columns[0][1]]
 
-                if (
-                    available_columns[0][1] in mappings
-                    or available_columns[1][1] in mappings
-                ):
-                    # Only one of contact is in the mappings
-                    # Determine which is not in mappings
-                    contact_key = (
-                        available_columns[0][1]
-                        if available_columns[0][1] in mappings
-                        else available_columns[1][1]
-                    )
-                    # Set the new key to the existing
-                    mappings[
-                        (
-                            available_columns[0][1]
-                            if available_columns[0][1] not in mappings
-                            else available_columns[1][1]
+                        if (
+                            available_columns[0][1] in mappings
+                            or available_columns[1][1] in mappings
+                        ):
+                            # Only one of contact is in the mappings
+                            # Determine which is not in mappings
+                            contact_key = (
+                                available_columns[0][1]
+                                if available_columns[0][1] in mappings
+                                else available_columns[1][1]
+                            )
+                            # Set the new key to the existing
+                            mappings[
+                                (
+                                    available_columns[0][1]
+                                    if available_columns[0][1] not in mappings
+                                    else available_columns[1][1]
+                                )
+                            ] = contact_key
+
+                        if (
+                            available_columns[0][1] not in mappings
+                            and available_columns[1][1] not in mappings
+                        ):
+                            # None of the contacts are in the mappings
+                            contact_key = available_columns[0][1]
+                            # Set both of the keys in mappings
+                            mappings[contact_key] = contact_key
+                            mappings[available_columns[1][1]] = contact_key
+
+                    if mappings[contact_key] in data:
+                        current_account = data[mappings[contact_key]]["acc"]
+                        current_opps = data[mappings[contact_key]]["opps"]
+
+                    else:
+                        data[mappings[contact_key]] = Record_Find_Info(
+                            acc=current_account, opps=current_opps
                         )
-                    ] = contact_key
 
-                if (
-                    available_columns[0][1] not in mappings
-                    and available_columns[1][1] not in mappings
-                ):
-                    # None of the contacts are in the mappings
-                    contact_key = available_columns[0][1]
-                    # Set both of the keys in mappings
-                    mappings[contact_key] = contact_key
-                    mappings[available_columns[1][1]] = contact_key
+                    for current_contact_info in available_columns:
+                        if current_contact_info[0] not in current_account:
+                            current_account[current_contact_info[0]] = (
+                                current_contact_info[1]
+                            )
 
-            if mappings[contact_key] in data:
-                current_account = data[mappings[contact_key]]["acc"]
-                current_opps = data[mappings[contact_key]]["opps"]
+                else:
+                    # No Contact info
+                    results.append(
+                        Record_Find_Info(acc=current_account, opps=[current_opp])
+                    )
 
-            else:
-                data[mappings[contact_key]] = Record_Find_Info(
-                    acc=current_account, opps=current_opps
+                # Clean address
+                if hasattr(row, "Street__c"):
+                    extracted_address = extract_address(getattr(row, "Street__c"))
+                    # Set Account address if not set yet
+                    for key, value in address_keys.items():
+                        if key in extracted_address:
+                            current_opp[value[0]] = extracted_address[key]
+                            if key != "unit":
+                                current_account[value[1]] = extracted_address[key]
+
+                # Name
+                full_name = []
+                # First Name Last Name for Account
+                if hasattr(row, "FirstName") and "FirstName" not in current_account:
+                    first_name = getattr(row, "FirstName")
+                    current_account["FirstName"] = (
+                        first_name
+                        if not isna(first_name) and first_name != ""
+                        else "Unknown"
+                    )
+                    full_name.append(first_name)
+
+                if hasattr(row, "LastName") and "LastName" not in current_account:
+                    last_name = getattr(row, "LastName")
+                    current_account["LastName"] = (
+                        last_name
+                        if not isna(last_name) and last_name != ""
+                        else "Unknown"
+                    )
+                    full_name.append(last_name)
+
+                # Name for Opp
+                current_opp["Name"] = " ".join(full_name)
+
+                # Rest of data
+                for column in OPPORTUNITY_COLUMNS + CAMBRIDGE_OPPORTUNITY_COLUMNS:
+                    if hasattr(row, column) and column not in current_opp:
+                        current_opp[column] = getattr(row, column)
+
+                # Add tempId
+                if hasattr(row, "tempId"):
+                    current_opp["tempId"] = getattr(row, "tempId")
+
+                for column in ACCOUNT_COLUMNS:
+                    if hasattr(row, column) and column not in current_account:
+                        current_account[column] = getattr(row, column)
+
+                current_opps.append(current_opp)
+            except Exception as e:
+                logger.error(
+                    f"Can't process:\n {getattr(row, 'ID_from_HPC__c') if hasattr(row, 'ID_from_HPC__c') else row}"
                 )
+                logger.error("An error occurred: %s", str(e), exc_info=True)
 
-            for current_contact_info in available_columns:
-                if current_contact_info[0] not in current_account:
-                    current_account[current_contact_info[0]] = current_contact_info[1]
+        for current_record_find_info in data.values():
+            try:
+                if len(current_record_find_info["opps"]) > 0:
+                    for i in range(1, len(current_record_find_info["opps"])):
+                        current_record_find_info["opps"][i][
+                            "Name"
+                        ] = f'{current_record_find_info["opps"][i]["Name"]} unit {i}'
+                results.append(current_record_find_info)
+            except Exception as e:
+                logger.error(
+                    f"Error trying to update unit for landlords:\n {current_record_find_info['acc']}"
+                )
+                logger.error("An error occurred: %s", str(e), exc_info=True)
 
+        return results
+    except Exception as e:
+        logger.error("Unhandled Error")
+        logger.error("An error occurred: %s", str(e), exc_info=True)
+        return results
+
+
+def toSalesforceMultiPicklist(
+    input: Any, separator: str = ";", mapper: dict = None
+) -> str:
+    converted = f"{input}"
+    results = []
+    splitted = converted.split(separator)
+    for current_item in splitted:
+        if mapper:
+            if current_item in mapper:
+                results.append(mapper[current_item])
         else:
-            # No Contact info
-            results.append(Record_Find_Info(acc=current_account, opps=[current_opp]))
-
-        # Clean address
-        if hasattr(row, "Street__c"):
-            extracted_address = extract_address(getattr(row, "Street__c"))
-            # Set Account address if not set yet
-            for key, value in address_keys.items():
-                if key in extracted_address:
-                    current_opp[value[0]] = extracted_address[key]
-                    if key != "unit":
-                        current_account[value[1]] = extracted_address[key]
-
-        # Name
-        full_name = []
-        # First Name Last Name for Account
-        if hasattr(row, "FirstName") and "FirstName" not in current_account:
-            first_name = getattr(row, "FirstName")
-            current_account["FirstName"] = first_name
-            full_name.append(first_name)
-
-        if hasattr(row, "LastName") and "LastName" not in current_account:
-            last_name = getattr(row, "LastName")
-            current_account["LastName"] = last_name
-            full_name.append(last_name)
-
-        # Name for Opp
-        current_opp["Name"] = " ".join(full_name)
-
-        # Rest of data
-        for column in OPPORTUNITY_COLUMNS + CAMBRIDGE_OPPORTUNITY_COLUMNS:
-            if hasattr(row, column) and column not in current_opp:
-                current_opp[column] = getattr(row, column)
-
-        # Add tempId
-        if hasattr(row, "tempId"):
-            current_opp["tempId"] = getattr(row, "tempId")
-
-        for column in ACCOUNT_COLUMNS:
-            if hasattr(row, column) and column not in current_account:
-                current_account[column] = getattr(row, column)
-
-        current_opps.append(current_opp)
-
-    for current_record_find_info in data.values():
-        if len(current_record_find_info["opps"]) > 0:
-            for i in range(1, len(current_record_find_info["opps"])):
-                current_record_find_info["opps"][i][
-                    "Name"
-                ] = f'{current_record_find_info["opps"][i]["Name"]} unit {i}'
-        results.append(current_record_find_info)
-
-    return results
+            results.append(current_item)
+    return ";".join(results)
 
 
 def to_sf_payload(
@@ -322,7 +370,7 @@ def find_cfp_campaign(data: Opportunity) -> str:
     """
     Return respected CFP Campaign
     """
-    if not "City__c" in data:
+    if "City__c" not in data:
         return ""
     if isna(data["City__c"]):
         return ""

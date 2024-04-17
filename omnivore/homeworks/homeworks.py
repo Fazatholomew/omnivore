@@ -3,7 +3,12 @@ import pandas as pd
 import numpy as np
 import logging
 from ..utils.constants import DATETIME_SALESFORCE
-from ..utils.aux import to_sf_datetime, save_output_df
+from ..utils.aux import (
+    to_sf_datetime,
+    toSalesforceEmail,
+    toSalesforcePhone,
+    save_output_df,
+)
 
 pd.set_option("display.max_columns", 1000)
 pd.options.mode.chained_assignment = None  # type:ignore
@@ -121,6 +126,7 @@ def rename_and_merge(_homeworks_old_input, _homeworks_new_input) -> pd.DataFrame
                 "Wx Job Status": "Weatherization_Status__c",
                 "Billing City": "City__c",
                 "Account Name": "Street__c",
+                "5-digit Zip Code": "Zipcode__c",
             }
         )
     except Exception as e:
@@ -309,28 +315,21 @@ def homeworks(homeworks_output):
         logger.error("An error occurred: %s", str(e), exc_info=True)
 
     try:
+        homeworks_output["Zipcode__c"] = homeworks_output["Zipcode__c"].fillna("")
         homeworks_output["Street__c"] = homeworks_output["Street__c"].str.extract(
             r"(\d+ [a-zA-Z]\w{2,} \w{1,})"
+        )
+        homeworks_output["Street__c"] = (
+            homeworks_output["Street__c"] + ", MA " + homeworks_output["Zipcode__c"]
         )
     except Exception as e:
         logger.error("An error occurred: %s", str(e), exc_info=True)
 
     try:
-        for i in homeworks_output["Phone"].index:
-            homeworks_output["Phone"][i] = re.sub(
-                r"[^0-9]", "", str(homeworks_output["Phone"][i])
-            )
-            if len(homeworks_output["Phone"][i]) < 10:
-                homeworks_output["Phone"][i] = ""
-
-        for i in homeworks_output["PersonEmail"].index:
-            homeworks_output["PersonEmail"][i] = homeworks_output["PersonEmail"][
-                i
-            ].lower()
-            regex = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
-            if re.fullmatch(regex, homeworks_output["PersonEmail"][i]):  # type:ignore
-                homeworks_output["PersonEmail"]
-
+        homeworks_output["PersonEmail"] = homeworks_output["PersonEmail"].apply(
+            toSalesforceEmail
+        )
+        homeworks_output["Phone"] = homeworks_output["Phone"].apply(toSalesforcePhone)
         homeworks_output["PersonEmail"] = homeworks_output["PersonEmail"].replace(
             "na@hwe.com", np.nan
         )

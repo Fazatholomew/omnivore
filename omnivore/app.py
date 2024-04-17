@@ -93,13 +93,29 @@ class Blueprint:
             # No need to process if empty opp
             return
         found_records = self.sf.find_records(data)
+        acc_payload = to_sf_payload(data["acc"])
         try:
-            res = self.sf.sf.Account.update(
-                found_records[0]["AccountId"], to_sf_payload(data["acc"])
-            )
+            res = self.sf.sf.Account.update(found_records[0]["AccountId"], acc_payload)
             if cast(int, res) > 399:
                 logger.error(res)
             logger.debug(res)
+        except SalesforceMalformedRequest as err:
+            if err.content[0]["errorCode"] == "DUPLICATE_VALUE":
+                maybe_id = err.content[0]["message"].split("id: ")
+                if len(maybe_id) == 2:
+                    try:
+                        res = self.sf.sf.Account.update(
+                            maybe_id[1], acc_payload
+                        )  # type:ignore
+                        if cast(int, res) > 399:
+                            logger.error(res)
+                    except Exception as e:
+                        if getenv("ENV") == "staging":
+                            logger.error("failed to update after create")
+                            logger.error(acc_payload)
+                            logger.error(e, exc_info=True)
+                            raise e
+                        logger.error(e, exc_info=True)
         except Exception as err:
             if getenv("ENV") == "staging":
                 logger.error("failed to update")
@@ -108,40 +124,153 @@ class Blueprint:
                 raise err
             logger.error(err, exc_info=True)
         for opp in found_records:
-            # Remove and keep tempId for processed row
-            processed_row_id = (
-                opp.pop("tempId") if "tempId" in opp else opp["ID_from_HPC__c"]
-            )
-            if "Don_t_Omnivore__c" in opp:
-                # Don't omnivore is flagged
-                if opp["Don_t_Omnivore__c"]:
-                    self.processed_rows.add(processed_row_id)
-                    continue
-            opp["HPC__c"] = HPC_ID
-            if HPC_ID == CAMBRIDGE_ACCID:
-                opp["RecordTypeId"] = CAMBRIDGE_OPP_ID
-            else:
-                opp["CampaignId"] = find_cfp_campaign(opp)
-                opp["RecordTypeId"] = CFP_OPP_ID if opp["CampaignId"] else HEA_ID
-            if "Id" in opp:
-                if len(opp["Id"]) > 3:
+            try:
+                # Remove and keep tempId for processed row
+                processed_row_id = (
+                    opp.pop("tempId") if "tempId" in opp else opp["ID_from_HPC__c"]
+                )
+                if "Don_t_Omnivore__c" in opp:
+                    # Don't omnivore is flagged
+                    if opp["Don_t_Omnivore__c"]:
+                        self.processed_rows.add(processed_row_id)
+                        continue
+                opp["HPC__c"] = HPC_ID
+                if HPC_ID == CAMBRIDGE_ACCID:
+                    opp["RecordTypeId"] = CAMBRIDGE_OPP_ID
+                else:
+                    opp["CampaignId"] = find_cfp_campaign(opp)
+                    opp["RecordTypeId"] = CFP_OPP_ID if opp["CampaignId"] else HEA_ID
+                if "Id" in opp:
+                    if len(opp["Id"]) > 3:
+                        payload = to_sf_payload(opp, "Opportunity")
+                        current_id = payload.pop("Id")
+                        try:
+                            res = self.sf.sf.Opportunity.update(
+                                current_id, payload
+                            )  # type:ignore
+                            if cast(int, res) > 200 and cast(int, res) < 300:
+                                self.processed_rows.add(processed_row_id)
+                                # Reporting
+                            if cast(int, res) > 399:
+                                logger.error(res)
+                            logger.debug(res)
+                        except SalesforceMalformedRequest as err:
+                            if (
+                                err.content[0]["errorCode"]
+                                == "FIELD_CUSTOM_VALIDATION_EXCEPTION"
+                                and "cancelation" in err.content[0]["message"]
+                            ):
+                                # Canceled stage needs a cancelation reason
+                                try:
+                                    payload["Cancelation_Reason_s__c"] = (
+                                        "No Reason"  # Default reason
+                                    )
+                                    res = self.sf.sf.Opportunity.create(
+                                        payload
+                                    )  # type:ignore
+                                    if cast(int, res) > 200 and cast(int, res) < 300:
+                                        self.processed_rows.add(processed_row_id)
+                                    if cast(int, res) > 399:
+                                        logger.error(res)
+                                except SalesforceMalformedRequest as err:
+                                    if err.content[0]["errorCode"] == "DUPLICATE_VALUE":
+                                        maybe_id = err.content[0]["message"].split(
+                                            "id: "
+                                        )
+                                        if len(maybe_id) == 2:
+                                            try:
+                                                res = self.sf.sf.Opportunity.update(
+                                                    maybe_id[1], payload
+                                                )  # type:ignore
+                                                if (
+                                                    cast(int, res) > 200
+                                                    and cast(int, res) < 300
+                                                ):
+                                                    self.processed_rows.add(
+                                                        processed_row_id
+                                                    )
+                                                if cast(int, res) > 399:
+                                                    logger.error(res)
+                                            except Exception as e:
+                                                if getenv("ENV") == "staging":
+                                                    logger.error(
+                                                        "failed to update after create"
+                                                    )
+                                                    logger.error(payload)
+                                                    logger.error(e, exc_info=True)
+                                                    raise e
+                                                logger.error(e, exc_info=True)
+                                except Exception as e:
+                                    if getenv("ENV") == "staging":
+                                        logger.error(payload)
+                                        logger.error(e, exc_info=True)
+                                        raise e
+                                    logger.error(
+                                        "failed to create after cancelation reason"
+                                    )
+                                    logger.error(e, exc_info=True)
+                            elif err.content[0]["errorCode"] == "DUPLICATE_VALUE":
+                                maybe_id = err.content[0]["message"].split("id: ")
+                                if len(maybe_id) == 2:
+                                    try:
+                                        res = self.sf.sf.Opportunity.update(
+                                            maybe_id[1], payload
+                                        )  # type:ignore
+                                        if (
+                                            cast(int, res) > 200
+                                            and cast(int, res) < 300
+                                        ):
+                                            self.processed_rows.add(processed_row_id)
+                                        if cast(int, res) > 399:
+                                            logger.error(res)
+                                    except Exception as e:
+                                        if getenv("ENV") == "staging":
+                                            logger.error(
+                                                "failed to update after create"
+                                            )
+                                            logger.error(payload)
+                                            logger.error(e, exc_info=True)
+                                            raise e
+                                        logger.error(e, exc_info=True)
+                            else:
+                                logger.error(err, exc_info=True)
+                        except Exception as err:
+                            if getenv("ENV") == "staging":
+                                logger.error("failed to update")
+                                logger.error(payload)
+                                logger.error(err, exc_info=True)
+                                raise err
+                            logger.error(err, exc_info=True)
+                            continue
+                else:
                     payload = to_sf_payload(opp, "Opportunity")
-                    if opp["ID_from_HPC__c"] == "1":
-                        print("payload")
-                        print(opp)
-                        print(payload)
-                    current_id = payload.pop("Id")
                     try:
-                        res = self.sf.sf.Opportunity.update(
-                            current_id, payload
+                        res: Create = self.sf.sf.Opportunity.create(
+                            payload
                         )  # type:ignore
-                        if cast(int, res) > 200 and cast(int, res) < 300:
+                        if res["success"]:
                             self.processed_rows.add(processed_row_id)
                             # Reporting
-                        if cast(int, res) > 399:
-                            logger.error(res)
-                        logger.debug(res)
                     except SalesforceMalformedRequest as err:
+                        if err.content[0]["errorCode"] == "DUPLICATE_VALUE":
+                            maybe_id = err.content[0]["message"].split("id: ")
+                            if len(maybe_id) == 2:
+                                try:
+                                    res = self.sf.sf.Opportunity.update(
+                                        maybe_id[1], payload
+                                    )  # type:ignore
+                                    if cast(int, res) > 200 and cast(int, res) < 300:
+                                        self.processed_rows.add(processed_row_id)
+                                    if cast(int, res) > 399:
+                                        logger.error(res)
+                                except Exception as e:
+                                    if getenv("ENV") == "staging":
+                                        logger.error("failed to update after create")
+                                        logger.error(payload)
+                                        logger.error(e, exc_info=True)
+                                        raise e
+                                    logger.error(e, exc_info=True)
+
                         if (
                             err.content[0]["errorCode"]
                             == "FIELD_CUSTOM_VALIDATION_EXCEPTION"
@@ -161,90 +290,36 @@ class Blueprint:
                                     logger.error(res)
                             except Exception as e:
                                 if getenv("ENV") == "staging":
-                                    logger.error(payload)
                                     logger.error(
                                         "failed to create after cancelation reason"
                                     )
-                                    logger.error(e, exc_info=True)
-                                    raise e
-                                logger.error(e, exc_info=True)
-                        else:
-                            logger.error(err, exc_info=True)
-                    except Exception as err:
-                        if getenv("ENV") == "staging":
-                            logger.error("failed to update")
-                            logger.error(payload)
-                            logger.error(err, exc_info=True)
-                            raise err
-                        logger.error(err, exc_info=True)
-                        continue
-            else:
-                payload = to_sf_payload(opp, "Opportunity")
-                try:
-                    res: Create = self.sf.sf.Opportunity.create(payload)  # type:ignore
-                    if res["success"]:
-                        self.processed_rows.add(processed_row_id)
-                        # Reporting
-                except SalesforceMalformedRequest as err:
-                    if err.content[0]["errorCode"] == "DUPLICATE_VALUE":
-                        maybe_id = err.content[0]["message"].split("id: ")
-                        if len(maybe_id) == 2:
-                            try:
-                                res = self.sf.sf.Opportunity.update(
-                                    maybe_id[1], payload
-                                )  # type:ignore
-                                if cast(int, res) > 200 and cast(int, res) < 300:
-                                    self.processed_rows.add(processed_row_id)
-                                if cast(int, res) > 399:
-                                    logger.error(res)
-                            except Exception as e:
-                                if getenv("ENV") == "staging":
-                                    logger.error("failed to update after create")
                                     logger.error(payload)
                                     logger.error(e, exc_info=True)
                                     raise e
                                 logger.error(e, exc_info=True)
-
-                    if (
-                        err.content[0]["errorCode"]
-                        == "FIELD_CUSTOM_VALIDATION_EXCEPTION"
-                        and "cancelation" in err.content[0]["message"]
-                    ):
-                        # Canceled stage needs a cancelation reason
-                        try:
-                            payload["Cancelation_Reason_s__c"] = (
-                                "No Reason"  # Default reason
-                            )
-                            res = self.sf.sf.Opportunity.create(payload)  # type:ignore
-                            if cast(int, res) > 200 and cast(int, res) < 300:
-                                self.processed_rows.add(processed_row_id)
-                            if cast(int, res) > 399:
-                                logger.error(res)
-                        except Exception as e:
-                            if getenv("ENV") == "staging":
-                                logger.error(
-                                    "failed to create after cancelation reason"
-                                )
-                                logger.error(payload)
-                                logger.error(e, exc_info=True)
-                                raise e
-                            logger.error(e, exc_info=True)
-                    if getenv("ENV") == "staging":
-                        logger.error(payload)
-                        logger.error("failed to update after create")
+                        if getenv("ENV") == "staging":
+                            logger.error(payload)
+                            logger.error("failed to update after create")
+                            logger.error(err, exc_info=True)
+                            raise err
                         logger.error(err, exc_info=True)
-                        raise err
-                    logger.error(err, exc_info=True)
 
-                except Exception as e:
-                    logger.error("error creating")
-                    if getenv("ENV") == "staging":
-                        logger.error(payload)
-                        logger.error("failed to create")
-                        logger.error(e)
-                        raise e
-                    logger.error(e, exc_info=True)
-                continue
+                    except Exception as e:
+                        logger.error("error creating")
+                        if getenv("ENV") == "staging":
+                            logger.error(payload)
+                            logger.error("failed to create")
+                            logger.error(e)
+                            raise e
+                        logger.error(e, exc_info=True)
+            except Exception as e:
+                if "ID_from_HPC__c" in opp:
+                    logger.error(f"Can't process: {opp['ID_from_HPC__c']}")
+                elif "tempId" in opp:
+                    logger.error(f"Can't process: {opp['tempId']}")
+                else:
+                    logger.error(f"Can't process:\n {' '.join(list(opp.values()))}")
+                logger.error(e, exc_info=True)
 
     async def start_upload_to_salesforce(
         self, data: list[Record_Find_Info], HPC_ID: str
@@ -283,8 +358,8 @@ class Blueprint:
                 "Neeeco output",
                 "json",
             )
-            # grouped_opps = to_account_and_opportunities(processed_row)
-            # run(self.start_upload_to_salesforce(grouped_opps, NEEECO_ACCID))
+            grouped_opps = to_account_and_opportunities(processed_row)
+            run(self.start_upload_to_salesforce(grouped_opps, NEEECO_ACCID))
         except Exception as e:
             logger.error("Error in Neeeco process.")
             logger.error(e, exc_info=True)
@@ -316,9 +391,9 @@ class Blueprint:
                 "json",
             )
             processed_row = processed_row[~processed_row["ID_from_HPC__c"].isna()]
-            # grouped_opps = to_account_and_opportunities(processed_row)
+            grouped_opps = to_account_and_opportunities(processed_row)
 
-            # run(self.start_upload_to_salesforce(grouped_opps, HOMEWORKS_ACCID))
+            run(self.start_upload_to_salesforce(grouped_opps, HOMEWORKS_ACCID))
             # save_output_df(processed_row, "Homeworks")
         except Exception as e:
             logger.error("Error in Homeworks process.")
@@ -352,8 +427,8 @@ class Blueprint:
                 "json",
             )
             processed_row = processed_row[~processed_row["ID_from_HPC__c"].isna()]
-            # grouped_opps = to_account_and_opportunities(processed_row)
-            # run(self.start_upload_to_salesforce(grouped_opps, VHI_ACCID))
+            grouped_opps = to_account_and_opportunities(processed_row)
+            run(self.start_upload_to_salesforce(grouped_opps, VHI_ACCID))
         except Exception as e:
             logger.error("Error in VHI process.")
             logger.error(e, exc_info=True)
@@ -389,8 +464,8 @@ class Blueprint:
                 "Revise Output",
                 "json",
             )
-            # grouped_opps = to_account_and_opportunities(processed_row)
-            # run(self.start_upload_to_salesforce(grouped_opps, REVISE_ACCID))
+            grouped_opps = to_account_and_opportunities(processed_row)
+            run(self.start_upload_to_salesforce(grouped_opps, REVISE_ACCID))
         except Exception as e:
             logger.error("Error in Revise process.")
             logger.error(e, exc_info=True)
@@ -438,26 +513,26 @@ class Blueprint:
     def run(self) -> None:
         logger.info("Running on ENV = %s", getenv("ENV"))
         logger.info("Load Database from SF")
-        # self.sf.get_salesforce_table()
+        self.sf.get_salesforce_table()
         logger.info("Finsihed loading Database from SF")
         logger.info("Start Processing Omnivore")
         logger.info("Start Processing Neeeco")
         self.run_neeeco()
-        # self.save_processed_rows()
-        # self.sf.get_salesforce_table()
+        self.save_processed_rows()
+        self.sf.get_salesforce_table()
         logger.info("Start Processing Homeworks")
         self.run_homeworks()
-        # self.save_processed_rows()
-        # self.sf.get_salesforce_table()
+        self.save_processed_rows()
+        self.sf.get_salesforce_table()
         logger.info("Start Processing VHI")
         self.run_vhi()
-        # self.save_processed_rows()
-        # self.sf.get_salesforce_table()
+        self.save_processed_rows()
+        self.sf.get_salesforce_table()
         logger.info("Start Processing Revise")
         self.run_revise()
-        # self.save_processed_rows()
-        # self.sf.get_salesforce_table(True)
-        # logger.info("Start Processing Cambridge")
-        # self.run_cambridge()
-        # self.save_processed_rows()
+        self.save_processed_rows()
+        self.sf.get_salesforce_table(True)
+        logger.info("Start Processing Cambridge")
+        self.run_cambridge()
+        self.save_processed_rows()
         logger.info("Finished running Omnivore")

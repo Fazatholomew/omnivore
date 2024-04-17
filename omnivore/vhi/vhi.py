@@ -35,7 +35,7 @@ stageMapper = {
 wxMapper = {
     "Wx Completed": "Completed",
     "Wx Scheduled": "Scheduled",
-    "Wx Cancelled": "Cancelled",
+    "Wx Cancelled": "Canceled",
 }
 
 
@@ -83,13 +83,21 @@ def vhi(data: DataFrame) -> DataFrame:
         data["Weatherization_Status__c"] = data["StageName"].map(wxMapper)
         data["StageName"] = data["StageName"].map(stageMapper)
         data.loc[(data["StageName"].isna()), "StageName"] = "Canceled"
-        data["Cancelation_Reason_s__c"] = nan
+        data["Cancelation_Reason_s__c"] = ""
         data.loc[(data["StageName"] == "Canceled"), "Cancelation_Reason_s__c"] = (
             "No Reason"
         )
         data.loc[(data["Lead Vendor"] == "ABCD"), "Cancelation_Reason_s__c"] = (
             "Low Income"
         )
+        data.loc[
+            (
+                data["Health_Safety_Barrier__c"]
+                .fillna("")
+                .str.contains("Barriers Fixed")
+            ),
+            "Health_Safety_Barrier__c",
+        ] = nan
     except Exception as e:
         logger.error("An error occurred: %s", str(e), exc_info=True)
 

@@ -1,16 +1,11 @@
 import numpy as np
 import pandas as pd
-import re
-from omnivore.utils.aux import toSalesforceEmail
-import logging
-import time
-from simple_salesforce.exceptions import (
-    SalesforceMalformedRequest,
-    SalesforceExpiredSession,
-    SalesforceResourceNotFound,
-    SalesforceGeneralError,
-    SalesforceAuthenticationFailed,
+from omnivore.utils.aux import (
+    toSalesforceEmail,
+    toSalesforcePhone,
+    toSalesforceMultiPicklist,
 )
+import logging
 
 
 # Create a logger object
@@ -55,6 +50,10 @@ hsMapper = {
     "CST": "Combustion Safety Failure",
     "Moisture": "Mold/Moisture",
     "Asbestos": "Asbestos",
+    "Damages": "Other",
+    "GMB": "Other",
+    "Other": "Other",
+    "Recessed Lighting": "Other",
 }
 
 # // Health And Safety Statuses
@@ -219,17 +218,9 @@ def neeeco(neeeco_input, neeeco_wx_input):
         neeeco_output["Health & Safety Issue"] = neeeco_output[
             "Health & Safety Issue"
         ].fillna("")
-        neeeco_output["Health_Safety_Barrier__c"] = (
-            neeeco_output["Health & Safety Issue"]
-            .str.replace("K&T", "Knob & Tube (Major)")
-            .str.replace("CST", "Combustion Safety Failure")
-            .str.replace("Moisture", "Mold/Moisture")
-            .str.replace("Asbestos", "Asbestos")
-            .str.replace("", "")
-            .str.split(",")
-            .str.join(";")
-            .astype(str)
-        )
+        neeeco_output["Health_Safety_Barrier__c"] = neeeco_output[
+            "Health & Safety Issue"
+        ].apply(lambda x: toSalesforceMultiPicklist(x, ", ", hsMapper))
     except Exception as e:
         logger.error("An error occurred: %s", str(e), exc_info=True)
 
@@ -347,37 +338,15 @@ def neeeco(neeeco_input, neeeco_wx_input):
         logger.error("An error occurred: %s", str(e), exc_info=True)
 
     try:
-        for i in neeeco_output["Phone"].index:
-            neeeco_output["Phone"][i] = re.sub(
-                r"[^0-9]", "", str(neeeco_output["Phone"][i])
-            )
-            if len(neeeco_output["Phone"][i]) < 10:
-                neeeco_output["Phone"][i] = ""
-            if len(neeeco_output["Phone"][i]) > 10:
-                neeeco_output["Phone"][i] = neeeco_output["Phone"][i][0:10]
+        neeeco_output["Phone"] = neeeco_output["Phone"].apply(toSalesforcePhone)
     except Exception as e:
         logger.error("An error occurred: %s", str(e), exc_info=True)
 
     try:
         neeeco_output["PersonEmail"] = neeeco_output["Email"].apply(toSalesforceEmail)
-    except SalesforceMalformedRequest as e:
-        # Handle the "Malformed Request" exception
-        logger.error("Salesforce Malformed Request:", e)
-    except SalesforceExpiredSession as e:
-        # Handle the "Expired Session" exception
-        logger.error("Salesforce Expired Session:", e)
-    except SalesforceResourceNotFound as e:
-        # Handle the "Resource Not Found" exception
-        logger.error("Salesforce Resource Not Found:", e)
-    except SalesforceGeneralError as e:
-        # Handle the "General Error" exception
-        logger.error("Salesforce General Error:", e)
-    except SalesforceAuthenticationFailed as e:
-        # Handle the "Authentication Failed" exception
-        logger.error("Salesforce Authentication Failed:", e)
     except Exception as e:
         # Handle other unhandled exceptions
-        logger.error("Unexpected Error: with Salesforce", e)
+        logger.error("An error occurred: %s", str(e), exc_info=True)
 
     try:
         neeeco_output["Owner_Renter__c"] = neeeco_output["Owner_Renter__c"].map(

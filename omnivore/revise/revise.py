@@ -48,6 +48,7 @@ column_mapper = {
     "Total Contract Amount (Pre-Rebate)": "Contract_Amount__c",
     "Health and Safety Status": "Health_Safety_Barrier__c",
     "Visit Result": "StageName",
+    "Language": "Prefered_Lan__c",
 }
 
 wx_column_mapper = {
@@ -59,6 +60,17 @@ wx_column_mapper = {
     "Billing City": "City__c",
     "Billing Zip/Postal Code": "Zipcode__c",
     "WX Install Date": "Weatherization_Date_Time__c",
+    "Language": "Prefered_Lan__c",
+}
+
+language_mapper = {
+    "Spanish Required": "Spanish",
+    "English": "English",
+    "Spanish Preferred": "Spanish",
+    "Portuguese Required": "Portuguese",
+    "Language": "Other",
+    "French": "French",
+    "Other - Please Note Below": "Other",
 }
 
 
@@ -91,6 +103,7 @@ def merge_file_revise(hea: DataFrame, wx: DataFrame) -> DataFrame:
             "City__c",
             "Zipcode__c",
             "Weatherization_Date_Time__c",
+            "Prefered_Lan__c",
         ],
         "y",
         "x",
@@ -161,5 +174,6 @@ def revise(data: DataFrame) -> DataFrame:
 
     merged["PersonEmail"] = merged["PersonEmail"].apply(toSalesforceEmail)
     merged["Phone"] = merged["Phone"].apply(toSalesforcePhone)
+    merged["Prefered_Lan__c"] = merged["Prefered_Lan__c"].map(language_mapper)
     merged = merged.drop_duplicates(["ID_from_HPC__c"])
     return merged
