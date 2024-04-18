@@ -92,13 +92,17 @@ class Blueprint:
             )  # type:ignore
         self.load_processed_rows()
         logger.info("Connection to Salesforce is successful")
-        logger.info("Fetching telemetry ID")
-        respose = post(
-            f'{cast(str, getenv("DASHBOARD_URL"))}/telemetry',
-            json={"rahasia": getenv("RAHASIA")},
-        )
-        self.telemetry_id = respose["id"]
-        logger.info(f"Current Telemetry ID: {self.telemetry_id}")
+        try:
+          logger.info("Fetching telemetry ID")
+          respose = post(
+              f'{cast(str, getenv("DASHBOARD_URL"))}/telemetry',
+              json={"rahasia": getenv("RAHASIA")},
+          )
+          self.telemetry_id = respose["id"]
+          logger.info(f"Current Telemetry ID: {self.telemetry_id}")
+        except Exception as err:
+          logger.error("Failed getting Telemetry ID. Omnivore continues without sending Telemetry.")
+          logger.error(err, exc_info=True)
 
     async def async_init(self):
         # Executor for running synchronous tasks in a separate thread
@@ -139,16 +143,17 @@ class Blueprint:
                 self.telemetry_id,
             )
 
-            try:
-                async with session.post(
-                    f'{cast(str, getenv("DASHBOARD_URL"))}/data',
-                    json=current_telemetry_data.__dict__,
-                ) as response:
-                    response = await response.json()
+            if (self.telemetry_id):
+              try:
+                  async with session.post(
+                      f'{cast(str, getenv("DASHBOARD_URL"))}/data',
+                      json=current_telemetry_data.__dict__,
+                  ) as response:
+                      response = await response.json()
 
-            except Exception as err:
-                logger.error(f"Failed to record telemetry for {url}")
-                logger.error(err, exc_info=True)
+              except Exception as err:
+                  logger.error(f"Failed to record data telemetry for {url}")
+                  logger.error(err, exc_info=True)
 
             logger.info(f"Finished fetching {url}")
 
@@ -463,19 +468,21 @@ class Blueprint:
             grouped_opps = to_account_and_opportunities(processed_row)
             run(self.start_upload_to_salesforce(grouped_opps, NEEECO_ACCID))
             self.hpcs[NEEECO_ACCID].end_time = datetime.now()
-
-            try:
-                post(
-                    f'{cast(str, getenv("DASHBOARD_URL"))}/telemetry',
-                    json=self.hpcs[NEEECO_ACCID].__dict__,
-                )
-            except Exception as e:
-                logger.error("Failed to record telemetry for Neeeco")
-                logger.error(e, exc_info=True)
+            if (self.telemetry_id):
+              try:
+                  post(
+                      f'{cast(str, getenv("DASHBOARD_URL"))}/hpc',
+                      json=self.hpcs[NEEECO_ACCID].__dict__,
+                  )
+              except Exception as e:
+                  logger.error("Failed to record hpc telemetry for Neeeco")
+                  logger.error(e, exc_info=True)
 
         except Exception as e:
             logger.error("Error in Neeeco process.")
             logger.error(e, exc_info=True)
+        
+        logger.info('Finish processing Neeeco')
 
     def run_homeworks(self) -> None:
         """
@@ -629,21 +636,21 @@ class Blueprint:
         logger.info("Start Processing Omnivore")
         logger.info("Start Processing Neeeco")
         self.run_neeeco()
-        self.save_processed_rows()
-        self.sf.get_salesforce_table()
-        logger.info("Start Processing Homeworks")
-        self.run_homeworks()
-        self.save_processed_rows()
-        self.sf.get_salesforce_table()
-        logger.info("Start Processing VHI")
-        self.run_vhi()
-        self.save_processed_rows()
-        self.sf.get_salesforce_table()
-        logger.info("Start Processing Revise")
-        self.run_revise()
-        self.save_processed_rows()
-        self.sf.get_salesforce_table(True)
-        logger.info("Start Processing Cambridge")
-        self.run_cambridge()
-        self.save_processed_rows()
+        # self.save_processed_rows()
+        # self.sf.get_salesforce_table()
+        # logger.info("Start Processing Homeworks")
+        # self.run_homeworks()
+        # self.save_processed_rows()
+        # self.sf.get_salesforce_table()
+        # logger.info("Start Processing VHI")
+        # self.run_vhi()
+        # self.save_processed_rows()
+        # self.sf.get_salesforce_table()
+        # logger.info("Start Processing Revise")
+        # self.run_revise()
+        # self.save_processed_rows()
+        # self.sf.get_salesforce_table(True)
+        # logger.info("Start Processing Cambridge")
+        # self.run_cambridge()
+        # self.save_processed_rows()
         logger.info("Finished running Omnivore")
