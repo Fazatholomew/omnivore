@@ -1,13 +1,16 @@
 # -*- encoding: utf-8 -*-
 
 # Flask modules
-from flask import render_template, request, redirect, Flask, Response
+from flask import render_template, request, redirect, Flask, Response, jsonify
 from jinja2 import TemplateNotFound
 
 from dashboard.models import Telemetry, HPC, Data
 from dashboard import db
 
 from sqlalchemy import inspect
+from os import getenv
+
+from uuid import uuid4
 
 
 def init_routes(app: Flask):
@@ -143,7 +146,6 @@ def init_routes(app: Flask):
                 "icon": "ni-cart",
             },
         ]
-        print(type(latest_entry[0].examples))
         return render_template(
             "pages/hpc.html",
             compared_stats=compared_stats,
@@ -167,6 +169,44 @@ def init_routes(app: Flask):
                     yield line  # Convert newlines to HTML breaks
 
         return Response(generate(), mimetype="text/html")
+
+    @app.route("/api/telemetry/", methods=["POST"])
+    def api_telemetry():
+        content_type = request.headers.get("Content-Type")
+        if content_type == "application/json":
+            return jsonify({"id": uuid4().hex})
+        else:
+            return Response("Access Denied", 401)
+
+    @app.route("/api/data/", methods=["POST"])
+    def api_data():
+        content_type = request.headers.get("Content-Type")
+        if content_type == "application/json":
+            json = request.json
+            try:
+                current_data = Data(**json)
+                db.session.add(current_data)
+                db.session.commit()
+                return 200
+            except Exception as e:
+                return Response(e, 500)
+        else:
+            return Response("Access Denied", 401)
+
+    @app.route("/api/hpc/", methods=["POST"])
+    def api_hpc():
+        content_type = request.headers.get("Content-Type")
+        if content_type == "application/json":
+            json = request.json
+            try:
+                current_data = HPC(**json)
+                db.session.add(current_data)
+                db.session.commit()
+                return 200
+            except Exception as e:
+                return Response(e, 500)
+        else:
+            return Response("Access Denied", 401)
 
     @app.template_filter(name="replace_value")
     def replace_value(value, arg):

@@ -137,7 +137,7 @@ class Blueprint:
 
             current_telemetry_data = DataDTO(
                 current_data["hpc"],
-                datetime.fromtimestamp(float(current_data["created_date"])),
+                datetime.fromtimestamp(int(current_data["created_date"])),
                 current_data["source"],
                 len(df),
                 self.telemetry_id,
