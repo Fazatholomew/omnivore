@@ -1,4 +1,3 @@
-# Now you can import the modules using absolute import
 from omnivore.cambridge.cambridge import cambridge
 from omnivore.homeworks.homeworks import homeworks, rename_and_merge
 from omnivore.neeeco.neeeco import neeeco
@@ -31,6 +30,10 @@ from simple_salesforce.exceptions import SalesforceMalformedRequest
 from hashlib import md5
 from dataclasses import dataclass
 from datetime import datetime
+from aiohttp import ClientSession
+from io import StringIO
+from requests import post
+from datetime import datetime
 import logging
 
 logging.basicConfig(
@@ -60,6 +63,7 @@ class HPCDTO:
     acc_updated: int = 0
     opp_created: int = 0
     opp_updated: int = 0
+    telemetry_id: str
 
 
 @dataclass
@@ -69,10 +73,13 @@ class DataDTO:
     created_date: datetime
     source: str
     row_number: int
+    telemetry_id: str
 
 
 class Blueprint:
     def __init__(self) -> None:
+        self.data: dict[str, DataFrame] = {}
+        self.hpcs: dict[str, HPCDTO] = {}
         if getenv("EMAIL") or getenv("ENV") == "test":
             self.sf = SalesforceConnection(
                 username=getenv("EMAIL"),
@@ -83,6 +90,45 @@ class Blueprint:
             )  # type:ignore
         self.load_processed_rows()
         logger.info("Connection to Salesforce is successful")
+        logger.info("Fetching telemetry ID")
+        respose = post(
+            f'{cast(str, getenv("DASHBOARD_URL"))}/telemetry',
+            json={"rahasia": getenv("RAHASIA")},
+        )
+        self.telemetry_id = respose["id"]
+        logger.info(f"Current Telemetry ID: {self.telemetry_id}")
+
+    async def get_data_GAS(self, url: str, hpc: str, session: ClientSession):
+        try:
+            async with session.post(
+                url, json={"rahasia": getenv("RAHASIA")}
+            ) as response:
+                current_data = await response.json()
+
+            df = read_csv(StringIO(current_data["data"]), dtype="object")
+            self.data[url] = df
+
+            current_telemetry_data = DataDTO(
+                hpc,
+                datetime.fromtimestamp(float(current_data["created_date"])),
+                current_data["source"],
+                len(df),
+                self.telemetry_id,
+            )
+
+            try:
+                async with session.post(
+                    f'{cast(str, getenv("DASHBOARD_URL"))}/data',
+                    json=current_telemetry_data.__dict__,
+                ) as response:
+                    response = await response.json()
+
+            except Exception as err:
+                logger.error(f"Failed to record telemetry for {url}")
+                logger.error(err, exc_info=True)
+        except Exception as err:
+            logger.error(f"Failed to fetch {url}")
+            logger.error(err, exc_info=True)
 
     def load_processed_rows(self, fileName="./processed_row") -> None:
         """
@@ -365,8 +411,14 @@ class Blueprint:
         Run neeeco process
         """
         try:
-            raw_data = read_csv(cast(str, getenv("NEEECO_DATA_URL")), dtype="object")
-            wx_data = read_csv(cast(str, getenv("NEEECO_WX_DATA_URL")), dtype="object")
+            raw_data = self.data["NEEECO_DATA_URL"]
+            wx_data = self.data["NEEECO_WX_DATA_URL"]
+            self.hpcs[NEEECO_ACCID] = HPCDTO(
+                NEEECO_ACCID,
+                datetime.now(),
+                telemetry_id=self.telemetry_id,
+                input=len(raw_data),
+            )
             raw_data = raw_data[~raw_data["ID"].isna()]
             sample_input = raw_data.sample(10)
             sample_wx = wx_data[
@@ -378,13 +430,33 @@ class Blueprint:
             processed_row = neeeco(processed_row_removed, wx_data)
             processed_row = processed_row[~processed_row["ID_from_HPC__c"].isna()]
             processed_row = processed_row.drop_duplicates(["ID_from_HPC__c"])
+            self.hpcs[NEEECO_ACCID].output = len(processed_row)
+            sample_output = processed_row[
+                processed_row["ID_from_HPC__c"].isin(sample_input["ID"])
+            ]
             save_output_df(
-                processed_row[processed_row["ID_from_HPC__c"].isin(sample_input["ID"])],
+                sample_output,
                 "Neeeco output",
                 "json",
             )
+            self.hpcs[NEEECO_ACCID].examples = {
+                "Neeeco Input": sample_input,
+                "Neeeco Wx Input": sample_wx,
+                "Neeeco output": sample_output,
+            }
             grouped_opps = to_account_and_opportunities(processed_row)
             run(self.start_upload_to_salesforce(grouped_opps, NEEECO_ACCID))
+            self.hpcs[NEEECO_ACCID].end_time = datetime.now()
+
+            try:
+                post(
+                    f'{cast(str, getenv("DASHBOARD_URL"))}/telemetry',
+                    json=self.hpcs[NEEECO_ACCID].__dict__,
+                )
+            except Exception as e:
+                logger.error("Failed to record telemetry for Neeeco")
+                logger.error(e, exc_info=True)
+
         except Exception as e:
             logger.error("Error in Neeeco process.")
             logger.error(e, exc_info=True)

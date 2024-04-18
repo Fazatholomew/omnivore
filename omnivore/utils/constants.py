@@ -226,3 +226,6 @@ CFP_TOWS = {
 }
 # Salesforce Format
 DATETIME_SALESFORCE = "%Y-%m-%dT%H:%M:%S.000-07:00"
+
+# HPC .env data URL
+HPC_DATA_URLS = ["NEEECO_DATA_URL", "NEEECO_WX_DATA_URL"]
