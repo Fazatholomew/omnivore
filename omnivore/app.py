@@ -29,21 +29,46 @@ from pandas import DataFrame, read_csv
 from asyncio import run, gather, get_event_loop
 from simple_salesforce.exceptions import SalesforceMalformedRequest
 from hashlib import md5
+from dataclasses import dataclass
+from datetime import datetime
 import logging
 
 logging.basicConfig(
     level=logging.DEBUG,
-    format="%(asctime)s - %(levelname)s - %(message)s",
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     filename="omnivore.log",
     filemode="a",
 )
 
-fh = logging.FileHandler("omnivore.log")
-fh.setLevel(logging.INFO)  # Or another level
+logging.FileHandler("omnivore.log")
 
 
 # Create a logger object
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class HPCDTO:
+    # Class to keep track of hpc telemetry
+    name: str
+    start_time: datetime
+    end_time: datetime = None
+    examples: dict = {}
+    input: int = 0
+    output: int = 0
+    acc_created: int = 0
+    acc_updated: int = 0
+    opp_created: int = 0
+    opp_updated: int = 0
+
+
+@dataclass
+class DataDTO:
+    # Class to keep track of data telemetry
+    hpc_name: str
+    created_date: datetime
+    source: str
+    row_number: int
 
 
 class Blueprint:
