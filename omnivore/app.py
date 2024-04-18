@@ -20,12 +20,14 @@ from omnivore.utils.constants import (
     REVISE_ACCID,
     CAMBRIDGE_ACCID,
     CAMBRIDGE_OPP_ID,
+    HPC_DATA_URLS,
+    PERSON_ACCOUNT_ID
 )
 from os import getenv
 from pickle import load, dump
 from typing import cast
 from pandas import DataFrame, read_csv
-from asyncio import run, gather, get_event_loop
+from asyncio import run, gather, get_event_loop, wait, ALL_COMPLETED
 from simple_salesforce.exceptions import SalesforceMalformedRequest
 from hashlib import md5
 from dataclasses import dataclass
@@ -33,7 +35,7 @@ from datetime import datetime
 from aiohttp import ClientSession
 from io import StringIO
 from requests import post
-from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor
 import logging
 
 logging.basicConfig(
@@ -98,8 +100,29 @@ class Blueprint:
         self.telemetry_id = respose["id"]
         logger.info(f"Current Telemetry ID: {self.telemetry_id}")
 
-    async def get_data_GAS(self, url: str, hpc: str, session: ClientSession):
+    async def async_init(self):
+        # Executor for running synchronous tasks in a separate thread
+        executor = ThreadPoolExecutor(max_workers=1)
+
+        # Asynchronous tasks
+        async with ClientSession() as session:
+            fetch_tasks = [
+                self.get_data_GAS(current_url, session) for current_url in HPC_DATA_URLS
+            ]
+
+            # Synchronous task packaged for async execution
+            sync_task = get_event_loop().run_in_executor(
+                executor, self.get_salesforce_table
+            )
+
+            # Gather all tasks (both sync and async)
+            completed, _ = await wait(
+                fetch_tasks + [sync_task], return_when=ALL_COMPLETED
+            )
+
+    async def get_data_GAS(self, url: str, session: ClientSession):
         try:
+            logger.info(f"Fetching {url}")
             async with session.post(
                 url, json={"rahasia": getenv("RAHASIA")}
             ) as response:
@@ -109,7 +132,7 @@ class Blueprint:
             self.data[url] = df
 
             current_telemetry_data = DataDTO(
-                hpc,
+                current_data["hpc"],
                 datetime.fromtimestamp(float(current_data["created_date"])),
                 current_data["source"],
                 len(df),
@@ -126,6 +149,9 @@ class Blueprint:
             except Exception as err:
                 logger.error(f"Failed to record telemetry for {url}")
                 logger.error(err, exc_info=True)
+
+            logger.info(f"Finished fetching {url}")
+
         except Exception as err:
             logger.error(f"Failed to fetch {url}")
             logger.error(err, exc_info=True)
@@ -165,35 +191,64 @@ class Blueprint:
             return
         found_records = self.sf.find_records(data)
         acc_payload = to_sf_payload(data["acc"])
-        try:
-            res = self.sf.sf.Account.update(found_records[0]["AccountId"], acc_payload)
-            if cast(int, res) > 399:
-                logger.error(res)
-            logger.debug(res)
-        except SalesforceMalformedRequest as err:
-            if err.content[0]["errorCode"] == "DUPLICATE_VALUE":
-                maybe_id = err.content[0]["message"].split("id: ")
-                if len(maybe_id) == 2:
-                    try:
-                        res = self.sf.sf.Account.update(
-                            maybe_id[1], acc_payload
-                        )  # type:ignore
-                        if cast(int, res) > 399:
-                            logger.error(res)
-                    except Exception as e:
-                        if getenv("ENV") == "staging":
-                            logger.error("failed to update after create")
-                            logger.error(acc_payload)
+        if "AccountId" not in found_records[0] or len(found_records[0]) < 3:
+            # Account not found create a new account
+            acc_payload["RecordTypeId"] = PERSON_ACCOUNT_ID
+            # Final check on required field of lastname
+            if "LastName" not in acc_payload:
+                if "FirstName" in acc_payload:
+                    acc_payload["LastName"] = acc_payload["FirstName"]
+                else:
+                    acc_payload["LastName"] = "Unknown"
+            try:
+                res: Create = cast(
+                    Create, self.sf.Account.create(to_sf_payload(acc_payload))
+                )
+                if res["success"]:
+                    for opp in found_records["opps"]:
+                        opp["AccountId"] = res["id"]
+                    self.hpcs[HPC_ID].acc_created += 1
+                if len(res["errors"]) > 0:
+                    for error in res["errors"]:
+                        logger.error(error)
+                        return
+            except SalesforceMalformedRequest as e:
+                if e.content[0]["errorCode"] == "DUPLICATES_DETECTED":
+                    current_id = e.content[0]["duplicateResult"]["matchResults"][0][
+                        "matchRecords"
+                    ][0]["record"]["Id"]
+                    for opp in found_records["opps"]:
+                        opp["AccountId"] = current_id
+                else:
+                    logger.error(f"Failed to create account {acc_payload}")
+                    logger.error(e, exc_info=True)
+        else:
+            try:
+                res = self.sf.sf.Account.update(
+                    found_records[0]["AccountId"], acc_payload
+                )
+                if cast(int, res) > 399:
+                    logger.error(res)
+                else:
+                  self.hpcs[HPC_ID].acc_updated += 1
+            except SalesforceMalformedRequest as err:
+                if err.content[0]["errorCode"] == "DUPLICATE_VALUE":
+                    maybe_id = err.content[0]["message"].split("id: ")
+                    if len(maybe_id) == 2:
+                        try:
+                            res = self.sf.sf.Account.update(
+                                maybe_id[1], acc_payload
+                            )  # type:ignore
+                            if cast(int, res) > 399:
+                                logger.error(res)
+                            else:
+                                self.hpcs[HPC_ID].acc_updated += 1
+                        except Exception as e:
+                            logger.error(f"Failed to update account {found_records[0]["AccountId"]}")
                             logger.error(e, exc_info=True)
-                            raise e
-                        logger.error(e, exc_info=True)
-        except Exception as err:
-            if getenv("ENV") == "staging":
-                logger.error("failed to update")
-                logger.error(data["acc"])
+            except Exception as err:
+                logger.error(f"Failed to update account {found_records[0]["AccountId"]}")
                 logger.error(err, exc_info=True)
-                raise err
-            logger.error(err, exc_info=True)
         for opp in found_records:
             try:
                 # Remove and keep tempId for processed row
@@ -224,7 +279,8 @@ class Blueprint:
                                 # Reporting
                             if cast(int, res) > 399:
                                 logger.error(res)
-                            logger.debug(res)
+                            else:
+                                self.hpcs[HPC_ID].opp_updated += 1
                         except SalesforceMalformedRequest as err:
                             if (
                                 err.content[0]["errorCode"]
@@ -241,6 +297,7 @@ class Blueprint:
                                     )  # type:ignore
                                     if cast(int, res) > 200 and cast(int, res) < 300:
                                         self.processed_rows.add(processed_row_id)
+                                        self.hpcs[HPC_ID].opp_updated += 1
                                     if cast(int, res) > 399:
                                         logger.error(res)
                                 except SalesforceMalformedRequest as err:
@@ -260,22 +317,12 @@ class Blueprint:
                                                     self.processed_rows.add(
                                                         processed_row_id
                                                     )
+                                                    self.hpcs[HPC_ID].opp_updated += 1
                                                 if cast(int, res) > 399:
                                                     logger.error(res)
                                             except Exception as e:
-                                                if getenv("ENV") == "staging":
-                                                    logger.error(
-                                                        "failed to update after create"
-                                                    )
-                                                    logger.error(payload)
-                                                    logger.error(e, exc_info=True)
-                                                    raise e
                                                 logger.error(e, exc_info=True)
                                 except Exception as e:
-                                    if getenv("ENV") == "staging":
-                                        logger.error(payload)
-                                        logger.error(e, exc_info=True)
-                                        raise e
                                     logger.error(
                                         "failed to create after cancelation reason"
                                     )
@@ -292,25 +339,14 @@ class Blueprint:
                                             and cast(int, res) < 300
                                         ):
                                             self.processed_rows.add(processed_row_id)
+                                            self.hpcs[HPC_ID].opp_updated += 1
                                         if cast(int, res) > 399:
                                             logger.error(res)
                                     except Exception as e:
-                                        if getenv("ENV") == "staging":
-                                            logger.error(
-                                                "failed to update after create"
-                                            )
-                                            logger.error(payload)
-                                            logger.error(e, exc_info=True)
-                                            raise e
                                         logger.error(e, exc_info=True)
                             else:
                                 logger.error(err, exc_info=True)
                         except Exception as err:
-                            if getenv("ENV") == "staging":
-                                logger.error("failed to update")
-                                logger.error(payload)
-                                logger.error(err, exc_info=True)
-                                raise err
                             logger.error(err, exc_info=True)
                             continue
                 else:
@@ -321,7 +357,7 @@ class Blueprint:
                         )  # type:ignore
                         if res["success"]:
                             self.processed_rows.add(processed_row_id)
-                            # Reporting
+                            self.hpcs[HPC_ID].opp_created += 1
                     except SalesforceMalformedRequest as err:
                         if err.content[0]["errorCode"] == "DUPLICATE_VALUE":
                             maybe_id = err.content[0]["message"].split("id: ")
@@ -332,17 +368,13 @@ class Blueprint:
                                     )  # type:ignore
                                     if cast(int, res) > 200 and cast(int, res) < 300:
                                         self.processed_rows.add(processed_row_id)
+                                        self.hpcs[HPC_ID].opp_updated += 1
                                     if cast(int, res) > 399:
                                         logger.error(res)
                                 except Exception as e:
-                                    if getenv("ENV") == "staging":
-                                        logger.error("failed to update after create")
-                                        logger.error(payload)
-                                        logger.error(e, exc_info=True)
-                                        raise e
                                     logger.error(e, exc_info=True)
 
-                        if (
+                        elif (
                             err.content[0]["errorCode"]
                             == "FIELD_CUSTOM_VALIDATION_EXCEPTION"
                             and "cancelation" in err.content[0]["message"]
@@ -357,31 +389,15 @@ class Blueprint:
                                 )  # type:ignore
                                 if cast(int, res) > 200 and cast(int, res) < 300:
                                     self.processed_rows.add(processed_row_id)
+                                    self.hpcs[HPC_ID].opp_created += 1
                                 if cast(int, res) > 399:
                                     logger.error(res)
                             except Exception as e:
-                                if getenv("ENV") == "staging":
-                                    logger.error(
-                                        "failed to create after cancelation reason"
-                                    )
-                                    logger.error(payload)
-                                    logger.error(e, exc_info=True)
-                                    raise e
                                 logger.error(e, exc_info=True)
-                        if getenv("ENV") == "staging":
-                            logger.error(payload)
-                            logger.error("failed to update after create")
-                            logger.error(err, exc_info=True)
-                            raise err
-                        logger.error(err, exc_info=True)
-
+                        else:
+                          logger.error(err, exc_info=True)
                     except Exception as e:
                         logger.error("error creating")
-                        if getenv("ENV") == "staging":
-                            logger.error(payload)
-                            logger.error("failed to create")
-                            logger.error(e)
-                            raise e
                         logger.error(e, exc_info=True)
             except Exception as e:
                 if "ID_from_HPC__c" in opp:
@@ -609,9 +625,7 @@ class Blueprint:
 
     def run(self) -> None:
         logger.info("Running on ENV = %s", getenv("ENV"))
-        logger.info("Load Database from SF")
-        self.sf.get_salesforce_table()
-        logger.info("Finsihed loading Database from SF")
+        run(self.async_init())
         logger.info("Start Processing Omnivore")
         logger.info("Start Processing Neeeco")
         self.run_neeeco()

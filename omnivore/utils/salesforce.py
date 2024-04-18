@@ -57,6 +57,7 @@ class SalesforceConnection:
         """
         Create multiple look up table that reflect current SF Database
         """
+        logger.info("Load Database from SF")
         # Querying all Opportunities
         res: Query = cast(
             Query,
@@ -138,6 +139,8 @@ class SalesforceConnection:
             if len(cleaned_phone) > 0:
                 self.phone_to_accId[cleaned_phone] = account["Id"]
             self.accId_to_acc[account["Id"]] = account
+
+        logger.info("Finsihed loading Database from SF")
 
     def find_records(self, _input_records: Record_Find_Info) -> list[Opportunity]:
         """
@@ -260,36 +263,6 @@ class SalesforceConnection:
             # Account Not found break
             break
         if len(found_opps) == 0:
-            # Account not found create a new account
-            payload = to_sf_payload(input_records["acc"])
-            payload["RecordTypeId"] = PERSON_ACCOUNT_ID
-            # Final check on required field of lastname
-            if "LastName" not in payload:
-                if "FirstName" not in payload:
-                    payload["LastName"] = "Unknown"
-                payload["LastName"] = payload["FirstName"]
-            try:
-                res: Create = cast(
-                    Create, self.sf.Account.create(to_sf_payload(payload))
-                )
-                if res["success"]:
-                    for opp in input_records["opps"]:
-                        opp["AccountId"] = res["id"]
-                        input_records["acc"]["Id"] = res["id"]
-                        found_opps.append(opp)
-                if len(res["errors"]) > 0:
-                    for error in res["errors"]:
-                        logger.error(error)
-            except SalesforceMalformedRequest as e:
-                if e.content[0]["errorCode"] == "DUPLICATES_DETECTED":
-                    current_id = e.content[0]["duplicateResult"]["matchResults"][0][
-                        "matchRecords"
-                    ][0]["record"]["Id"]
-                    for opp in input_records["opps"]:
-                        opp["AccountId"] = current_id
-                        input_records["acc"]["Id"] = current_id
-                        found_opps.append(opp)
-                else:
-                    raise e
-            return found_opps
+            for opp in input_records["opps"]:
+                found_opps.append(opp)
         return found_opps
