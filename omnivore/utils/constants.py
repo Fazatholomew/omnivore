@@ -229,3 +229,11 @@ DATETIME_SALESFORCE = "%Y-%m-%dT%H:%M:%S.000-07:00"
 
 # HPC .env data URL
 HPC_DATA_URLS = ["NEEECO_DATA_URL", "NEEECO_WX_DATA_URL"]
+
+# HPC name from ACC ID
+HPCIDTOHPCNAME = {
+    NEEECO_ACCID: "Neeeco",
+    HOMEWORKS_ACCID: "Homeworks",
+    VHI_ACCID: "Valley Home Insulation",
+    REVISE_ACCID: "Revise",
+}

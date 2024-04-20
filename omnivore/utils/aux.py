@@ -551,3 +551,14 @@ def save_output_df(data: DataFrame, name: str = "General", file_type: str = "csv
         data.to_json(
             f"Debug {name}.json", index=False, orient="records", date_format="iso"
         )
+
+
+def instance_to_dict(input: Any) -> dict:
+    result = {}
+    for key, value in input.__dict__.items():
+        if isinstance(value, datetime):
+            result[key] = value.timestamp()
+        else:
+            result[key] = value
+
+    return result

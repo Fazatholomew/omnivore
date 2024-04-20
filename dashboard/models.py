@@ -1,8 +1,11 @@
 from datetime import datetime
+from uuid import uuid4
+from typing import Optional
 
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Integer, String, DateTime, JSON, ForeignKey
 from sqlalchemy.orm import (
+    DeclarativeBase,
     Mapped,
     mapped_column,
     relationship,
@@ -10,12 +13,20 @@ from sqlalchemy.orm import (
 )
 from dataclasses import dataclass
 
-db = SQLAlchemy()
+
+class Base(DeclarativeBase):
+    pass
+
+
+db = SQLAlchemy(model_class=Base)
 
 
 @dataclass
-class Telemetry(db.Model):
-    id: Mapped[String] = mapped_column(String, primary_key=True, unique=True)
+class Telemetry(Base):
+    __tablename__ = "telemetry"
+    id: Mapped[String] = mapped_column(
+        String, primary_key=True, unique=True, default=lambda: uuid4().hex
+    )
     created_date: Mapped[DateTime] = mapped_column(DateTime, default=datetime.utcnow)
 
     hpcs: Mapped[list["HPC"]] = relationship("HPC")
@@ -45,19 +56,20 @@ class Telemetry(db.Model):
 
 
 @dataclass
-class HPC(db.Model):
+class HPC(Base):
+    __tablename__ = "hpc"
     id: Mapped[Integer] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[String] = mapped_column(String)
     created_date: Mapped[DateTime] = mapped_column(DateTime, default=datetime.utcnow)
     start_time: Mapped[DateTime] = mapped_column(DateTime)
-    end_time: Mapped[DateTime] = mapped_column(DateTime)
-    examples: Mapped[JSON] = mapped_column(JSON)
-    input: Mapped[Integer] = mapped_column(Integer)
-    output: Mapped[Integer] = mapped_column(Integer)
-    acc_created: Mapped[Integer] = mapped_column(Integer)
-    acc_updated: Mapped[Integer] = mapped_column(Integer)
-    opp_created: Mapped[Integer] = mapped_column(Integer)
-    opp_updated: Mapped[Integer] = mapped_column(Integer)
+    end_time: Mapped[Optional[DateTime]] = mapped_column(DateTime, nullable=True)
+    examples: Mapped[Optional[JSON]] = mapped_column(JSON, nullable=True)
+    input: Mapped[Optional[Integer]] = mapped_column(Integer, nullable=True)
+    output: Mapped[Optional[Integer]] = mapped_column(Integer, nullable=True)
+    acc_created: Mapped[Integer] = mapped_column(Integer, default=0)
+    acc_updated: Mapped[Integer] = mapped_column(Integer, default=0)
+    opp_created: Mapped[Integer] = mapped_column(Integer, default=0)
+    opp_updated: Mapped[Integer] = mapped_column(Integer, default=0)
 
     @property
     def row_errors(self) -> Integer:
@@ -71,7 +83,8 @@ class HPC(db.Model):
 
 
 @dataclass
-class Data(db.Model):
+class Data(Base):
+    __tablename__ = "data"
     id: Mapped[Integer] = mapped_column(Integer, primary_key=True, autoincrement=True)
     hpc_name: Mapped[String] = mapped_column(String)
     created_date: Mapped[DateTime] = mapped_column(DateTime)

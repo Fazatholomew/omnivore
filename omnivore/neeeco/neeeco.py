@@ -389,12 +389,4 @@ def neeeco(neeeco_input, neeeco_wx_input):
         ],
     ]
 
-    # Calculate rows added in the file
-    new = len(neeeco_output) - len(neeeco_input)
-    logger.info(f"Number of new rows added in Neeeco : {new}")
-
-    # Calculate rows updated in the file
-    update = len(neeeco_output) - new
-    logger.info(f"Number of rows updated in Neeeco : {update}")
-
     return neeeco_output

@@ -21,21 +21,26 @@ from omnivore.utils.constants import (
     CAMBRIDGE_ACCID,
     CAMBRIDGE_OPP_ID,
     HPC_DATA_URLS,
-    PERSON_ACCOUNT_ID
+    PERSON_ACCOUNT_ID,
+    HPCIDTOHPCNAME
 )
+from omnivore.utils.database import init_db
+
+from dashboard.models import Telemetry, HPC, Data
+
 from os import getenv
 from pickle import load, dump
 from typing import cast
 from pandas import DataFrame, read_csv
-from asyncio import run, gather, get_event_loop, wait, ALL_COMPLETED
+from asyncio import run, gather, get_event_loop
 from simple_salesforce.exceptions import SalesforceMalformedRequest
 from hashlib import md5
-from dataclasses import dataclass
 from datetime import datetime
 from aiohttp import ClientSession
 from io import StringIO
 from requests import post
 from concurrent.futures import ThreadPoolExecutor
+
 import logging
 
 logging.basicConfig(
@@ -51,37 +56,11 @@ logging.FileHandler("omnivore.log")
 # Create a logger object
 logger = logging.getLogger(__name__)
 
-
-@dataclass
-class HPCDTO:
-    # Class to keep track of hpc telemetry
-    name: str
-    start_time: datetime
-    end_time: datetime = None
-    examples: dict = {}
-    input: int = 0
-    output: int = 0
-    acc_created: int = 0
-    acc_updated: int = 0
-    opp_created: int = 0
-    opp_updated: int = 0
-    telemetry_id: str
-
-
-@dataclass
-class DataDTO:
-    # Class to keep track of data telemetry
-    hpc_name: str
-    created_date: datetime
-    source: str
-    row_number: int
-    telemetry_id: str
-
-
 class Blueprint:
     def __init__(self) -> None:
+        self.db = init_db()
         self.data: dict[str, DataFrame] = {}
-        self.hpcs: dict[str, HPCDTO] = {}
+        self.hpcs: dict[str, HPC] = {}
         if getenv("EMAIL") or getenv("ENV") == "test":
             self.sf = SalesforceConnection(
                 username=getenv("EMAIL"),
@@ -94,11 +73,10 @@ class Blueprint:
         logger.info("Connection to Salesforce is successful")
         try:
           logger.info("Fetching telemetry ID")
-          respose = post(
-              f'{cast(str, getenv("DASHBOARD_URL"))}/telemetry',
-              json={"rahasia": getenv("RAHASIA")},
-          )
-          self.telemetry_id = respose["id"]
+          current_telemetry = Telemetry()
+          self.db.add(current_telemetry)
+          self.db.commit()
+          self.telemetry_id = current_telemetry.id
           logger.info(f"Current Telemetry ID: {self.telemetry_id}")
         except Exception as err:
           logger.error("Failed getting Telemetry ID. Omnivore continues without sending Telemetry.")
@@ -116,41 +94,38 @@ class Blueprint:
 
             # Synchronous task packaged for async execution
             sync_task = get_event_loop().run_in_executor(
-                executor, self.get_salesforce_table
+                executor, self.sf.get_salesforce_table
             )
 
+            await gather(*(fetch_tasks + [sync_task]))
+
             # Gather all tasks (both sync and async)
-            completed, _ = await wait(
-                fetch_tasks + [sync_task], return_when=ALL_COMPLETED
-            )
+            # completed, _ = await wait(
+            #     fetch_tasks + [sync_task], return_when=ALL_COMPLETED
+            # )
 
     async def get_data_GAS(self, url: str, session: ClientSession):
         try:
             logger.info(f"Fetching {url}")
             async with session.post(
-                url, json={"rahasia": getenv("RAHASIA")}
+                getenv(url), json={"rahasia": getenv("RAHASIA")}
             ) as response:
                 current_data = await response.json()
 
             df = read_csv(StringIO(current_data["data"]), dtype="object")
             self.data[url] = df
 
-            current_telemetry_data = DataDTO(
-                current_data["hpc"],
-                datetime.fromtimestamp(int(current_data["created_date"])),
-                current_data["source"],
-                len(df),
-                self.telemetry_id,
-            )
-
             if (self.telemetry_id):
+              current_telemetry_data = Data(
+                  hpc_name=current_data["hpc"],
+                  created_date=datetime.fromtimestamp(int(current_data["created_date"])),
+                  source=current_data["source"],
+                  row_number=len(df),
+                  telemetry_id=self.telemetry_id,
+              )
               try:
-                  async with session.post(
-                      f'{cast(str, getenv("DASHBOARD_URL"))}/data',
-                      json=current_telemetry_data.__dict__,
-                  ) as response:
-                      response = await response.json()
-
+                  self.db.add(current_telemetry_data)
+                  self.db.commit()
               except Exception as err:
                   logger.error(f"Failed to record data telemetry for {url}")
                   logger.error(err, exc_info=True)
@@ -160,6 +135,10 @@ class Blueprint:
         except Exception as err:
             logger.error(f"Failed to fetch {url}")
             logger.error(err, exc_info=True)
+
+    def post_hpc_telemetry(self, hpc_id: str):
+        self.db.add(self.hpcs[hpc_id])
+        self.db.commit()
 
     def load_processed_rows(self, fileName="./processed_row") -> None:
         """
@@ -207,10 +186,10 @@ class Blueprint:
                     acc_payload["LastName"] = "Unknown"
             try:
                 res: Create = cast(
-                    Create, self.sf.Account.create(to_sf_payload(acc_payload))
+                    Create, self.sf.sf.Account.create(to_sf_payload(acc_payload))
                 )
                 if res["success"]:
-                    for opp in found_records["opps"]:
+                    for opp in found_records:
                         opp["AccountId"] = res["id"]
                     self.hpcs[HPC_ID].acc_created += 1
                 if len(res["errors"]) > 0:
@@ -222,7 +201,7 @@ class Blueprint:
                     current_id = e.content[0]["duplicateResult"]["matchResults"][0][
                         "matchRecords"
                     ][0]["record"]["Id"]
-                    for opp in found_records["opps"]:
+                    for opp in found_records:
                         opp["AccountId"] = current_id
                 else:
                     logger.error(f"Failed to create account {acc_payload}")
@@ -434,12 +413,17 @@ class Blueprint:
         try:
             raw_data = self.data["NEEECO_DATA_URL"]
             wx_data = self.data["NEEECO_WX_DATA_URL"]
-            self.hpcs[NEEECO_ACCID] = HPCDTO(
-                NEEECO_ACCID,
-                datetime.now(),
-                telemetry_id=self.telemetry_id,
-                input=len(raw_data),
-            )
+            if (self.telemetry_id):
+              self.hpcs[NEEECO_ACCID] = HPC(
+                  name=HPCIDTOHPCNAME[NEEECO_ACCID],
+                  start_time=datetime.now(),
+                  telemetry_id=self.telemetry_id,
+                  input=len(raw_data),
+                  acc_created=0,
+                  acc_updated=0,
+                  opp_created=0,
+                  opp_updated=0,
+              )
             raw_data = raw_data[~raw_data["ID"].isna()]
             sample_input = raw_data.sample(10)
             sample_wx = wx_data[
@@ -461,23 +445,14 @@ class Blueprint:
                 "json",
             )
             self.hpcs[NEEECO_ACCID].examples = {
-                "Neeeco Input": sample_input,
-                "Neeeco Wx Input": sample_wx,
-                "Neeeco output": sample_output,
+                "Neeeco Input": sample_input.to_dict('records'),
+                "Neeeco Wx Input": sample_input.to_dict('records'),
+                "Neeeco output": sample_input.to_dict('records'),
             }
             grouped_opps = to_account_and_opportunities(processed_row)
             run(self.start_upload_to_salesforce(grouped_opps, NEEECO_ACCID))
             self.hpcs[NEEECO_ACCID].end_time = datetime.now()
-            if (self.telemetry_id):
-              try:
-                  post(
-                      f'{cast(str, getenv("DASHBOARD_URL"))}/hpc',
-                      json=self.hpcs[NEEECO_ACCID].__dict__,
-                  )
-              except Exception as e:
-                  logger.error("Failed to record hpc telemetry for Neeeco")
-                  logger.error(e, exc_info=True)
-
+            self.post_hpc_telemetry(NEEECO_ACCID)
         except Exception as e:
             logger.error("Error in Neeeco process.")
             logger.error(e, exc_info=True)
@@ -636,7 +611,7 @@ class Blueprint:
         logger.info("Start Processing Omnivore")
         logger.info("Start Processing Neeeco")
         self.run_neeeco()
-        # self.save_processed_rows()
+        self.save_processed_rows()
         # self.sf.get_salesforce_table()
         # logger.info("Start Processing Homeworks")
         # self.run_homeworks()
