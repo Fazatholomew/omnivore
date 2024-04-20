@@ -8,7 +8,7 @@ from .constants import (
     DATETIME_SALESFORCE,
 )
 from urllib.parse import unquote_plus
-from typing import TypedDict, Dict, Any, Callable, Iterable
+from typing import TypedDict, Dict, Any, Callable
 from usaddress import tag, RepeatedLabelError
 from pandas import DataFrame, isna, Series, to_datetime
 from pandas.api.types import is_datetime64_any_dtype
@@ -288,9 +288,15 @@ def to_account_and_opportunities(input: DataFrame) -> list[Record_Find_Info]:
                         else "Unknown"
                     )
                     full_name.append(last_name)
-
+                full_name = [
+                    current_item
+                    for current_item in full_name
+                    if not isna(current_item) and len(current_item) > 0
+                ]
+                if len(full_name) == 0:
+                    full_name.append("Unknown")
                 # Name for Opp
-                current_opp["Name"] = " ".join(full_name)
+                current_opp["Name"] = " ".join([full_name])
 
                 # Rest of data
                 for column in OPPORTUNITY_COLUMNS + CAMBRIDGE_OPPORTUNITY_COLUMNS:

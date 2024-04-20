@@ -17,7 +17,7 @@ def init_routes(app: Flask):
     def index():
         latest_entry = (
             db.session.query(Telemetry)
-            .order_by(Telemetry.created_date.asc())
+            .order_by(Telemetry.created_date.desc())
             .limit(2)
             .all()
         )
@@ -25,7 +25,6 @@ def init_routes(app: Flask):
         last_run = (
             latest_entry[0].created_date - latest_entry[1].created_date
         ).total_seconds()
-
         compared_stats = [
             {
                 "title": "Last Run",
@@ -103,7 +102,7 @@ def init_routes(app: Flask):
         latest_entry = (
             db.session.query(HPC)
             .filter_by(name=hpc)
-            .order_by(HPC.created_date.asc())
+            .order_by(HPC.created_date.desc())
             .limit(2)
             .all()
         )
