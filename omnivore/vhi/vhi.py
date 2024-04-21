@@ -91,11 +91,7 @@ def vhi(data: DataFrame) -> DataFrame:
             "Low Income"
         )
         data.loc[
-            (
-                data["Health_Safety_Barrier__c"]
-                .fillna("")
-                .str.contains("Barriers Fixed")
-            ),
+            (data["Health_Safety_Barrier__c"].fillna("").str.contains("Fixed")),
             "Health_Safety_Barrier__c",
         ] = nan
     except Exception as e:

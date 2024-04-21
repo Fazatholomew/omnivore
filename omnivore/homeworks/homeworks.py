@@ -1,4 +1,3 @@
-import re
 import pandas as pd
 import numpy as np
 import logging
@@ -22,6 +21,13 @@ hsMapper = {
     "Asbestos": "Asbestos",
     "Vermiculite": "Vermiculite",
     "Mold": "Mold/Moisture",
+    "Failed CST High CO": "Combustion Safety Failure",
+    "Failed CST High CO Detail": "Combustion Safety Failure",
+    "Failed CST": "Combustion Safety Failure",
+    "Failed CST Spillage": "Combustion Safety Failure",
+    "Failed CST Oven/Dryer": "Combustion Safety Failure",
+    "Structural Limitations": "Other",
+    "Inaccessible Dirt Crawlspace": "Other",
 }
 
 
@@ -32,7 +38,7 @@ def combine_hs(row: pd.Series) -> str | float:
     them in one column.
     """
     try:
-        values = [value for key, value in hsMapper.items() if row[key] == "1"]
+        values = set([value for key, value in hsMapper.items() if row[key] == "1"])
         return ";".join(values) or np.nan
     except Exception as e:
         logger.error("An error occurred: %s", str(e), exc_info=True)

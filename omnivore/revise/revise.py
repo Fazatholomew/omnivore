@@ -20,6 +20,11 @@ hs_mapper = {
     "Untreatable Dirt Floor": "Dirt Floor Basement",
     "Unvented Kitchen Fan": "Unvented Bath Fan",
     "Vermiculite": "Vermiculite",
+    "Inadequate Attic Ventilation": "",
+    "No Health and Safety": "",
+    "Roof Leak": "",
+    "Structural": "",
+    "Wet Basement": "",
 }
 
 stage_mapper = {

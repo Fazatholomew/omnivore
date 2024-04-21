@@ -4,7 +4,7 @@
 from flask import render_template, Flask, Response
 from jinja2 import TemplateNotFound
 
-from dashboard.models import Telemetry, HPC
+from dashboard.models import Telemetry, HPC, Data
 from dashboard import db
 
 from sqlalchemy import inspect
@@ -19,6 +19,13 @@ def init_routes(app: Flask):
             db.session.query(Telemetry)
             .order_by(Telemetry.created_date.desc())
             .limit(2)
+            .all()
+        )
+
+        data = (
+            db.session.query(Data)
+            .filter_by(telemetry_id=latest_entry[0].id)
+            .order_by(Data.created_date.desc())
             .all()
         )
 
@@ -80,7 +87,7 @@ def init_routes(app: Flask):
                 )
                 for c in inspect(current_data).mapper.column_attrs
             }
-            for current_data in latest_entry[0].data.values()
+            for current_data in data
         ]
         try:
             return render_template(

@@ -71,7 +71,9 @@ owner_renter_mapper = {
 }
 
 
-def neeeco(neeeco_input, neeeco_wx_input):
+def merge_neeeco(
+    neeeco_input: pd.DataFrame, neeeco_wx_input: pd.DataFrame
+) -> pd.DataFrame:
     try:
         # Merge the input dataframes and rename columns
         neeeco_output = pd.merge(
@@ -89,9 +91,14 @@ def neeeco(neeeco_input, neeeco_wx_input):
             }
         )
 
+        return neeeco_output
+
     except Exception as e:
         logger.error("An error occurred: %s", str(e), exc_info=True)
-        return
+        return pd.DataFrame()
+
+
+def neeeco(neeeco_output: pd.DataFrame):
 
     #     // Combine both data
     neeeco_output["Final_Contract_Amount__c"] = neeeco_output[

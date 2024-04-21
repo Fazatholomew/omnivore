@@ -15,7 +15,6 @@ from pandas.api.types import is_datetime64_any_dtype
 from .types import Record_Find_Info, Account, Opportunity
 from datetime import datetime
 from collections import OrderedDict
-from json import dump
 import logging
 
 # Create a logger object
@@ -296,7 +295,7 @@ def to_account_and_opportunities(input: DataFrame) -> list[Record_Find_Info]:
                 if len(full_name) == 0:
                     full_name.append("Unknown")
                 # Name for Opp
-                current_opp["Name"] = " ".join([full_name])
+                current_opp["Name"] = " ".join(full_name)
 
                 # Rest of data
                 for column in OPPORTUNITY_COLUMNS + CAMBRIDGE_OPPORTUNITY_COLUMNS:

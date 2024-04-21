@@ -1,16 +1,16 @@
 from omnivore.cambridge.cambridge import cambridge
 from omnivore.homeworks.homeworks import homeworks, rename_and_merge
-from omnivore.neeeco.neeeco import neeeco
+from omnivore.neeeco.neeeco import neeeco, merge_neeeco
 from omnivore.vhi.vhi import vhi
 from omnivore.revise.revise import revise, merge_file_revise
-from omnivore.utils.salesforce import SalesforceConnection, Create
+from omnivore.utils.salesforce import SalesforceConnection
 from omnivore.utils.aux import (
     to_account_and_opportunities,
     to_sf_payload,
     find_cfp_campaign,
     save_output_df,
 )
-from omnivore.utils.types import Record_Find_Info
+from omnivore.utils.types import Record_Find_Info, Create
 from omnivore.utils.constants import (
     NEEECO_ACCID,
     HEA_ID,
@@ -38,7 +38,6 @@ from hashlib import md5
 from datetime import datetime
 from aiohttp import ClientSession
 from io import StringIO
-from requests import post
 from concurrent.futures import ThreadPoolExecutor
 
 import logging
@@ -163,8 +162,14 @@ class Blueprint:
         Add temp id for processed row detection
         """
         result = data.copy()
-        result["tempId"] = result.fillna("").T.agg("".join).str.lower()
+        if 'tempId' not in data.columns:
+          result["tempId"] = result.fillna("").T.agg("".join).str.lower()
         return result[~result["tempId"].isin(self.processed_rows)].copy()
+    
+    def generate_tempId(self, data: DataFrame) -> DataFrame:
+        result = data.copy()
+        result["tempId"] = result.fillna("").T.agg("".join).str.lower()
+        return result
 
     def upload_to_salesforce(self, data: Record_Find_Info, HPC_ID):
         """
@@ -426,33 +431,30 @@ class Blueprint:
               )
             raw_data = raw_data[~raw_data["ID"].isna()]
             sample_input = raw_data.sample(10)
+
             sample_wx = wx_data[
                 wx_data["HEA - Last, First, Address"].isin(sample_input["Related to"])
             ]
-            save_output_df(sample_input, "Neeeco Input", "json")
-            save_output_df(sample_wx, "Neeeco Wx Input", "json")
-            processed_row_removed = self.remove_already_processed_row(raw_data)
-            processed_row = neeeco(processed_row_removed, wx_data)
+            merged = merge_neeeco(raw_data, wx_data)
+            input_data = self.generate_tempId(merged)
+            processed_row = neeeco(input_data)
             processed_row = processed_row[~processed_row["ID_from_HPC__c"].isna()]
             processed_row = processed_row.drop_duplicates(["ID_from_HPC__c"])
-            self.hpcs[NEEECO_ACCID].output = len(processed_row)
             sample_output = processed_row[
                 processed_row["ID_from_HPC__c"].isin(sample_input["ID"])
-            ]
-            save_output_df(
-                sample_output,
-                "Neeeco output",
-                "json",
-            )
-            self.hpcs[NEEECO_ACCID].examples = {
-                "Neeeco Input": sample_input.to_dict('records'),
-                "Neeeco Wx Input": sample_input.to_dict('records'),
-                "Neeeco output": sample_input.to_dict('records'),
-            }
+            ].copy()
+            processed_row = self.remove_already_processed_row(processed_row)
             grouped_opps = to_account_and_opportunities(processed_row)
             run(self.start_upload_to_salesforce(grouped_opps, NEEECO_ACCID))
-            self.hpcs[NEEECO_ACCID].end_time = datetime.now()
-            self.post_hpc_telemetry(NEEECO_ACCID)
+            if (self.telemetry_id):
+              self.hpcs[NEEECO_ACCID].output = len(processed_row)
+              self.hpcs[NEEECO_ACCID].examples = {
+                  "Neeeco Input": sample_input.to_dict('records'),
+                  "Neeeco Wx Input": sample_wx.to_dict('records'),
+                  "Neeeco output": sample_output.to_dict('records'),
+              }
+              self.hpcs[NEEECO_ACCID].end_time = datetime.now()
+              self.post_hpc_telemetry(NEEECO_ACCID)
         except Exception as e:
             logger.error("Error in Neeeco process.")
             logger.error(e, exc_info=True)
@@ -464,31 +466,45 @@ class Blueprint:
         Run Homeworks process
         """
         try:
-            new_data = read_csv(cast(str, getenv("HOMEWORKS_DATA_URL")), dtype="object")
-            old_data = read_csv(
-                cast(str, getenv("HOMEWORKS_COMPLETED_DATA_URL")), dtype="object"
-            )
+            new_data = self.data["HOMEWORKS_DATA_URL"]
+            old_data = self.data["HOMEWORKS_COMPLETED_DATA_URL"]
+            if (self.telemetry_id):
+              self.hpcs[HOMEWORKS_ACCID] = HPC(
+                  name=HPCIDTOHPCNAME[HOMEWORKS_ACCID],
+                  start_time=datetime.now(),
+                  telemetry_id=self.telemetry_id,
+                  input=0,
+                  acc_created=0,
+                  acc_updated=0,
+                  opp_created=0,
+                  opp_updated=0,
+              )
             data_sample_completed = old_data.sample(10)
             data_sample = new_data.sample(10)
-            save_output_df(data_sample_completed, "Homeworks Completed Input", "json")
-            save_output_df(data_sample, "Homeworks Input Canceled", "json")
             homeworks_output = rename_and_merge(old_data, new_data)
-            processed_row_removed = self.remove_already_processed_row(homeworks_output)
-            processed_row = homeworks(processed_row_removed)
-            processed_row = processed_row.drop_duplicates(["ID_from_HPC__c"])
-            save_output_df(
-                processed_row[
+            data_input_sample = homeworks_output.sample(10)
+            processed_row = homeworks(homeworks_output)
+            data_output_sample = processed_row[
                     processed_row["ID_from_HPC__c"].isin(
-                        data_sample_completed["Operations: Operations ID & Payzer Memo"]
+                        data_input_sample["ID_from_HPC__c"]
                     )
-                ],
-                "Homeworks Output",
-                "json",
-            )
+                ].copy()
+            processed_row = processed_row.drop_duplicates(["ID_from_HPC__c"])
             processed_row = processed_row[~processed_row["ID_from_HPC__c"].isna()]
+            processed_row = self.remove_already_processed_row(processed_row)
             grouped_opps = to_account_and_opportunities(processed_row)
-
             run(self.start_upload_to_salesforce(grouped_opps, HOMEWORKS_ACCID))
+            if (self.telemetry_id):
+              self.hpcs[HOMEWORKS_ACCID].input = len(homeworks_output)
+              self.hpcs[HOMEWORKS_ACCID].output = len(processed_row)
+              self.hpcs[HOMEWORKS_ACCID].examples = {
+                  "Homeworks Canceled Input": data_sample.to_dict('records'),
+                  "Homeworks Completed Input": data_sample_completed.to_dict('records'),
+                  "Homeworks Merged Input": data_input_sample.to_dict('records'),
+                  "Homeworks output": data_output_sample.to_dict('records'),
+              }
+              self.hpcs[HOMEWORKS_ACCID].end_time = datetime.now()
+              self.post_hpc_telemetry(HOMEWORKS_ACCID)
             # save_output_df(processed_row, "Homeworks")
         except Exception as e:
             logger.error("Error in Homeworks process.")
@@ -499,8 +515,19 @@ class Blueprint:
         Run VHI process
         """
         try:
-            data = read_csv(cast(str, getenv("VHI_DATA_URL")), dtype="object")
-            processed_row_removed = self.remove_already_processed_row(data)
+            data = self.data["VHI_DATA_URL"]
+            if (self.telemetry_id):
+              self.hpcs[VHI_ACCID] = HPC(
+                  name=HPCIDTOHPCNAME[VHI_ACCID],
+                  start_time=datetime.now(),
+                  telemetry_id=self.telemetry_id,
+                  input=len(data),
+                  acc_created=0,
+                  acc_updated=0,
+                  opp_created=0,
+                  opp_updated=0,
+              )
+            processed_row_removed = data.copy()
             processed_row_removed["VHI Unique Number"] = processed_row_removed[
                 "VHI Unique Number"
             ].fillna(
@@ -509,21 +536,22 @@ class Blueprint:
                 )
             )
             data_sample = processed_row_removed.sample(10)
-            save_output_df(data_sample, "Valley Home Instulation Input", "json")
+            processed_row_removed = self.generate_tempId(processed_row_removed)
             processed_row = vhi(processed_row_removed)
             processed_row = processed_row.drop_duplicates(["ID_from_HPC__c"])
-            save_output_df(
-                processed_row[
-                    processed_row["ID_from_HPC__c"].isin(
-                        data_sample["VHI Unique Number"]
-                    )
-                ],
-                "Valley Home Instulation Output",
-                "json",
-            )
+            output_sample = processed_row[processed_row["ID_from_HPC__c"].isin(data_sample["VHI Unique Number"])].copy()
             processed_row = processed_row[~processed_row["ID_from_HPC__c"].isna()]
+            processed_row = self.remove_already_processed_row(processed_row)
             grouped_opps = to_account_and_opportunities(processed_row)
             run(self.start_upload_to_salesforce(grouped_opps, VHI_ACCID))
+            if (self.telemetry_id):
+              self.hpcs[VHI_ACCID].output = len(processed_row)
+              self.hpcs[VHI_ACCID].examples = {
+                  "Valley Home Insulation Input": data_sample.to_dict('records'),
+                  "Valley Home Insulation Output": output_sample.to_dict('records'),
+              }
+              self.hpcs[VHI_ACCID].end_time = datetime.now()
+              self.post_hpc_telemetry(VHI_ACCID)
         except Exception as e:
             logger.error("Error in VHI process.")
             logger.error(e, exc_info=True)
@@ -533,8 +561,19 @@ class Blueprint:
         Run Revise process
         """
         try:
-            hea_data = read_csv(cast(str, getenv("REVISE_DATA_URL")), dtype="object")
-            wx_data = read_csv(cast(str, getenv("REVISE_WX_DATA_URL")), dtype="object")
+            hea_data = self.data["REVISE_DATA_URL"]
+            wx_data = self.data["REVISE_WX_DATA_URL"]
+            if (self.telemetry_id):
+              self.hpcs[REVISE_ACCID] = HPC(
+                  name=HPCIDTOHPCNAME[REVISE_ACCID],
+                  start_time=datetime.now(),
+                  telemetry_id=self.telemetry_id,
+                  input=len(hea_data),
+                  acc_created=0,
+                  acc_updated=0,
+                  opp_created=0,
+                  opp_updated=0,
+              )
             hea_data = hea_data[
                 hea_data["Company / Account"] != "Company / Account"
             ].copy()
@@ -542,25 +581,27 @@ class Blueprint:
             data_sample = hea_data.sample(10)
             wx_data_sample = wx_data[
                 wx_data["Account Name"].isin(data_sample["Company / Account"])
-            ]
-            save_output_df(data_sample, "Revise Input", "json")
-            save_output_df(wx_data_sample, "Revise Wx Input", "json")
+            ].copy()
             data = merge_file_revise(hea_data, wx_data)
-            processed_row_removed = self.remove_already_processed_row(data)
-            processed_row = revise(processed_row_removed)
+            merged_data_sample = data[data['ID_from_HPC__c'].isin(data_sample('Company / Account'))].copy()
+            data = self.generate_tempId(data)
+            processed_row = revise(data)
+            output_data_sample = processed_row[processed_row["ID_from_HPC__c"].isin(data_sample["Company / Account"])].copy()
             processed_row = processed_row[~processed_row["ID_from_HPC__c"].isna()]
             processed_row = processed_row.drop_duplicates(["ID_from_HPC__c"])
-            save_output_df(
-                processed_row[
-                    processed_row["ID_from_HPC__c"].isin(
-                        data_sample["Company / Account"]
-                    )
-                ],
-                "Revise Output",
-                "json",
-            )
+            processed_row = self.remove_already_processed_row(processed_row)
             grouped_opps = to_account_and_opportunities(processed_row)
             run(self.start_upload_to_salesforce(grouped_opps, REVISE_ACCID))
+            if (self.telemetry_id):
+              self.hpcs[REVISE_ACCID].output = len(processed_row)
+              self.hpcs[REVISE_ACCID].examples = {
+                  "Revise Input": data_sample.to_dict('records'),
+                  "Revise Wx Input": wx_data_sample.to_dict('records'),
+                  "Revise Merged Input": merged_data_sample.to_dict('records'),
+                  "Revise Output": output_data_sample.to_dict('records'),
+              }
+              self.hpcs[REVISE_ACCID].end_time = datetime.now()
+              self.post_hpc_telemetry(REVISE_ACCID)
         except Exception as e:
             logger.error("Error in Revise process.")
             logger.error(e, exc_info=True)
@@ -612,20 +653,17 @@ class Blueprint:
         logger.info("Start Processing Neeeco")
         self.run_neeeco()
         self.save_processed_rows()
-        # self.sf.get_salesforce_table()
-        # logger.info("Start Processing Homeworks")
-        # self.run_homeworks()
-        # self.save_processed_rows()
-        # self.sf.get_salesforce_table()
-        # logger.info("Start Processing VHI")
-        # self.run_vhi()
-        # self.save_processed_rows()
-        # self.sf.get_salesforce_table()
-        # logger.info("Start Processing Revise")
-        # self.run_revise()
-        # self.save_processed_rows()
-        # self.sf.get_salesforce_table(True)
-        # logger.info("Start Processing Cambridge")
-        # self.run_cambridge()
-        # self.save_processed_rows()
+        logger.info("Start Processing Homeworks")
+        self.run_homeworks()
+        self.save_processed_rows()
+        logger.info("Start Processing VHI")
+        self.run_vhi()
+        self.save_processed_rows()
+        logger.info("Start Processing Revise")
+        self.run_revise()
+        self.save_processed_rows()
+        self.sf.get_salesforce_table(True)
+        logger.info("Start Processing Cambridge")
+        self.run_cambridge()
+        self.save_processed_rows()
         logger.info("Finished running Omnivore")

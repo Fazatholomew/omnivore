@@ -9,12 +9,11 @@ from .constants import (
     ACCOUNT_COLUMNS,
     CAMBRIDGE_OPP_ID,
 )
-from .aux import extractId, toSalesforceEmail, toSalesforcePhone, to_sf_payload
+from .aux import extractId, toSalesforceEmail, toSalesforcePhone
 from typing import Dict, cast
-from .types import Account, Opportunity, Record_Find_Info, Query, Create
+from .types import Account, Opportunity, Record_Find_Info, Query
 from os import getenv
 from pandas import isna
-from simple_salesforce.exceptions import SalesforceMalformedRequest
 import logging
 
 # Create a logger object
