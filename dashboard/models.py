@@ -3,13 +3,12 @@ from uuid import uuid4
 from typing import Optional
 
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Integer, String, DateTime, JSON, ForeignKey
+from sqlalchemy import Integer, String, DateTime, JSON, ForeignKey, desc, text
 from sqlalchemy.orm import (
     DeclarativeBase,
     Mapped,
     mapped_column,
     relationship,
-    attribute_mapped_collection,
 )
 from dataclasses import dataclass
 
@@ -31,8 +30,7 @@ class Telemetry(Base):
 
     hpcs: Mapped[list["HPC"]] = relationship("HPC")
     data: Mapped[list["Data"]] = relationship(
-        "Data",
-        collection_class=attribute_mapped_collection("hpc_name"),
+        "Data", order_by=desc(text("Data.created_date"))
     )
 
     @property

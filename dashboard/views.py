@@ -23,13 +23,6 @@ def init_routes(app: Flask):
             .all()
         )
 
-        data = (
-            db.session.query(Data)
-            .filter_by(telemetry_id=latest_entry[0].id)
-            .order_by(Data.created_date.desc())
-            .all()
-        )
-
         last_run = (datetime.now() - latest_entry[0].created_date).total_seconds()
         compared_stats = [
             {
@@ -86,7 +79,7 @@ def init_routes(app: Flask):
                 )
                 for c in inspect(current_data).mapper.column_attrs
             }
-            for current_data in data
+            for current_data in latest_entry[0].data
         ]
         try:
             return render_template(
