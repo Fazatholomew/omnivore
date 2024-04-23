@@ -447,6 +447,8 @@ class Blueprint:
             grouped_opps = to_account_and_opportunities(processed_row)
             run(self.start_upload_to_salesforce(grouped_opps, NEEECO_ACCID))
             if (self.telemetry_id):
+              date_sorted = merged.sort_values('CloseDate', ascending=False)
+              self.hpcs[NEEECO_ACCID].latest_record = date_sorted.iloc[0]['CloseDate']
               self.hpcs[NEEECO_ACCID].output = len(processed_row)
               self.hpcs[NEEECO_ACCID].examples = {
                   "Neeeco Input": sample_input.to_dict('records'),
@@ -481,9 +483,9 @@ class Blueprint:
               )
             data_sample_completed = old_data.sample(10)
             data_sample = new_data.sample(10)
-            homeworks_output = rename_and_merge(old_data, new_data)
-            data_input_sample = homeworks_output.sample(10)
-            processed_row = homeworks(homeworks_output)
+            merged = rename_and_merge(old_data, new_data)
+            data_input_sample = merged.sample(10)
+            processed_row = homeworks(merged)
             data_output_sample = processed_row[
                     processed_row["ID_from_HPC__c"].isin(
                         data_input_sample["ID_from_HPC__c"]
@@ -495,7 +497,9 @@ class Blueprint:
             grouped_opps = to_account_and_opportunities(processed_row)
             run(self.start_upload_to_salesforce(grouped_opps, HOMEWORKS_ACCID))
             if (self.telemetry_id):
-              self.hpcs[HOMEWORKS_ACCID].input = len(homeworks_output)
+              date_sorted = merged.sort_values('CloseDate', ascending=False)
+              self.hpcs[HOMEWORKS_ACCID].latest_record = date_sorted.iloc[0]['CloseDate']
+              self.hpcs[HOMEWORKS_ACCID].input = len(merged)
               self.hpcs[HOMEWORKS_ACCID].output = len(processed_row)
               self.hpcs[HOMEWORKS_ACCID].examples = {
                   "Homeworks Canceled Input": data_sample.to_dict('records'),
@@ -537,14 +541,16 @@ class Blueprint:
             )
             data_sample = processed_row_removed.sample(10)
             processed_row_removed = self.generate_tempId(processed_row_removed)
-            processed_row = vhi(processed_row_removed)
-            processed_row = processed_row.drop_duplicates(["ID_from_HPC__c"])
+            _processed_row = vhi(processed_row_removed)
+            processed_row = _processed_row.drop_duplicates(["ID_from_HPC__c"])
             output_sample = processed_row[processed_row["ID_from_HPC__c"].isin(data_sample["VHI Unique Number"])].copy()
             processed_row = processed_row[~processed_row["ID_from_HPC__c"].isna()]
             processed_row = self.remove_already_processed_row(processed_row)
             grouped_opps = to_account_and_opportunities(processed_row)
             run(self.start_upload_to_salesforce(grouped_opps, VHI_ACCID))
             if (self.telemetry_id):
+              date_sorted = _processed_row.sort_values('CloseDate', ascending=False)
+              self.hpcs[VHI_ACCID].latest_record = date_sorted.iloc[0]['CloseDate']
               self.hpcs[VHI_ACCID].output = len(processed_row)
               self.hpcs[VHI_ACCID].examples = {
                   "Valley Home Insulation Input": data_sample.to_dict('records'),
@@ -593,6 +599,8 @@ class Blueprint:
             grouped_opps = to_account_and_opportunities(processed_row)
             run(self.start_upload_to_salesforce(grouped_opps, REVISE_ACCID))
             if (self.telemetry_id):
+              date_sorted = data.sort_values('CloseDate', ascending=False)
+              self.hpcs[REVISE_ACCID].latest_record = date_sorted.iloc[0]['CloseDate']
               self.hpcs[REVISE_ACCID].output = len(processed_row)
               self.hpcs[REVISE_ACCID].examples = {
                   "Revise Input": data_sample.to_dict('records'),

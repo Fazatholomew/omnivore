@@ -39,7 +39,7 @@ def init_routes(app: Flask):
                     if last_run // 86400 == 0
                     else f"{int(abs(last_run // 86400))} days ago"
                 ),
-                "icon": "ni-world",
+                "icon": "ni-spaceship",
             },
             {
                 "title": "Total Runtime",
@@ -52,7 +52,7 @@ def init_routes(app: Flask):
                     / latest_entry[0].total_statistic["total_runtime"]
                 )
                 * 100,
-                "icon": "ni-paper-diploma",
+                "icon": "ni-watch-time",
             },
             {
                 "title": "Total Record Processed",
@@ -65,7 +65,7 @@ def init_routes(app: Flask):
                     / latest_entry[0].total_statistic["total_records"]
                 )
                 * 100,
-                "icon": "ni-cart",
+                "icon": "ni-delivery-fast",
             },
         ]
         hpcs = [
@@ -123,7 +123,12 @@ def init_routes(app: Flask):
                     if last_run // 86400 == 0
                     else f"{int(abs(last_run // 86400))} days ago"
                 ),
-                "icon": "ni-world",
+                "icon": "ni-spaceship",
+            },
+            {
+                "title": "Latest Record",
+                "value": latest_entry[0].latest_record,
+                "icon": "ni-single-copy-04",
             },
             {
                 "title": "Total Runtime",
@@ -133,7 +138,7 @@ def init_routes(app: Flask):
                     / latest_entry[0].runtime
                 )
                 * 100,
-                "icon": "ni-paper-diploma",
+                "icon": "ni-watch-time",
             },
             {
                 "title": "Total Record Processed",
@@ -143,7 +148,7 @@ def init_routes(app: Flask):
                     / latest_entry[0].output
                 )
                 * 100,
-                "icon": "ni-cart",
+                "icon": "ni-delivery-fast",
             },
         ]
         return render_template(

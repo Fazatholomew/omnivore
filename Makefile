@@ -17,7 +17,7 @@ dashboard-dev-db-init:
 		@dotenv -f .env.dashboard.dev run -- flask db init
 
 dashboard-dev-migrate:
-		@dotenv -f .env.dashboard.dev run -- flask db migrate
+		@dotenv -f .env.dashboard.dev run -- flask db migrate -m "${m}"
 
 dashboard-dev-upgrade:
 		@dotenv -f .env.dashboard.dev run -- flask db upgrade
