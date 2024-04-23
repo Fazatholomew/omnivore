@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 
 # Flask modules
+from datetime import datetime
 from flask import render_template, Flask, Response
 from jinja2 import TemplateNotFound
 
@@ -29,9 +30,7 @@ def init_routes(app: Flask):
             .all()
         )
 
-        last_run = (
-            latest_entry[0].created_date - latest_entry[1].created_date
-        ).total_seconds()
+        last_run = (datetime.now() - latest_entry[0].created_date).total_seconds()
         compared_stats = [
             {
                 "title": "Last Run",
@@ -114,9 +113,7 @@ def init_routes(app: Flask):
             .all()
         )
 
-        last_run = (
-            latest_entry[0].created_date - latest_entry[1].created_date
-        ).total_seconds()
+        last_run = (datetime.now() - latest_entry[0].created_date).total_seconds()
 
         compared_stats = [
             {

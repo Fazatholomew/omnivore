@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 from flask import Flask
+from flask_migrate import Migrate
 
 from dashboard import dummies
 from dashboard.models import db
@@ -16,6 +17,8 @@ def create_app(config_class="dashboard.config.Config"):
         app.logger.addHandler(file_handler)
 
     db.init_app(app)
+
+    migrate = Migrate(app, db)
 
     with app.app_context():
         db.create_all()

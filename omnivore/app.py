@@ -583,7 +583,7 @@ class Blueprint:
                 wx_data["Account Name"].isin(data_sample["Company / Account"])
             ].copy()
             data = merge_file_revise(hea_data, wx_data)
-            merged_data_sample = data[data['ID_from_HPC__c'].isin(data_sample('Company / Account'))].copy()
+            merged_data_sample = data[data['ID_from_HPC__c'].isin(data_sample['Company / Account'])].copy()
             data = self.generate_tempId(data)
             processed_row = revise(data)
             output_data_sample = processed_row[processed_row["ID_from_HPC__c"].isin(data_sample["Company / Account"])].copy()
