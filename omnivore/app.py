@@ -112,7 +112,7 @@ class Blueprint:
         try:
             logger.info(f"Fetching {url}")
             async with session.post(
-                getenv(url), json={"rahasia": getenv("RAHASIA")}
+                getenv(url), json={"rahasia": getenv("RAHASIA")}, timeout=900
             ) as response:
                 try:
                     current_data = await response.json()
