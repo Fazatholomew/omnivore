@@ -22,7 +22,8 @@ from omnivore.utils.constants import (
     CAMBRIDGE_OPP_ID,
     HPC_DATA_URLS,
     PERSON_ACCOUNT_ID,
-    HPCIDTOHPCNAME
+    HPCIDTOHPCNAME,
+    DATETIME_SALESFORCE,
 )
 from omnivore.utils.database import init_db
 
@@ -36,11 +37,12 @@ from asyncio import run, gather, get_event_loop
 from simple_salesforce.exceptions import SalesforceMalformedRequest
 from hashlib import md5
 from datetime import datetime
-from aiohttp import ClientSession
+from aiohttp import ClientSession, ContentTypeError
 from io import StringIO
 from concurrent.futures import ThreadPoolExecutor
 
 import logging
+from logging.handlers import TimedRotatingFileHandler
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -49,11 +51,12 @@ logging.basicConfig(
     filemode="a",
 )
 
-logging.FileHandler("omnivore.log")
+TimedRotatingFileHandler("omnivore.log", "D", backupCount=30)
 
 
 # Create a logger object
 logger = logging.getLogger(__name__)
+
 
 class Blueprint:
     def __init__(self) -> None:
@@ -71,15 +74,17 @@ class Blueprint:
         self.load_processed_rows()
         logger.info("Connection to Salesforce is successful")
         try:
-          logger.info("Fetching telemetry ID")
-          current_telemetry = Telemetry()
-          self.db.add(current_telemetry)
-          self.db.commit()
-          self.telemetry_id = current_telemetry.id
-          logger.info(f"Current Telemetry ID: {self.telemetry_id}")
+            logger.info("Fetching telemetry ID")
+            current_telemetry = Telemetry()
+            self.db.add(current_telemetry)
+            self.db.commit()
+            self.telemetry_id = current_telemetry.id
+            logger.info(f"Current Telemetry ID: {self.telemetry_id}")
         except Exception as err:
-          logger.error("Failed getting Telemetry ID. Omnivore continues without sending Telemetry.")
-          logger.error(err, exc_info=True)
+            logger.error(
+                "Failed getting Telemetry ID. Omnivore continues without sending Telemetry."
+            )
+            logger.error(err, exc_info=True)
 
     async def async_init(self):
         # Executor for running synchronous tasks in a separate thread
@@ -109,25 +114,34 @@ class Blueprint:
             async with session.post(
                 getenv(url), json={"rahasia": getenv("RAHASIA")}
             ) as response:
-                current_data = await response.json()
+                try:
+                    current_data = await response.json()
+
+                except ContentTypeError as err:
+                    logger.error(f"Failed to fetch {url}")
+                    logger.error(err, exc_info=True)
+                    logger.error((await response.text()))
 
             df = read_csv(StringIO(current_data["data"]), dtype="object")
             self.data[url] = df
 
-            if (self.telemetry_id):
-              current_telemetry_data = Data(
-                  hpc_name=current_data["hpc"],
-                  created_date=datetime.fromtimestamp(int(current_data["created_date"])),
-                  source=current_data["source"],
-                  row_number=len(df),
-                  telemetry_id=self.telemetry_id,
-              )
-              try:
-                  self.db.add(current_telemetry_data)
-                  self.db.commit()
-              except Exception as err:
-                  logger.error(f"Failed to record data telemetry for {url}")
-                  logger.error(err, exc_info=True)
+            if self.telemetry_id:
+                current_telemetry_data = Data(
+                    hpc_name=current_data["hpc"],
+                    created_date=datetime.fromtimestamp(
+                        int(current_data["created_date"])
+                    ),
+                    source=current_data["source"],
+                    row_number=len(df),
+                    telemetry_id=self.telemetry_id,
+                )
+                try:
+                    self.db.add(current_telemetry_data)
+                    self.db.commit()
+                except Exception as err:
+                    logger.error(f"Failed to record data telemetry for {url}")
+                    logger.error(err, exc_info=True)
+                    return
 
             logger.info(f"Finished fetching {url}")
 
@@ -162,10 +176,10 @@ class Blueprint:
         Add temp id for processed row detection
         """
         result = data.copy()
-        if 'tempId' not in data.columns:
-          result["tempId"] = result.fillna("").T.agg("".join).str.lower()
+        if "tempId" not in data.columns:
+            result["tempId"] = result.fillna("").T.agg("".join).str.lower()
         return result[~result["tempId"].isin(self.processed_rows)].copy()
-    
+
     def generate_tempId(self, data: DataFrame) -> DataFrame:
         result = data.copy()
         result["tempId"] = result.fillna("").T.agg("".join).str.lower()
@@ -219,7 +233,7 @@ class Blueprint:
                 if cast(int, res) > 399:
                     logger.error(res)
                 else:
-                  self.hpcs[HPC_ID].acc_updated += 1
+                    self.hpcs[HPC_ID].acc_updated += 1
             except SalesforceMalformedRequest as err:
                 if err.content[0]["errorCode"] == "DUPLICATE_VALUE":
                     maybe_id = err.content[0]["message"].split("id: ")
@@ -233,10 +247,14 @@ class Blueprint:
                             else:
                                 self.hpcs[HPC_ID].acc_updated += 1
                         except Exception as e:
-                            logger.error(f"Failed to update account {found_records[0]["AccountId"]}")
+                            logger.error(
+                                f"Failed to update account {found_records[0]['AccountId']}"
+                            )
                             logger.error(e, exc_info=True)
             except Exception as err:
-                logger.error(f"Failed to update account {found_records[0]["AccountId"]}")
+                logger.error(
+                    f"Failed to update account {found_records[0]['AccountId']}"
+                )
                 logger.error(err, exc_info=True)
         for opp in found_records:
             try:
@@ -384,7 +402,7 @@ class Blueprint:
                             except Exception as e:
                                 logger.error(e, exc_info=True)
                         else:
-                          logger.error(err, exc_info=True)
+                            logger.error(err, exc_info=True)
                     except Exception as e:
                         logger.error("error creating")
                         logger.error(e, exc_info=True)
@@ -418,17 +436,17 @@ class Blueprint:
         try:
             raw_data = self.data["NEEECO_DATA_URL"]
             wx_data = self.data["NEEECO_WX_DATA_URL"]
-            if (self.telemetry_id):
-              self.hpcs[NEEECO_ACCID] = HPC(
-                  name=HPCIDTOHPCNAME[NEEECO_ACCID],
-                  start_time=datetime.now(),
-                  telemetry_id=self.telemetry_id,
-                  input=len(raw_data),
-                  acc_created=0,
-                  acc_updated=0,
-                  opp_created=0,
-                  opp_updated=0,
-              )
+            if self.telemetry_id:
+                self.hpcs[NEEECO_ACCID] = HPC(
+                    name=HPCIDTOHPCNAME[NEEECO_ACCID],
+                    start_time=datetime.now(),
+                    telemetry_id=self.telemetry_id,
+                    input=len(raw_data),
+                    acc_created=0,
+                    acc_updated=0,
+                    opp_created=0,
+                    opp_updated=0,
+                )
             raw_data = raw_data[~raw_data["ID"].isna()]
             sample_input = raw_data.sample(10)
 
@@ -446,22 +464,27 @@ class Blueprint:
             processed_row = self.remove_already_processed_row(processed_row)
             grouped_opps = to_account_and_opportunities(processed_row)
             run(self.start_upload_to_salesforce(grouped_opps, NEEECO_ACCID))
-            if (self.telemetry_id):
-              date_sorted = merged.sort_values('CloseDate', ascending=False)
-              self.hpcs[NEEECO_ACCID].latest_record = date_sorted.iloc[0]['CloseDate']
-              self.hpcs[NEEECO_ACCID].output = len(processed_row)
-              self.hpcs[NEEECO_ACCID].examples = {
-                  "Neeeco Input": sample_input.to_dict('records'),
-                  "Neeeco Wx Input": sample_wx.to_dict('records'),
-                  "Neeeco output": sample_output.to_dict('records'),
-              }
-              self.hpcs[NEEECO_ACCID].end_time = datetime.now()
-              self.post_hpc_telemetry(NEEECO_ACCID)
+            if self.telemetry_id:
+                date_sorted = merged.sort_values("CloseDate", ascending=False)
+                latest_record = date_sorted.iloc[0]["CloseDate"]
+                if isinstance(latest_record, str):
+                    latest_record = datetime.strptime(
+                        latest_record, DATETIME_SALESFORCE
+                    )
+                self.hpcs[NEEECO_ACCID].latest_record = latest_record
+                self.hpcs[NEEECO_ACCID].output = len(processed_row)
+                self.hpcs[NEEECO_ACCID].examples = {
+                    "Neeeco Input": sample_input.to_dict("records"),
+                    "Neeeco Wx Input": sample_wx.to_dict("records"),
+                    "Neeeco output": sample_output.to_dict("records"),
+                }
+                self.hpcs[NEEECO_ACCID].end_time = datetime.now()
+                self.post_hpc_telemetry(NEEECO_ACCID)
         except Exception as e:
             logger.error("Error in Neeeco process.")
             logger.error(e, exc_info=True)
-        
-        logger.info('Finish processing Neeeco')
+
+        logger.info("Finish processing Neeeco")
 
     def run_homeworks(self) -> None:
         """
@@ -470,45 +493,52 @@ class Blueprint:
         try:
             new_data = self.data["HOMEWORKS_DATA_URL"]
             old_data = self.data["HOMEWORKS_COMPLETED_DATA_URL"]
-            if (self.telemetry_id):
-              self.hpcs[HOMEWORKS_ACCID] = HPC(
-                  name=HPCIDTOHPCNAME[HOMEWORKS_ACCID],
-                  start_time=datetime.now(),
-                  telemetry_id=self.telemetry_id,
-                  input=0,
-                  acc_created=0,
-                  acc_updated=0,
-                  opp_created=0,
-                  opp_updated=0,
-              )
+            if self.telemetry_id:
+                self.hpcs[HOMEWORKS_ACCID] = HPC(
+                    name=HPCIDTOHPCNAME[HOMEWORKS_ACCID],
+                    start_time=datetime.now(),
+                    telemetry_id=self.telemetry_id,
+                    input=0,
+                    acc_created=0,
+                    acc_updated=0,
+                    opp_created=0,
+                    opp_updated=0,
+                )
             data_sample_completed = old_data.sample(10)
             data_sample = new_data.sample(10)
             merged = rename_and_merge(old_data, new_data)
             data_input_sample = merged.sample(10)
             processed_row = homeworks(merged)
             data_output_sample = processed_row[
-                    processed_row["ID_from_HPC__c"].isin(
-                        data_input_sample["ID_from_HPC__c"]
-                    )
-                ].copy()
+                processed_row["ID_from_HPC__c"].isin(
+                    data_input_sample["ID_from_HPC__c"]
+                )
+            ].copy()
             processed_row = processed_row.drop_duplicates(["ID_from_HPC__c"])
             processed_row = processed_row[~processed_row["ID_from_HPC__c"].isna()]
             processed_row = self.remove_already_processed_row(processed_row)
             grouped_opps = to_account_and_opportunities(processed_row)
             run(self.start_upload_to_salesforce(grouped_opps, HOMEWORKS_ACCID))
-            if (self.telemetry_id):
-              date_sorted = merged.sort_values('CloseDate', ascending=False)
-              self.hpcs[HOMEWORKS_ACCID].latest_record = date_sorted.iloc[0]['CloseDate']
-              self.hpcs[HOMEWORKS_ACCID].input = len(merged)
-              self.hpcs[HOMEWORKS_ACCID].output = len(processed_row)
-              self.hpcs[HOMEWORKS_ACCID].examples = {
-                  "Homeworks Canceled Input": data_sample.to_dict('records'),
-                  "Homeworks Completed Input": data_sample_completed.to_dict('records'),
-                  "Homeworks Merged Input": data_input_sample.to_dict('records'),
-                  "Homeworks output": data_output_sample.to_dict('records'),
-              }
-              self.hpcs[HOMEWORKS_ACCID].end_time = datetime.now()
-              self.post_hpc_telemetry(HOMEWORKS_ACCID)
+            if self.telemetry_id:
+                date_sorted = merged.sort_values("CloseDate", ascending=False)
+                latest_record = date_sorted.iloc[0]["CloseDate"]
+                if isinstance(latest_record, str):
+                    latest_record = datetime.strptime(
+                        latest_record, DATETIME_SALESFORCE
+                    )
+                self.hpcs[HOMEWORKS_ACCID].latest_record = latest_record
+                self.hpcs[HOMEWORKS_ACCID].input = len(merged)
+                self.hpcs[HOMEWORKS_ACCID].output = len(processed_row)
+                self.hpcs[HOMEWORKS_ACCID].examples = {
+                    "Homeworks Canceled Input": data_sample.to_dict("records"),
+                    "Homeworks Completed Input": data_sample_completed.to_dict(
+                        "records"
+                    ),
+                    "Homeworks Merged Input": data_input_sample.to_dict("records"),
+                    "Homeworks output": data_output_sample.to_dict("records"),
+                }
+                self.hpcs[HOMEWORKS_ACCID].end_time = datetime.now()
+                self.post_hpc_telemetry(HOMEWORKS_ACCID)
             # save_output_df(processed_row, "Homeworks")
         except Exception as e:
             logger.error("Error in Homeworks process.")
@@ -520,17 +550,17 @@ class Blueprint:
         """
         try:
             data = self.data["VHI_DATA_URL"]
-            if (self.telemetry_id):
-              self.hpcs[VHI_ACCID] = HPC(
-                  name=HPCIDTOHPCNAME[VHI_ACCID],
-                  start_time=datetime.now(),
-                  telemetry_id=self.telemetry_id,
-                  input=len(data),
-                  acc_created=0,
-                  acc_updated=0,
-                  opp_created=0,
-                  opp_updated=0,
-              )
+            if self.telemetry_id:
+                self.hpcs[VHI_ACCID] = HPC(
+                    name=HPCIDTOHPCNAME[VHI_ACCID],
+                    start_time=datetime.now(),
+                    telemetry_id=self.telemetry_id,
+                    input=len(data),
+                    acc_created=0,
+                    acc_updated=0,
+                    opp_created=0,
+                    opp_updated=0,
+                )
             processed_row_removed = data.copy()
             processed_row_removed["VHI Unique Number"] = processed_row_removed[
                 "VHI Unique Number"
@@ -543,21 +573,28 @@ class Blueprint:
             processed_row_removed = self.generate_tempId(processed_row_removed)
             _processed_row = vhi(processed_row_removed)
             processed_row = _processed_row.drop_duplicates(["ID_from_HPC__c"])
-            output_sample = processed_row[processed_row["ID_from_HPC__c"].isin(data_sample["VHI Unique Number"])].copy()
+            output_sample = processed_row[
+                processed_row["ID_from_HPC__c"].isin(data_sample["VHI Unique Number"])
+            ].copy()
             processed_row = processed_row[~processed_row["ID_from_HPC__c"].isna()]
             processed_row = self.remove_already_processed_row(processed_row)
             grouped_opps = to_account_and_opportunities(processed_row)
             run(self.start_upload_to_salesforce(grouped_opps, VHI_ACCID))
-            if (self.telemetry_id):
-              date_sorted = _processed_row.sort_values('CloseDate', ascending=False)
-              self.hpcs[VHI_ACCID].latest_record = date_sorted.iloc[0]['CloseDate']
-              self.hpcs[VHI_ACCID].output = len(processed_row)
-              self.hpcs[VHI_ACCID].examples = {
-                  "Valley Home Insulation Input": data_sample.to_dict('records'),
-                  "Valley Home Insulation Output": output_sample.to_dict('records'),
-              }
-              self.hpcs[VHI_ACCID].end_time = datetime.now()
-              self.post_hpc_telemetry(VHI_ACCID)
+            if self.telemetry_id:
+                date_sorted = _processed_row.sort_values("CloseDate", ascending=False)
+                latest_record = date_sorted.iloc[0]["CloseDate"]
+                if isinstance(latest_record, str):
+                    latest_record = datetime.strptime(
+                        latest_record, DATETIME_SALESFORCE
+                    )
+                self.hpcs[VHI_ACCID].latest_record = latest_record
+                self.hpcs[VHI_ACCID].output = len(processed_row)
+                self.hpcs[VHI_ACCID].examples = {
+                    "Valley Home Insulation Input": data_sample.to_dict("records"),
+                    "Valley Home Insulation Output": output_sample.to_dict("records"),
+                }
+                self.hpcs[VHI_ACCID].end_time = datetime.now()
+                self.post_hpc_telemetry(VHI_ACCID)
         except Exception as e:
             logger.error("Error in VHI process.")
             logger.error(e, exc_info=True)
@@ -569,17 +606,17 @@ class Blueprint:
         try:
             hea_data = self.data["REVISE_DATA_URL"]
             wx_data = self.data["REVISE_WX_DATA_URL"]
-            if (self.telemetry_id):
-              self.hpcs[REVISE_ACCID] = HPC(
-                  name=HPCIDTOHPCNAME[REVISE_ACCID],
-                  start_time=datetime.now(),
-                  telemetry_id=self.telemetry_id,
-                  input=len(hea_data),
-                  acc_created=0,
-                  acc_updated=0,
-                  opp_created=0,
-                  opp_updated=0,
-              )
+            if self.telemetry_id:
+                self.hpcs[REVISE_ACCID] = HPC(
+                    name=HPCIDTOHPCNAME[REVISE_ACCID],
+                    start_time=datetime.now(),
+                    telemetry_id=self.telemetry_id,
+                    input=len(hea_data),
+                    acc_created=0,
+                    acc_updated=0,
+                    opp_created=0,
+                    opp_updated=0,
+                )
             hea_data = hea_data[
                 hea_data["Company / Account"] != "Company / Account"
             ].copy()
@@ -589,27 +626,36 @@ class Blueprint:
                 wx_data["Account Name"].isin(data_sample["Company / Account"])
             ].copy()
             data = merge_file_revise(hea_data, wx_data)
-            merged_data_sample = data[data['ID_from_HPC__c'].isin(data_sample['Company / Account'])].copy()
+            merged_data_sample = data[
+                data["ID_from_HPC__c"].isin(data_sample["Company / Account"])
+            ].copy()
             data = self.generate_tempId(data)
             processed_row = revise(data)
-            output_data_sample = processed_row[processed_row["ID_from_HPC__c"].isin(data_sample["Company / Account"])].copy()
+            output_data_sample = processed_row[
+                processed_row["ID_from_HPC__c"].isin(data_sample["Company / Account"])
+            ].copy()
             processed_row = processed_row[~processed_row["ID_from_HPC__c"].isna()]
             processed_row = processed_row.drop_duplicates(["ID_from_HPC__c"])
             processed_row = self.remove_already_processed_row(processed_row)
             grouped_opps = to_account_and_opportunities(processed_row)
             run(self.start_upload_to_salesforce(grouped_opps, REVISE_ACCID))
-            if (self.telemetry_id):
-              date_sorted = data.sort_values('CloseDate', ascending=False)
-              self.hpcs[REVISE_ACCID].latest_record = date_sorted.iloc[0]['CloseDate']
-              self.hpcs[REVISE_ACCID].output = len(processed_row)
-              self.hpcs[REVISE_ACCID].examples = {
-                  "Revise Input": data_sample.to_dict('records'),
-                  "Revise Wx Input": wx_data_sample.to_dict('records'),
-                  "Revise Merged Input": merged_data_sample.to_dict('records'),
-                  "Revise Output": output_data_sample.to_dict('records'),
-              }
-              self.hpcs[REVISE_ACCID].end_time = datetime.now()
-              self.post_hpc_telemetry(REVISE_ACCID)
+            if self.telemetry_id:
+                date_sorted = data.sort_values("CloseDate", ascending=False)
+                latest_record = date_sorted.iloc[0]["CloseDate"]
+                if isinstance(latest_record, str):
+                    latest_record = datetime.strptime(
+                        latest_record, DATETIME_SALESFORCE
+                    )
+                self.hpcs[REVISE_ACCID].latest_record = latest_record
+                self.hpcs[REVISE_ACCID].output = len(processed_row)
+                self.hpcs[REVISE_ACCID].examples = {
+                    "Revise Input": data_sample.to_dict("records"),
+                    "Revise Wx Input": wx_data_sample.to_dict("records"),
+                    "Revise Merged Input": merged_data_sample.to_dict("records"),
+                    "Revise Output": output_data_sample.to_dict("records"),
+                }
+                self.hpcs[REVISE_ACCID].end_time = datetime.now()
+                self.post_hpc_telemetry(REVISE_ACCID)
         except Exception as e:
             logger.error("Error in Revise process.")
             logger.error(e, exc_info=True)
