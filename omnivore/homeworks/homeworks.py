@@ -13,6 +13,112 @@ from ..utils.aux import (
 # Create a logger object
 logger = logging.getLogger(__name__)
 
+stageMapper = {
+        "Approval - Customer Unresponsive": "Canceled",
+        "Approval / Task Not Completed in Time": "Canceled",
+        "Cancel At Door": "Canceled",
+        "Closed Lost": "Signed Contracts",
+        "Closed Won": "Signed Contracts",
+        "Closed Won - Pending QC": "Signed Contracts",
+        "Covid Related": "Canceled",
+        "Customer Cancel Request": "Canceled",
+        "Customer Cancellation Request": "Canceled",
+        "Customer No-Show": "Canceled",
+        "Customer Reschedule Request": "Canceled",
+        "HEA Not Approved": "Canceled",
+        "HES Cancel": "Canceled",
+        "High Probability": "Recommended - Unsigned",
+        "High Probability - Pending QC": "Recommended - Unsigned",
+        "HWE Cancel": "Canceled",
+        "ICW Fixed- Pending Review": "Recommended - Unsigned",
+        "Incorrectly Closed Won": "No Opportunity",
+        "Low Probability": "Recommended - Unsigned",
+        "Not approved - Mileage": "Canceled",
+        "Not in EM Home": "No Opportunity",
+        "Office Cancel": "Canceled",
+        "Overbooking Cancel": "Canceled",
+        "Overbooking Reschedule": "Canceled",
+        "PreWeatherization Barrier": "Health & Safety Barrier",
+        "PreWeatherization Barrier - Pending QC": "Health & Safety Barrier",
+        "Qualified Out": "No Opportunity",
+        "Scheduling Error": "Canceled",
+        "Unqualified - 5+ Units": "Canceled",
+        "Unqualified - Had Previous Assessment": "Canceled",
+        "Unqualified - Low Income": "Canceled",
+        "Unqualified - Other": "Canceled",
+        "Unqualified (5+ Units)": "Canceled",
+        "Visit Not Confirmed": "Canceled",
+        "": "Scheduled",
+        np.nan: "Scheduled",
+    }
+
+    # Cancel Reason
+    cancelMapper = {
+        "Approval - Customer Unresponsive": "Unresponsive",
+        "Scheduling Error": "By Office",
+        "Customer Reschedule Request": "Reschedule Request",
+        "Approval / Task Not Completed in Time": "By Office",
+        "Cancel At Door": "By Customer",
+        "Overbooking Cancel": "By Office",
+        "Customer No-Show": "Customer No Show",
+        "Office Cancel": "By Office",
+        "Customer Cancellation Request": "Reschedule Request",
+        "HEA not Approved": "By Office",
+        "Impromptu": "By Customer",
+        "HWE Cancel": "By Office",
+        "Covid Related": "Reschedule Request",
+        "Overbooking Reschedule": "By Office",
+        "Unqualified - Low Income": "Low Income",
+        "Other": "No reason",
+        "Unqualified - Had Previous Assessment": "Had HEA within 2 years",
+        "HES cancel": "By Office",
+        "Unqualified - Other": "No reason",
+        "Unqualified (5+ Units)": "5+ units",
+        "Unqualified - 5+ Units": "5+ units",
+        "Visit Not Confirmed": "By Office",
+    }
+
+    # // Weatherization Status
+    wxMapper = {
+        "1st Scheduling Attempt": "Not Yet Scheduled",
+        "2nd Scheduling Attempt": "Not Yet Scheduled",
+        "3rd Scheduling Attempt": "Not Yet Scheduled",
+        "4th Scheduling Attempt": "Not Yet Scheduled",
+        "5th Scheduling Attempt": "Not Yet Scheduled",
+        "6th Attempt - Next Attempt is Final": "Not Yet Scheduled",
+        "Cancelled [Declined Work When We Attempted To Schedule]": "Not Yet Scheduled",
+        "Confirm Schedule Date 1st Attempt Completed": "Scheduled",
+        "Confirm Schedule Date 2nd Attempt Completed": "Scheduled",
+        "Confirm Schedule Date 3rd Attempt Completed": "Scheduled",
+        "Dead [Couldn't Get In Contact With The Customer]": "Not Yet Scheduled",
+        "Installed and Invoiced": "Completed",
+        "Installed- NOT Invoiced": "Completed",
+        "Needs to be rescheduled - Permit Denied": "Not Yet Scheduled",
+        "Needs to be rescheduled- HWE Canceled": "Not Yet Scheduled",
+        "Needs to be Rescheduled- Unable to Confirm Scheduled Date": "Not Yet Scheduled",
+        "Not Ready for Scheduling": "Not Yet Scheduled",
+        "Ready for Scheduling": "Not Yet Scheduled",
+        "Schedule Date Confirmed": "Scheduled",
+        "Scheduled IH- Pending Confirmation": "Scheduled",
+        "Scheduled with Sub": "Scheduled",
+        "Walk- Cannot be Recovered": "Not Yet Scheduled",
+        "Walk- In Recovery Process": "Not Yet Scheduled",
+        "Wx Scheduling Case": "Not Yet Scheduled",
+        "Installed - Docs Uploaded": "Completed",
+        "Needs to be rescheduled - customer request/customer no show": "Not Yet Scheduled",
+        "Sent to Installer": "Scheduled",
+        "Needs to be rescheduled - Robocall": "Not Yet Scheduled",
+        "Partial Complete": "Completed",
+    }
+
+    # // Owner/Renter
+    orMapper = {
+        "Landlord": "Owner",
+        "Owner-Occupied": "Owner",
+        "own": "Owner",
+        "Tenant": "Renter",
+    }
+
 # Health And Safety
 hsMapper = {
     "Knob and Tube": "Knob & Tube (Major)",
@@ -137,128 +243,18 @@ def rename_and_merge(_homeworks_old_input, _homeworks_new_input) -> pd.DataFrame
         logger.error("An error occurred: %s", str(e), exc_info=True)
 
     try:
-        return pd.merge(
+        merged = merge(
             left=homeworks_new_input,
             right=homeworks_old_input,
             how="outer",
             on="ID_from_HPC__c",
         )
+        return combine_xy_columns(merged)
     except Exception as e:
         logger.error("An error occurred: %s", str(e), exc_info=True)
 
 
 def homeworks(homeworks_output):
-    stageMapper = {
-        "Approval - Customer Unresponsive": "Canceled",
-        "Approval / Task Not Completed in Time": "Canceled",
-        "Cancel At Door": "Canceled",
-        "Closed Lost": "Signed Contracts",
-        "Closed Won": "Signed Contracts",
-        "Closed Won - Pending QC": "Signed Contracts",
-        "Covid Related": "Canceled",
-        "Customer Cancel Request": "Canceled",
-        "Customer Cancellation Request": "Canceled",
-        "Customer No-Show": "Canceled",
-        "Customer Reschedule Request": "Canceled",
-        "HEA Not Approved": "Canceled",
-        "HES Cancel": "Canceled",
-        "High Probability": "Recommended - Unsigned",
-        "High Probability - Pending QC": "Recommended - Unsigned",
-        "HWE Cancel": "Canceled",
-        "ICW Fixed- Pending Review": "Recommended - Unsigned",
-        "Incorrectly Closed Won": "No Opportunity",
-        "Low Probability": "Recommended - Unsigned",
-        "Not approved - Mileage": "Canceled",
-        "Not in EM Home": "No Opportunity",
-        "Office Cancel": "Canceled",
-        "Overbooking Cancel": "Canceled",
-        "Overbooking Reschedule": "Canceled",
-        "PreWeatherization Barrier": "Health & Safety Barrier",
-        "PreWeatherization Barrier - Pending QC": "Health & Safety Barrier",
-        "Qualified Out": "No Opportunity",
-        "Scheduling Error": "Canceled",
-        "Unqualified - 5+ Units": "Canceled",
-        "Unqualified - Had Previous Assessment": "Canceled",
-        "Unqualified - Low Income": "Canceled",
-        "Unqualified - Other": "Canceled",
-        "Unqualified (5+ Units)": "Canceled",
-        "Visit Not Confirmed": "Canceled",
-        "": "Scheduled",
-        np.nan: "Scheduled",
-    }
-
-    # Cancel Reason
-    cancelMapper = {
-        "Approval - Customer Unresponsive": "Unresponsive",
-        "Scheduling Error": "By Office",
-        "Customer Reschedule Request": "Reschedule Request",
-        "Approval / Task Not Completed in Time": "By Office",
-        "Cancel At Door": "By Customer",
-        "Overbooking Cancel": "By Office",
-        "Customer No-Show": "Customer No Show",
-        "Office Cancel": "By Office",
-        "Customer Cancellation Request": "Reschedule Request",
-        "HEA not Approved": "By Office",
-        "Impromptu": "By Customer",
-        "HWE Cancel": "By Office",
-        "Covid Related": "Reschedule Request",
-        "Overbooking Reschedule": "By Office",
-        "Unqualified - Low Income": "Low Income",
-        "Other": "No reason",
-        "Unqualified - Had Previous Assessment": "Had HEA within 2 years",
-        "HES cancel": "By Office",
-        "Unqualified - Other": "No reason",
-        "Unqualified (5+ Units)": "5+ units",
-        "Unqualified - 5+ Units": "5+ units",
-        "Visit Not Confirmed": "By Office",
-    }
-
-    # // Weatherization Status
-    wxMapper = {
-        "1st Scheduling Attempt": "Not Yet Scheduled",
-        "2nd Scheduling Attempt": "Not Yet Scheduled",
-        "3rd Scheduling Attempt": "Not Yet Scheduled",
-        "4th Scheduling Attempt": "Not Yet Scheduled",
-        "5th Scheduling Attempt": "Not Yet Scheduled",
-        "6th Attempt - Next Attempt is Final": "Not Yet Scheduled",
-        "Cancelled [Declined Work When We Attempted To Schedule]": "Not Yet Scheduled",
-        "Confirm Schedule Date 1st Attempt Completed": "Scheduled",
-        "Confirm Schedule Date 2nd Attempt Completed": "Scheduled",
-        "Confirm Schedule Date 3rd Attempt Completed": "Scheduled",
-        "Dead [Couldn't Get In Contact With The Customer]": "Not Yet Scheduled",
-        "Installed and Invoiced": "Completed",
-        "Installed- NOT Invoiced": "Completed",
-        "Needs to be rescheduled - Permit Denied": "Not Yet Scheduled",
-        "Needs to be rescheduled- HWE Canceled": "Not Yet Scheduled",
-        "Needs to be Rescheduled- Unable to Confirm Scheduled Date": "Not Yet Scheduled",
-        "Not Ready for Scheduling": "Not Yet Scheduled",
-        "Ready for Scheduling": "Not Yet Scheduled",
-        "Schedule Date Confirmed": "Scheduled",
-        "Scheduled IH- Pending Confirmation": "Scheduled",
-        "Scheduled with Sub": "Scheduled",
-        "Walk- Cannot be Recovered": "Not Yet Scheduled",
-        "Walk- In Recovery Process": "Not Yet Scheduled",
-        "Wx Scheduling Case": "Not Yet Scheduled",
-        "Installed - Docs Uploaded": "Completed",
-        "Needs to be rescheduled - customer request/customer no show": "Not Yet Scheduled",
-        "Sent to Installer": "Scheduled",
-        "Needs to be rescheduled - Robocall": "Not Yet Scheduled",
-        "Partial Complete": "Completed",
-    }
-
-    # // Owner/Renter
-    orMapper = {
-        "Landlord": "Owner",
-        "Owner-Occupied": "Owner",
-        "own": "Owner",
-        "Tenant": "Renter",
-    }
-
-    #     // Combine both data
-    try:
-        homeworks_output = combine_xy_columns(homeworks_output, [])
-    except Exception as e:
-        logger.error("An error occurred: %s", str(e), exc_info=True)
 
     try:
         homeworks_output["StageName"] = homeworks_output["StageName"].map(stageMapper)

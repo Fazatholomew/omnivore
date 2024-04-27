@@ -182,7 +182,7 @@ class Blueprint:
 
     def generate_tempId(self, data: DataFrame) -> DataFrame:
         result = data.copy()
-        result["tempId"] = result.fillna("").T.agg("".join).str.lower()
+        result["tempId"] = result.fillna("").T.agg("".join).fillna("").str.lower()
         return result
 
     def upload_to_salesforce(self, data: Record_Find_Info, HPC_ID):

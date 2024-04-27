@@ -570,10 +570,10 @@ def instance_to_dict(input: Any) -> dict:
 
 
 def combine_xy_columns(
-    _data: DataFrame, columns: list[str], primary="x", secondary="y"
+    _data: DataFrame, columns: list[str] = None, primary="x", secondary="y"
 ) -> DataFrame:
     data = _data.copy()
-    if len(columns) == 0:
+    if columns is None:
         for column in data.columns:
             if f"_{primary}" in column:
                 column_name = column[:-2]
