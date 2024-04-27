@@ -567,3 +567,26 @@ def instance_to_dict(input: Any) -> dict:
             result[key] = value
 
     return result
+
+
+def combine_xy_columns(
+    _data: DataFrame, columns: list[str], primary="x", secondary="y"
+) -> DataFrame:
+    data = _data.copy()
+    if len(columns) == 0:
+        for column in data.columns:
+            if f"_{primary}" in column:
+                column_name = column[:-2]
+                if f"{column_name}_{secondary}" in data.columns:
+                    data[column_name] = data[f"{column_name}_{primary}"].combine_first(
+                        data[f"{column_name}_{secondary}"]
+                    )
+        return data
+
+    for column in columns:
+        primary_column = f"{column}_{primary}"
+        secondary_column = f"{column}_{secondary}"
+        if primary_column not in data.columns and secondary_column not in data.columns:
+            continue
+        data[column] = data[primary_column].combine_first(data[secondary_column])
+    return data

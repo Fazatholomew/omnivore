@@ -6,11 +6,9 @@ from ..utils.aux import (
     to_sf_datetime,
     toSalesforceEmail,
     toSalesforcePhone,
+    combine_xy_columns,
     save_output_df,
 )
-
-pd.set_option("display.max_columns", 1000)
-pd.options.mode.chained_assignment = None  # type:ignore
 
 # Create a logger object
 logger = logging.getLogger(__name__)
@@ -258,13 +256,7 @@ def homeworks(homeworks_output):
 
     #     // Combine both data
     try:
-        for column in homeworks_output.columns:
-            if "_x" in column:
-                column_name = column[:-2]
-                if f"{column_name}_y" in homeworks_output.columns:
-                    homeworks_output[column_name] = homeworks_output[
-                        f"{column_name}_x"
-                    ].combine_first(homeworks_output[f"{column_name}_y"])
+        homeworks_output = combine_xy_columns(homeworks_output, [])
     except Exception as e:
         logger.error("An error occurred: %s", str(e), exc_info=True)
 

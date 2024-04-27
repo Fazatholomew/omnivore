@@ -1,4 +1,9 @@
-from omnivore.utils.aux import to_sf_datetime, toSalesforceEmail, toSalesforcePhone
+from omnivore.utils.aux import (
+    to_sf_datetime,
+    toSalesforceEmail,
+    toSalesforcePhone,
+    combine_xy_columns,
+)
 from pandas import DataFrame
 
 import logging
@@ -79,25 +84,13 @@ language_mapper = {
 }
 
 
-def merge_columns(
-    data: DataFrame, columns: list[str], primary="x", secondary="y"
-) -> DataFrame:
-    for column in columns:
-        primary_column = f"{column}_{primary}"
-        secondary_column = f"{column}_{secondary}"
-        if primary_column not in data.columns and secondary_column not in data.columns:
-            continue
-        data[column] = data[primary_column].combine_first(data[secondary_column])
-    return data
-
-
 def merge_file_revise(hea: DataFrame, wx: DataFrame) -> DataFrame:
     hea_renamed = hea.rename(columns=column_mapper)
     wx_renamed = wx.rename(columns=wx_column_mapper)
     combined = hea_renamed.rename(columns=column_mapper).merge(
         wx_renamed, how="outer", on="ID_from_HPC__c"
     )
-    merged = merge_columns(
+    merged = combine_xy_columns(
         combined,
         [
             "FirstName",

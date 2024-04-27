@@ -4,8 +4,12 @@ from omnivore.utils.aux import (
     toSalesforceEmail,
     toSalesforcePhone,
     toSalesforceMultiPicklist,
+    to_sf_datetime,
+    combine_xy_columns,
 )
 import logging
+
+NEEECO_DATE_FORMAT = "%m/%d/%Y"
 
 
 # Create a logger object
@@ -90,6 +94,18 @@ def merge_neeeco(
                 "Occupant": "Owner_Renter__c",
             }
         )
+        neeeco_output["Date Scheduled in Vcita"] = to_sf_datetime(
+            neeeco_output["Date Scheduled in Vcita"], NEEECO_DATE_FORMAT
+        )
+
+        neeeco_output["Created"] = to_sf_datetime(
+            neeeco_output["Created"], NEEECO_DATE_FORMAT
+        )
+        neeeco_output["CloseDate"] = neeeco_output[
+            "Date Scheduled in Vcita"
+        ].combine_first(neeeco_output["Created"])
+
+        neeeco_output = combine_xy_columns(neeeco_output)
 
         return neeeco_output
 
@@ -99,23 +115,6 @@ def merge_neeeco(
 
 
 def neeeco(neeeco_output: pd.DataFrame):
-
-    #     // Combine both data
-    neeeco_output["Final_Contract_Amount__c"] = neeeco_output[
-        "Final Full Job Amount Invoiced"
-    ].combine_first(neeeco_output["Customer Final Payment Collected"])
-    neeeco_output["Insulation Project Status"] = neeeco_output[
-        "Insulation Project Status_y"
-    ].combine_first(neeeco_output["Insulation Project Status_x"])
-    neeeco_output["Contract_Amount__c"] = neeeco_output[
-        "$ Total Weatherization Sold_y"
-    ].combine_first(neeeco_output["$ Total Weatherization Sold_x"])
-    neeeco_output["Insulation Project Installation Date"] = neeeco_output[
-        "Insulation Project Installation Date_y"
-    ].combine_first(neeeco_output["Insulation Project Installation Date_x"])
-    neeeco_output["Health & Safety Status"] = neeeco_output[
-        "Health & Safety Status_y"
-    ].combine_first(neeeco_output["Health & Safety Status_x"])
 
     neeeco_output["Final_Contract_Amount__c"] = neeeco_output[
         "Final_Contract_Amount__c"
@@ -143,55 +142,9 @@ def neeeco(neeeco_output: pd.DataFrame):
         logger.error("An error occurred: %s", str(e), exc_info=True)
 
     try:
-        neeeco_output["Date Of Audit"] = neeeco_output["Date Of Audit_y"].combine_first(
-            neeeco_output["Date Of Audit_x"]
+        neeeco_output["HEA_Date_And_Time__c"] = to_sf_datetime(
+            neeeco_output["Date of Audit"], NEEECO_DATE_FORMAT
         )
-        neeeco_output["Date of Audit"] = neeeco_output["Date of Audit"].replace(
-            "", np.nan
-        )
-        neeeco_output["Date of Audit"] = neeeco_output["Date of Audit"].fillna(
-            neeeco_output["Date Of Audit"]
-        )
-        neeeco_output["Date of Audit"] = pd.to_datetime(neeeco_output["Date of Audit"])
-        neeeco_output["Date of Audit"] = neeeco_output["Date of Audit"].dt.strftime(
-            "%Y-%m-%d"
-        )
-        neeeco_output["Date of Audit"] = neeeco_output["Date of Audit"].astype(str)
-        neeeco_output["HEA_Date_And_Time__c"] = (
-            neeeco_output["Date of Audit"] + "T00:00:00.000-07:00"
-        )
-        neeeco_output.loc[
-            neeeco_output["HEA_Date_And_Time__c"] == "nanT00:00:00.000-07:00",
-            "HEA_Date_And_Time__c",
-        ] = ""
-    except Exception as e:
-        logger.error("An error occurred: %s", str(e), exc_info=True)
-
-    try:
-        neeeco_output["Date Scheduled in Vcita"] = pd.to_datetime(
-            neeeco_output["Date Scheduled in Vcita"]
-        )
-        neeeco_output["Date Scheduled in Vcita"] = neeeco_output[
-            "Date Scheduled in Vcita"
-        ].dt.strftime("%Y-%m-%d")
-        neeeco_output["Date Scheduled in Vcita"] = neeeco_output[
-            "Date Scheduled in Vcita"
-        ].astype(str)
-        neeeco_output["Date Scheduled in Vcita"] = (
-            neeeco_output["Date Scheduled in Vcita"] + "T00:00:00.000-07:00"
-        )
-        neeeco_output["Created"] = pd.to_datetime(
-            neeeco_output["Created"], format="%m/%d/%Y"
-        )
-        neeeco_output["Created"] = neeeco_output["Created"].dt.strftime("%Y-%m-%d")
-        neeeco_output["Created"] = neeeco_output["Created"].astype(str)
-        neeeco_output["Created"] = neeeco_output["Created"] + "T00:00:00.000-07:00"
-        neeeco_output["CloseDate"] = neeeco_output[
-            "Date Scheduled in Vcita"
-        ].combine_first(neeeco_output["Created"])
-        neeeco_output.loc[
-            neeeco_output["CloseDate"] == "nanT00:00:00.000-07:00", "CloseDate"
-        ] = neeeco_output["Created"]
     except Exception as e:
         logger.error("An error occurred: %s", str(e), exc_info=True)
 
@@ -254,24 +207,10 @@ def neeeco(neeeco_output: pd.DataFrame):
 
     try:
         #       // Wx Jobs Statuses
-        neeeco_output["Weatherization_Status__c"] = ""
+        neeeco_output["Weatherization_Status__c"] = to_sf_datetime(
+            neeeco_output["Insulation Project Installation Date"], NEEECO_DATE_FORMAT
+        )
 
-        neeeco_output["Insulation Project Installation Date"] = pd.to_datetime(
-            neeeco_output["Insulation Project Installation Date"]
-        )
-        neeeco_output["Insulation Project Installation Date"] = neeeco_output[
-            "Insulation Project Installation Date"
-        ].dt.strftime("%Y-%m-%d")
-        neeeco_output["Insulation Project Installation Date"] = neeeco_output[
-            "Insulation Project Installation Date"
-        ].astype(str)
-        neeeco_output["Weatherization_Date_Time__c"] = (
-            neeeco_output["Insulation Project Installation Date"]
-            + "T00:00:00.000-07:00"
-        )
-        neeeco_output["Weatherization_Date_Time__c"] = neeeco_output[
-            "Weatherization_Date_Time__c"
-        ].replace("nanT00:00:00.000-07:00", "")
     except Exception as e:
         logger.error("An error occurred: %s", str(e), exc_info=True)
 
@@ -308,11 +247,11 @@ def neeeco(neeeco_output: pd.DataFrame):
         ] = "No Reason"
 
         #         // If date is still in the future, stage is scheduled
-        neeeco_output["Date of Audit"] = pd.to_datetime(neeeco_output["Date of Audit"])
-
-        neeeco_output.loc[neeeco_output["Date of Audit"] == "", "Date of Audit"] = (
-            pd.to_datetime("today")
+        neeeco_output["Date of Audit"] = to_sf_datetime(
+            neeeco_output["Date of Audit"], NEEECO_DATE_FORMAT
         )
+
+        neeeco_output["Date of Audit"].fillna(pd.to_datetime("today"))
         neeeco_output.loc[
             neeeco_output["Date of Audit"] > pd.to_datetime("today"), "StageName"
         ] = "Scheduled"

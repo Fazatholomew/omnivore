@@ -2,7 +2,7 @@ from omnivore.cambridge.cambridge import cambridge
 from omnivore.homeworks.homeworks import homeworks, rename_and_merge
 from omnivore.neeeco.neeeco import neeeco, merge_neeeco
 from omnivore.vhi.vhi import vhi
-from omnivore.revise.revise import revise, merge_file_revise
+from omnivore.revise.revise import revise, merge_file_revise, REVISE_DATE_FORMAT
 from omnivore.utils.salesforce import SalesforceConnection
 from omnivore.utils.aux import (
     to_account_and_opportunities,
@@ -643,9 +643,7 @@ class Blueprint:
                 date_sorted = data.sort_values("CloseDate", ascending=False)
                 latest_record = date_sorted.iloc[0]["CloseDate"]
                 if isinstance(latest_record, str):
-                    latest_record = datetime.strptime(
-                        latest_record, DATETIME_SALESFORCE
-                    )
+                    latest_record = datetime.strptime(latest_record, REVISE_DATE_FORMAT)
                 self.hpcs[REVISE_ACCID].latest_record = latest_record
                 self.hpcs[REVISE_ACCID].output = len(processed_row)
                 self.hpcs[REVISE_ACCID].examples = {
