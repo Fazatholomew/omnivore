@@ -9,6 +9,7 @@ from dashboard.models import Telemetry, HPC, Data
 from dashboard import db
 
 from sqlalchemy import inspect
+from json import load
 
 
 def init_routes(app: Flask):
@@ -167,6 +168,29 @@ def init_routes(app: Flask):
                     yield line  # Convert newlines to HTML breaks
 
         return Response(generate(), mimetype="text/html")
+
+    @app.route("/sankey")
+    def sankey():
+        with open("dashboard/echarts/sankey_data.json") as current_file:
+            current_data = load(current_file)
+            return render_template(
+                "pages/sankey.html",
+                segment="Sankey",
+                parent="Sankey",
+                data=current_data["data"],
+                links=current_data["links"],
+            )
+
+    @app.route("/sunburst")
+    def sunburst():
+        with open("dashboard/echarts/sunburst_data.json") as current_file:
+            current_data = load(current_file)
+            return render_template(
+                "pages/sunburst.html",
+                segment="sunburst",
+                parent="sunburst",
+                data=current_data,
+            )
 
     @app.template_filter(name="replace_value")
     def replace_value(value, arg):
