@@ -1,7 +1,6 @@
-import pandas as pd
+from pandas import Series, DataFrame, merge
 import numpy as np
 import logging
-from ..utils.constants import DATETIME_SALESFORCE
 from ..utils.aux import (
     to_sf_datetime,
     toSalesforceEmail,
@@ -14,110 +13,110 @@ from ..utils.aux import (
 logger = logging.getLogger(__name__)
 
 stageMapper = {
-        "Approval - Customer Unresponsive": "Canceled",
-        "Approval / Task Not Completed in Time": "Canceled",
-        "Cancel At Door": "Canceled",
-        "Closed Lost": "Signed Contracts",
-        "Closed Won": "Signed Contracts",
-        "Closed Won - Pending QC": "Signed Contracts",
-        "Covid Related": "Canceled",
-        "Customer Cancel Request": "Canceled",
-        "Customer Cancellation Request": "Canceled",
-        "Customer No-Show": "Canceled",
-        "Customer Reschedule Request": "Canceled",
-        "HEA Not Approved": "Canceled",
-        "HES Cancel": "Canceled",
-        "High Probability": "Recommended - Unsigned",
-        "High Probability - Pending QC": "Recommended - Unsigned",
-        "HWE Cancel": "Canceled",
-        "ICW Fixed- Pending Review": "Recommended - Unsigned",
-        "Incorrectly Closed Won": "No Opportunity",
-        "Low Probability": "Recommended - Unsigned",
-        "Not approved - Mileage": "Canceled",
-        "Not in EM Home": "No Opportunity",
-        "Office Cancel": "Canceled",
-        "Overbooking Cancel": "Canceled",
-        "Overbooking Reschedule": "Canceled",
-        "PreWeatherization Barrier": "Health & Safety Barrier",
-        "PreWeatherization Barrier - Pending QC": "Health & Safety Barrier",
-        "Qualified Out": "No Opportunity",
-        "Scheduling Error": "Canceled",
-        "Unqualified - 5+ Units": "Canceled",
-        "Unqualified - Had Previous Assessment": "Canceled",
-        "Unqualified - Low Income": "Canceled",
-        "Unqualified - Other": "Canceled",
-        "Unqualified (5+ Units)": "Canceled",
-        "Visit Not Confirmed": "Canceled",
-        "": "Scheduled",
-        np.nan: "Scheduled",
-    }
+    "Approval - Customer Unresponsive": "Canceled",
+    "Approval / Task Not Completed in Time": "Canceled",
+    "Cancel At Door": "Canceled",
+    "Closed Lost": "Signed Contracts",
+    "Closed Won": "Signed Contracts",
+    "Closed Won - Pending QC": "Signed Contracts",
+    "Covid Related": "Canceled",
+    "Customer Cancel Request": "Canceled",
+    "Customer Cancellation Request": "Canceled",
+    "Customer No-Show": "Canceled",
+    "Customer Reschedule Request": "Canceled",
+    "HEA Not Approved": "Canceled",
+    "HES Cancel": "Canceled",
+    "High Probability": "Recommended - Unsigned",
+    "High Probability - Pending QC": "Recommended - Unsigned",
+    "HWE Cancel": "Canceled",
+    "ICW Fixed- Pending Review": "Recommended - Unsigned",
+    "Incorrectly Closed Won": "No Opportunity",
+    "Low Probability": "Recommended - Unsigned",
+    "Not approved - Mileage": "Canceled",
+    "Not in EM Home": "No Opportunity",
+    "Office Cancel": "Canceled",
+    "Overbooking Cancel": "Canceled",
+    "Overbooking Reschedule": "Canceled",
+    "PreWeatherization Barrier": "Health & Safety Barrier",
+    "PreWeatherization Barrier - Pending QC": "Health & Safety Barrier",
+    "Qualified Out": "No Opportunity",
+    "Scheduling Error": "Canceled",
+    "Unqualified - 5+ Units": "Canceled",
+    "Unqualified - Had Previous Assessment": "Canceled",
+    "Unqualified - Low Income": "Canceled",
+    "Unqualified - Other": "Canceled",
+    "Unqualified (5+ Units)": "Canceled",
+    "Visit Not Confirmed": "Canceled",
+    "": "Scheduled",
+    np.nan: "Scheduled",
+}
 
-    # Cancel Reason
-    cancelMapper = {
-        "Approval - Customer Unresponsive": "Unresponsive",
-        "Scheduling Error": "By Office",
-        "Customer Reschedule Request": "Reschedule Request",
-        "Approval / Task Not Completed in Time": "By Office",
-        "Cancel At Door": "By Customer",
-        "Overbooking Cancel": "By Office",
-        "Customer No-Show": "Customer No Show",
-        "Office Cancel": "By Office",
-        "Customer Cancellation Request": "Reschedule Request",
-        "HEA not Approved": "By Office",
-        "Impromptu": "By Customer",
-        "HWE Cancel": "By Office",
-        "Covid Related": "Reschedule Request",
-        "Overbooking Reschedule": "By Office",
-        "Unqualified - Low Income": "Low Income",
-        "Other": "No reason",
-        "Unqualified - Had Previous Assessment": "Had HEA within 2 years",
-        "HES cancel": "By Office",
-        "Unqualified - Other": "No reason",
-        "Unqualified (5+ Units)": "5+ units",
-        "Unqualified - 5+ Units": "5+ units",
-        "Visit Not Confirmed": "By Office",
-    }
+# Cancel Reason
+cancelMapper = {
+    "Approval - Customer Unresponsive": "Unresponsive",
+    "Scheduling Error": "By Office",
+    "Customer Reschedule Request": "Reschedule Request",
+    "Approval / Task Not Completed in Time": "By Office",
+    "Cancel At Door": "By Customer",
+    "Overbooking Cancel": "By Office",
+    "Customer No-Show": "Customer No Show",
+    "Office Cancel": "By Office",
+    "Customer Cancellation Request": "Reschedule Request",
+    "HEA not Approved": "By Office",
+    "Impromptu": "By Customer",
+    "HWE Cancel": "By Office",
+    "Covid Related": "Reschedule Request",
+    "Overbooking Reschedule": "By Office",
+    "Unqualified - Low Income": "Low Income",
+    "Other": "No reason",
+    "Unqualified - Had Previous Assessment": "Had HEA within 2 years",
+    "HES cancel": "By Office",
+    "Unqualified - Other": "No reason",
+    "Unqualified (5+ Units)": "5+ units",
+    "Unqualified - 5+ Units": "5+ units",
+    "Visit Not Confirmed": "By Office",
+}
 
-    # // Weatherization Status
-    wxMapper = {
-        "1st Scheduling Attempt": "Not Yet Scheduled",
-        "2nd Scheduling Attempt": "Not Yet Scheduled",
-        "3rd Scheduling Attempt": "Not Yet Scheduled",
-        "4th Scheduling Attempt": "Not Yet Scheduled",
-        "5th Scheduling Attempt": "Not Yet Scheduled",
-        "6th Attempt - Next Attempt is Final": "Not Yet Scheduled",
-        "Cancelled [Declined Work When We Attempted To Schedule]": "Not Yet Scheduled",
-        "Confirm Schedule Date 1st Attempt Completed": "Scheduled",
-        "Confirm Schedule Date 2nd Attempt Completed": "Scheduled",
-        "Confirm Schedule Date 3rd Attempt Completed": "Scheduled",
-        "Dead [Couldn't Get In Contact With The Customer]": "Not Yet Scheduled",
-        "Installed and Invoiced": "Completed",
-        "Installed- NOT Invoiced": "Completed",
-        "Needs to be rescheduled - Permit Denied": "Not Yet Scheduled",
-        "Needs to be rescheduled- HWE Canceled": "Not Yet Scheduled",
-        "Needs to be Rescheduled- Unable to Confirm Scheduled Date": "Not Yet Scheduled",
-        "Not Ready for Scheduling": "Not Yet Scheduled",
-        "Ready for Scheduling": "Not Yet Scheduled",
-        "Schedule Date Confirmed": "Scheduled",
-        "Scheduled IH- Pending Confirmation": "Scheduled",
-        "Scheduled with Sub": "Scheduled",
-        "Walk- Cannot be Recovered": "Not Yet Scheduled",
-        "Walk- In Recovery Process": "Not Yet Scheduled",
-        "Wx Scheduling Case": "Not Yet Scheduled",
-        "Installed - Docs Uploaded": "Completed",
-        "Needs to be rescheduled - customer request/customer no show": "Not Yet Scheduled",
-        "Sent to Installer": "Scheduled",
-        "Needs to be rescheduled - Robocall": "Not Yet Scheduled",
-        "Partial Complete": "Completed",
-    }
+# // Weatherization Status
+wxMapper = {
+    "1st Scheduling Attempt": "Not Yet Scheduled",
+    "2nd Scheduling Attempt": "Not Yet Scheduled",
+    "3rd Scheduling Attempt": "Not Yet Scheduled",
+    "4th Scheduling Attempt": "Not Yet Scheduled",
+    "5th Scheduling Attempt": "Not Yet Scheduled",
+    "6th Attempt - Next Attempt is Final": "Not Yet Scheduled",
+    "Cancelled [Declined Work When We Attempted To Schedule]": "Not Yet Scheduled",
+    "Confirm Schedule Date 1st Attempt Completed": "Scheduled",
+    "Confirm Schedule Date 2nd Attempt Completed": "Scheduled",
+    "Confirm Schedule Date 3rd Attempt Completed": "Scheduled",
+    "Dead [Couldn't Get In Contact With The Customer]": "Not Yet Scheduled",
+    "Installed and Invoiced": "Completed",
+    "Installed- NOT Invoiced": "Completed",
+    "Needs to be rescheduled - Permit Denied": "Not Yet Scheduled",
+    "Needs to be rescheduled- HWE Canceled": "Not Yet Scheduled",
+    "Needs to be Rescheduled- Unable to Confirm Scheduled Date": "Not Yet Scheduled",
+    "Not Ready for Scheduling": "Not Yet Scheduled",
+    "Ready for Scheduling": "Not Yet Scheduled",
+    "Schedule Date Confirmed": "Scheduled",
+    "Scheduled IH- Pending Confirmation": "Scheduled",
+    "Scheduled with Sub": "Scheduled",
+    "Walk- Cannot be Recovered": "Not Yet Scheduled",
+    "Walk- In Recovery Process": "Not Yet Scheduled",
+    "Wx Scheduling Case": "Not Yet Scheduled",
+    "Installed - Docs Uploaded": "Completed",
+    "Needs to be rescheduled - customer request/customer no show": "Not Yet Scheduled",
+    "Sent to Installer": "Scheduled",
+    "Needs to be rescheduled - Robocall": "Not Yet Scheduled",
+    "Partial Complete": "Completed",
+}
 
-    # // Owner/Renter
-    orMapper = {
-        "Landlord": "Owner",
-        "Owner-Occupied": "Owner",
-        "own": "Owner",
-        "Tenant": "Renter",
-    }
+# // Owner/Renter
+orMapper = {
+    "Landlord": "Owner",
+    "Owner-Occupied": "Owner",
+    "own": "Owner",
+    "Tenant": "Renter",
+}
 
 # Health And Safety
 hsMapper = {
@@ -135,7 +134,7 @@ hsMapper = {
 }
 
 
-def combine_hs(row: pd.Series) -> str | float:
+def combine_hs(row: Series) -> str | float:
     """
     Unfortunately, homeworks uses columns with a boolean value for
     each Health and Safety Barrier category. This function combines
@@ -148,7 +147,7 @@ def combine_hs(row: pd.Series) -> str | float:
         logger.error("An error occurred: %s", str(e), exc_info=True)
 
 
-def rename_and_merge(_homeworks_old_input, _homeworks_new_input) -> pd.DataFrame:
+def rename_and_merge(_homeworks_old_input, _homeworks_new_input) -> DataFrame:
     """
     Homeworks sends 2 files. Old input only contains completed HEAs whereas
     new input contains canceled and scheduled ones. Sometimes they overlap.
@@ -202,23 +201,12 @@ def rename_and_merge(_homeworks_old_input, _homeworks_new_input) -> pd.DataFrame
         logger.error("An error occurred: %s", str(e), exc_info=True)
 
     try:
-        homeworks_old_input["Time Stamp HEA Performed"] = (
-            pd.to_datetime(
-                homeworks_old_input["Time Stamp HEA Performed"],
-                format="%m/%d/%Y %I:%M %p",
-                errors="coerce",
-            )
-            .dt.strftime(DATETIME_SALESFORCE)
-            .astype(str)
+        homeworks_old_input["Time Stamp HEA Performed"] = to_sf_datetime(
+            homeworks_old_input["Time Stamp HEA Performed"],
+            "%m/%d/%Y %I:%M %p",
         )
-        homeworks_old_input["Created Date"] = (
-            pd.to_datetime(
-                homeworks_old_input["Created Date"],
-                format="%m/%d/%Y",
-                errors="coerce",
-            )
-            .dt.strftime(DATETIME_SALESFORCE)
-            .astype(str)
+        homeworks_old_input["Created Date"] = to_sf_datetime(
+            homeworks_old_input["Created Date"], "%m/%d/%Y"
         )
         homeworks_old_input = homeworks_old_input.rename(
             columns={
@@ -291,20 +279,9 @@ def homeworks(homeworks_output):
         logger.error("An error occurred: %s", str(e), exc_info=True)
 
     try:
-        homeworks_output["Weatherization_Date_Time__c"] = pd.to_datetime(
-            homeworks_output["Weatherization_Date_Time__c"],
-            format="mixed",
-            errors="coerce",
+        homeworks_output["Weatherization_Date_Time__c"] = to_sf_datetime(
+            homeworks_output["Weatherization_Date_Time__c"], "%m/%d/%Y %I:%M %p"
         )
-        homeworks_output["Weatherization_Date_Time__c"] = homeworks_output[
-            "Weatherization_Date_Time__c"
-        ].dt.strftime(DATETIME_SALESFORCE)
-        homeworks_output["Weatherization_Date_Time__c"] = homeworks_output[
-            "Weatherization_Date_Time__c"
-        ].astype(str)
-        homeworks_output["Weatherization_Date_Time__c"] = homeworks_output[
-            "Weatherization_Date_Time__c"
-        ].fillna("")
     except Exception as e:
         logger.error("An error occurred: %s", str(e), exc_info=True)
 
