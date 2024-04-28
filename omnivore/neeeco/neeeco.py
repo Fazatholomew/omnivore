@@ -1,5 +1,5 @@
 import numpy as np
-import pandas as pd
+from pandas import to_datetime, DataFrame, merge
 from omnivore.utils.aux import (
     toSalesforceEmail,
     toSalesforcePhone,
@@ -75,12 +75,10 @@ owner_renter_mapper = {
 }
 
 
-def merge_neeeco(
-    neeeco_input: pd.DataFrame, neeeco_wx_input: pd.DataFrame
-) -> pd.DataFrame:
+def merge_neeeco(neeeco_input: DataFrame, neeeco_wx_input: DataFrame) -> DataFrame:
     try:
         # Merge the input dataframes and rename columns
-        neeeco_output = pd.merge(
+        neeeco_output = merge(
             left=neeeco_input,
             right=neeeco_wx_input,
             how="left",
@@ -111,10 +109,14 @@ def merge_neeeco(
 
     except Exception as e:
         logger.error("An error occurred: %s", str(e), exc_info=True)
-        return pd.DataFrame()
+        return DataFrame()
 
 
-def neeeco(neeeco_output: pd.DataFrame):
+def neeeco(neeeco_output: DataFrame):
+
+    neeeco_output["Final_Contract_Amount__c"] = neeeco_output[
+        "Final Full Job Amount Invoiced"
+    ].combine_first(neeeco_output["Customer Final Payment Collected"])
 
     neeeco_output["Final_Contract_Amount__c"] = neeeco_output[
         "Final_Contract_Amount__c"
@@ -251,9 +253,9 @@ def neeeco(neeeco_output: pd.DataFrame):
             neeeco_output["Date of Audit"], NEEECO_DATE_FORMAT
         )
 
-        neeeco_output["Date of Audit"].fillna(pd.to_datetime("today"))
+        neeeco_output["Date of Audit"].fillna(to_datetime("today"))
         neeeco_output.loc[
-            neeeco_output["Date of Audit"] > pd.to_datetime("today"), "StageName"
+            neeeco_output["Date of Audit"] > to_datetime("today"), "StageName"
         ] = "Scheduled"
     except Exception as e:
         logger.error("An error occurred: %s", str(e), exc_info=True)
