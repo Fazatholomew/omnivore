@@ -29,56 +29,61 @@
 
 <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
 <script>
-  var chartDom = document.getElementById('main');
-  var myChart = echarts.init(chartDom);
-  var option;
-  myChart.setOption(
-    {
-      tooltip: {
-        trigger: 'item',
-        triggerOn: 'mousemove'
-      },
-      series: [
+  const chartDom = document.getElementById('main');
+  const myChart = echarts.init(chartDom);
+  myChart.showLoading();
+  fetch("{{ url_for('static', filename = 'assets/sunburst_data.json' )}}")
+    .then((res) => res.json())
+    .then((data) => {
+      myChart.hideLoading();
+      myChart.setOption(
         {
-          type: 'sunburst',
-          data: {{ data | tojson}},
-          radius: [0, '90%'],
-          label: {
-            rotate: 'radial'
+          tooltip: {
+            trigger: 'item',
+            triggerOn: 'mousemove'
           },
-          levels: [
-            {},
+          series: [
             {
-              r0: '15%',
-              r: '35%',
-              itemStyle: {
-                borderWidth: 2
+              type: 'sunburst',
+              data,
+              radius: [0, '90%'],
+              label: {
+                rotate: 'radial'
               },
-              label: {
-                rotate: 'tangential'
-              }
-            },
-            {
-              r0: '35%',
-              r: '70%',
-              label: {
-                align: 'right'
-              }
-            },
-            {
-              r0: '70%',
-              r: '72%',
-              label: {
-                position: 'outside',
-                padding: 5,
-                silent: false
-              },
+              levels: [
+                {},
+                {
+                  r0: '15%',
+                  r: '35%',
+                  itemStyle: {
+                    borderWidth: 2
+                  },
+                  label: {
+                    rotate: 'tangential'
+                  }
+                },
+                {
+                  r0: '35%',
+                  r: '70%',
+                  label: {
+                    align: 'right'
+                  }
+                },
+                {
+                  r0: '70%',
+                  r: '72%',
+                  label: {
+                    position: 'outside',
+                    padding: 5,
+                    silent: false
+                  },
+                }
+              ]
             }
           ]
         }
-      ]
-    }
-  );
+      );
+    })
 </script>
 
 {% endblock scripts %}

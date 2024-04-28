@@ -30,35 +30,40 @@
 
 <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
 <script>
-  var chartDom = document.getElementById('main');
-  var myChart = echarts.init(chartDom);
-  var option;
-  myChart.setOption(
-    {
-      title: {
-        text: 'Sankey Diagram'
-      },
-      tooltip: {
-        trigger: 'item',
-        triggerOn: 'mousemove'
-      },
-      series: [
+  const chartDom = document.getElementById('main');
+  const myChart = echarts.init(chartDom);
+  myChart.showLoading();
+  fetch("{{ url_for('static', filename = 'assets/sankey_data.json' )}}")
+    .then((res) => res.json())
+    .then(({ data, links }) => {
+      myChart.hideLoading();
+      myChart.setOption(
         {
-          type: 'sankey',
-          data: {{data | tojson}},
-          links: {{links | tojson}},
-          nodeAlign: 'left',
-          emphasis: {
-            focus: 'adjacency'
+          title: {
+            text: 'Sankey Diagram'
           },
-          lineStyle: {
-            color: 'gradient',
-            curveness: 0.5
-          }
+          tooltip: {
+            trigger: 'item',
+            triggerOn: 'mousemove'
+          },
+          series: [
+            {
+              type: 'sankey',
+              data,
+              links,
+              nodeAlign: 'left',
+              emphasis: {
+                focus: 'adjacency'
+              },
+              lineStyle: {
+                color: 'gradient',
+                curveness: 0.5
+              }
+            }
+          ]
         }
-      ]
-    }
-  );
+      );
+    })
 </script>
 
 {% endblock scripts %}
