@@ -121,6 +121,9 @@ def neeeco(neeeco_output: DataFrame):
     neeeco_output["Final_Contract_Amount__c"] = neeeco_output[
         "Final_Contract_Amount__c"
     ].fillna("")
+    neeeco_output["Contract_Amount__c"] = neeeco_output[
+        "$ Total Weatherization Sold_y"
+    ].combine_first(neeeco_output["$ Total Weatherization Sold_x"])
     neeeco_output["Contract_Amount__c"] = neeeco_output["Contract_Amount__c"].fillna("")
 
     try:

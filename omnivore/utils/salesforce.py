@@ -15,6 +15,7 @@ from .types import Account, Opportunity, Record_Find_Info, Query
 from os import getenv
 from pandas import isna
 import logging
+from datetime import datetime
 
 # Create a logger object
 logger = logging.getLogger(__name__)
@@ -51,6 +52,7 @@ class SalesforceConnection:
         self.accId_to_acc: Dict[str, Account] = (
             {}
         )  # Where all Accounts are, indexed by Account ID
+        self.table_timestamp: datetime = None
 
     def get_salesforce_table(self, is_cambridge=False):
         """
@@ -139,6 +141,7 @@ class SalesforceConnection:
                 self.phone_to_accId[cleaned_phone] = account["Id"]
             self.accId_to_acc[account["Id"]] = account
 
+        self.table_timestamp = datetime.now()
         logger.info("Finsihed loading Database from SF")
 
     def find_records(self, _input_records: Record_Find_Info) -> list[Opportunity]:

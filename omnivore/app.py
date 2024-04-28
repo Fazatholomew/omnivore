@@ -86,27 +86,28 @@ class Blueprint:
             )
             logger.error(err, exc_info=True)
 
-    async def async_init(self):
+    async def async_init(self, data_urls: list[str]):
         # Executor for running synchronous tasks in a separate thread
         executor = ThreadPoolExecutor(max_workers=1)
 
         # Asynchronous tasks
         async with ClientSession() as session:
             fetch_tasks = [
-                self.get_data_GAS(current_url, session) for current_url in HPC_DATA_URLS
+                self.get_data_GAS(current_url, session) for current_url in data_urls
             ]
 
-            # Synchronous task packaged for async execution
-            sync_task = get_event_loop().run_in_executor(
-                executor, self.sf.get_salesforce_table
-            )
+            if (
+                self.sf.table_timestamp is None
+                or (datetime.now() - self.sf.table_timestamp).total_seconds()
+                > 3600  # One Hour
+            ):
+                # Synchronous task packaged for async execution
+                sync_task = get_event_loop().run_in_executor(
+                    executor, self.sf.get_salesforce_table
+                )
+                fetch_tasks.append(sync_task)
 
-            await gather(*(fetch_tasks + [sync_task]))
-
-            # Gather all tasks (both sync and async)
-            # completed, _ = await wait(
-            #     fetch_tasks + [sync_task], return_when=ALL_COMPLETED
-            # )
+            await gather(*fetch_tasks)
 
     async def get_data_GAS(self, url: str, session: ClientSession):
         try:
@@ -700,7 +701,12 @@ class Blueprint:
 
     def run(self) -> None:
         logger.info("Running on ENV = %s", getenv("ENV"))
-        run(self.async_init())
+        for _ in range(5):
+            # Try 5 times to download
+            no_data = [url for url in HPC_DATA_URLS if url not in self.data]
+            if len(no_data) == 0:
+                break
+            run(self.async_init(no_data))
         logger.info("Start Processing Omnivore")
         logger.info("Start Processing Neeeco")
         self.run_neeeco()
