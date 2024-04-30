@@ -63,11 +63,10 @@ class Blueprint:
         logger.info("Connection to Salesforce is successful")
         try:
             logger.info("Fetching telemetry ID")
-            current_telemetry = Telemetry()
-            self.db.add(current_telemetry)
+            self.telemetry = Telemetry()
+            self.db.add(self.telemetry)
             self.db.commit()
-            self.telemetry_id = current_telemetry.id
-            logger.info(f"Current Telemetry ID: {self.telemetry_id}")
+            logger.info(f"Current Telemetry ID: {self.telemetry.id}")
         except Exception as err:
             logger.error(
                 "Failed getting Telemetry ID. Omnivore continues without sending Telemetry."
@@ -114,7 +113,7 @@ class Blueprint:
             df = read_csv(StringIO(current_data["data"]), dtype="object")
             self.data[url] = df
 
-            if self.telemetry_id:
+            if self.telemetry.id:
                 current_telemetry_data = Data(
                     hpc_name=current_data["hpc"],
                     created_date=datetime.fromtimestamp(
@@ -122,7 +121,7 @@ class Blueprint:
                     ),
                     source=current_data["source"],
                     row_number=len(df),
-                    telemetry_id=self.telemetry_id,
+                    telemetry_id=self.telemetry.id,
                 )
                 try:
                     self.db.add(current_telemetry_data)
@@ -425,11 +424,11 @@ class Blueprint:
         try:
             raw_data = self.data["NEEECO_DATA_URL"]
             wx_data = self.data["NEEECO_WX_DATA_URL"]
-            if self.telemetry_id:
+            if self.telemetry.id:
                 self.hpcs[NEEECO_ACCID] = HPC(
                     name=HPCIDTOHPCNAME[NEEECO_ACCID],
                     start_time=datetime.now(),
-                    telemetry_id=self.telemetry_id,
+                    telemetry_id=self.telemetry.id,
                     input=len(raw_data),
                     acc_created=0,
                     acc_updated=0,
@@ -453,7 +452,7 @@ class Blueprint:
             processed_row = self.remove_already_processed_row(processed_row)
             grouped_opps = to_account_and_opportunities(processed_row)
             run(self.start_upload_to_salesforce(grouped_opps, NEEECO_ACCID))
-            if self.telemetry_id:
+            if self.telemetry.id:
                 date_sorted = merged.sort_values("CloseDate", ascending=False)
                 latest_record = date_sorted.iloc[0]["CloseDate"]
                 if isinstance(latest_record, str):
@@ -482,11 +481,11 @@ class Blueprint:
         try:
             new_data = self.data["HOMEWORKS_DATA_URL"]
             old_data = self.data["HOMEWORKS_COMPLETED_DATA_URL"]
-            if self.telemetry_id:
+            if self.telemetry.id:
                 self.hpcs[HOMEWORKS_ACCID] = HPC(
                     name=HPCIDTOHPCNAME[HOMEWORKS_ACCID],
                     start_time=datetime.now(),
-                    telemetry_id=self.telemetry_id,
+                    telemetry_id=self.telemetry.id,
                     input=0,
                     acc_created=0,
                     acc_updated=0,
@@ -508,7 +507,7 @@ class Blueprint:
             processed_row = self.remove_already_processed_row(processed_row)
             grouped_opps = to_account_and_opportunities(processed_row)
             run(self.start_upload_to_salesforce(grouped_opps, HOMEWORKS_ACCID))
-            if self.telemetry_id:
+            if self.telemetry.id:
                 date_sorted = merged.sort_values("CloseDate", ascending=False)
                 latest_record = date_sorted.iloc[0]["CloseDate"]
                 if isinstance(latest_record, str):
@@ -539,11 +538,11 @@ class Blueprint:
         """
         try:
             data = self.data["VHI_DATA_URL"]
-            if self.telemetry_id:
+            if self.telemetry.id:
                 self.hpcs[VHI_ACCID] = HPC(
                     name=HPCIDTOHPCNAME[VHI_ACCID],
                     start_time=datetime.now(),
-                    telemetry_id=self.telemetry_id,
+                    telemetry_id=self.telemetry.id,
                     input=len(data),
                     acc_created=0,
                     acc_updated=0,
@@ -569,7 +568,7 @@ class Blueprint:
             processed_row = self.remove_already_processed_row(processed_row)
             grouped_opps = to_account_and_opportunities(processed_row)
             run(self.start_upload_to_salesforce(grouped_opps, VHI_ACCID))
-            if self.telemetry_id:
+            if self.telemetry.id:
                 date_sorted = _processed_row.sort_values("CloseDate", ascending=False)
                 latest_record = date_sorted.iloc[0]["CloseDate"]
                 if isinstance(latest_record, str):
@@ -595,11 +594,11 @@ class Blueprint:
         try:
             hea_data = self.data["REVISE_DATA_URL"]
             wx_data = self.data["REVISE_WX_DATA_URL"]
-            if self.telemetry_id:
+            if self.telemetry.id:
                 self.hpcs[REVISE_ACCID] = HPC(
                     name=HPCIDTOHPCNAME[REVISE_ACCID],
                     start_time=datetime.now(),
-                    telemetry_id=self.telemetry_id,
+                    telemetry_id=self.telemetry.id,
                     input=len(hea_data),
                     acc_created=0,
                     acc_updated=0,
@@ -628,7 +627,7 @@ class Blueprint:
             processed_row = self.remove_already_processed_row(processed_row)
             grouped_opps = to_account_and_opportunities(processed_row)
             run(self.start_upload_to_salesforce(grouped_opps, REVISE_ACCID))
-            if self.telemetry_id:
+            if self.telemetry.id:
                 date_sorted = data.sort_values("CloseDate", ascending=False)
                 latest_record = date_sorted.iloc[0]["CloseDate"]
                 if isinstance(latest_record, str):
@@ -713,3 +712,5 @@ class Blueprint:
         self.run_cambridge()
         self.save_processed_rows()
         logger.info("Finished running Omnivore")
+        self.telemetry.end_date = datetime.now()
+        self.db.commit()
