@@ -15,10 +15,12 @@ from pandas.api.types import is_datetime64_any_dtype
 from .types import Record_Find_Info, Account, Opportunity
 from datetime import datetime
 from collections import OrderedDict
-import logging
+
 
 # Create a logger object
-logger = logging.getLogger(__name__)
+from omnivore.utils.logging import getLogger
+
+logger = getLogger(__name__)
 
 
 class Address(TypedDict, total=False):

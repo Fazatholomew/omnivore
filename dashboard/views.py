@@ -9,7 +9,6 @@ from dashboard.models import Telemetry, HPC, Data
 from dashboard import db
 
 from sqlalchemy import inspect
-from json import load
 
 
 def init_routes(app: Flask):

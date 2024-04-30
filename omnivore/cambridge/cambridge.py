@@ -1,4 +1,3 @@
-import logging
 from pandas import DataFrame, Series, concat, isna
 from omnivore.utils.aux import (
     extract_firstname_lastname,
@@ -8,11 +7,13 @@ from omnivore.utils.aux import (
 )
 from datetime import datetime
 from re import findall
+from omnivore.utils.logging import getLogger
 
 CAMBRIDGE_DATE_FORMAT = "%m/%d/%Y"
 
 # Create a logger object
-logger = logging.getLogger(__name__)
+
+logger = getLogger(__name__)
 
 yes_no_mapper = {"Yes": True, "No": False}
 

@@ -5,13 +5,14 @@ from omnivore.utils.aux import (
     combine_xy_columns,
 )
 from pandas import DataFrame
+from omnivore.utils.logging import getLogger
 
-import logging
 
 REVISE_DATE_FORMAT = "%m/%d/%Y"
 
 # Create a logger object
-logger = logging.getLogger(__name__)
+
+logger = getLogger(__name__)
 
 
 owner_renter_mapper = {"Owner": "Owner", "Landlord": "Owner", "Renter": "Owner"}

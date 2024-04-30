@@ -7,13 +7,15 @@ from omnivore.utils.aux import (
     to_sf_datetime,
     combine_xy_columns,
 )
-import logging
+from omnivore.utils.logging import getLogger
+
 
 NEEECO_DATE_FORMAT = "%m/%d/%Y"
 
 
 # Create a logger object
-logger = logging.getLogger(__name__)
+
+logger = getLogger(__name__)
 
 
 # // Neeeco words into Salesforce Stage
@@ -212,7 +214,7 @@ def neeeco(neeeco_output: DataFrame):
 
     try:
         #       // Wx Jobs Statuses
-        neeeco_output["Weatherization_Status__c"] = to_sf_datetime(
+        neeeco_output["Weatherization_Date_Time__c"] = to_sf_datetime(
             neeeco_output["Insulation Project Installation Date"], NEEECO_DATE_FORMAT
         )
 
@@ -220,7 +222,7 @@ def neeeco(neeeco_output: DataFrame):
         logger.error("An error occurred: %s", str(e), exc_info=True)
 
     try:
-        # neeeco_output["Weatherization_Status__c"]
+        neeeco_output["Weatherization_Status__c"] = ""
         for i in neeeco_output.index:
             if neeeco_output["StageName"][i] == "Signed Contracts":
                 if neeeco_output["Final_Contract_Amount__c"][i] != "":

@@ -4,6 +4,7 @@ from flask_migrate import Migrate
 
 from dashboard import dummies
 from dashboard.models import db
+import logging
 
 
 def create_app(config_class="dashboard.config.Config"):
@@ -11,7 +12,6 @@ def create_app(config_class="dashboard.config.Config"):
     app.config.from_object(config_class)
 
     if app.debug:
-        import logging
 
         file_handler = logging.FileHandler("omnivore_dashboard.log")
         app.logger.addHandler(file_handler)

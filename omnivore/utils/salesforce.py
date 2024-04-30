@@ -14,11 +14,13 @@ from typing import Dict, cast
 from .types import Account, Opportunity, Record_Find_Info, Query
 from os import getenv
 from pandas import isna
-import logging
+
 from datetime import datetime
 
 # Create a logger object
-logger = logging.getLogger(__name__)
+from omnivore.utils.logging import getLogger
+
+logger = getLogger(__name__)
 
 # from pickle import dump
 # from random import sample

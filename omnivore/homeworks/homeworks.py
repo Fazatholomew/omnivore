@@ -1,6 +1,6 @@
 from pandas import Series, DataFrame, merge
 import numpy as np
-import logging
+
 from ..utils.aux import (
     to_sf_datetime,
     toSalesforceEmail,
@@ -10,7 +10,9 @@ from ..utils.aux import (
 )
 
 # Create a logger object
-logger = logging.getLogger(__name__)
+from omnivore.utils.logging import getLogger
+
+logger = getLogger(__name__)
 
 stageMapper = {
     "Approval - Customer Unresponsive": "Canceled",

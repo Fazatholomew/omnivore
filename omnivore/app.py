@@ -40,22 +40,10 @@ from datetime import datetime
 from aiohttp import ClientSession, ContentTypeError
 from io import StringIO
 from concurrent.futures import ThreadPoolExecutor
-
-import logging
-from logging.handlers import TimedRotatingFileHandler
-
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    filename="omnivore.log",
-    filemode="a",
-)
-
-TimedRotatingFileHandler("omnivore.log", "D", backupCount=30)
-
+from omnivore.utils.logging import getLogger
 
 # Create a logger object
-logger = logging.getLogger(__name__)
+logger = getLogger(__name__)
 
 
 class Blueprint:

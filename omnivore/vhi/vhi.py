@@ -8,10 +8,12 @@ from omnivore.utils.aux import (
 from pandas import DataFrame, Series
 from datetime import datetime
 from numpy import nan
-import logging
+
 
 # Create a logger object
-logger = logging.getLogger(__name__)
+from omnivore.utils.logging import getLogger
+
+logger = getLogger(__name__)
 
 stageMapper = {
     "Recommended - Unsigned": "Recommended - Unsigned",

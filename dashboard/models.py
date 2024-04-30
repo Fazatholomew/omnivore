@@ -27,6 +27,7 @@ class Telemetry(Base):
         String, primary_key=True, unique=True, default=lambda: uuid4().hex
     )
     created_date: Mapped[DateTime] = mapped_column(DateTime, default=datetime.utcnow)
+    end_date: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
 
     hpcs: Mapped[list["HPC"]] = relationship("HPC")
     data: Mapped[list["Data"]] = relationship(
@@ -36,7 +37,7 @@ class Telemetry(Base):
     @property
     def total_statistic(self) -> JSON:
         result = {
-            "total_runtime": 0,
+            "total_runtime": (self.end_date - self.created_date).total_seconds(),
             "total_records": 0,
             "total_acc_created": 0,
             "total_acc_updated": 0,
@@ -44,7 +45,6 @@ class Telemetry(Base):
             "total_opp_updated": 0,
         }
         for hpc in self.hpcs:
-            result["total_runtime"] += hpc.runtime
             result["total_records"] += hpc.output
             result["total_acc_created"] += hpc.acc_created
             result["total_acc_updated"] += hpc.acc_updated
