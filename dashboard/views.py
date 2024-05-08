@@ -39,12 +39,15 @@ def init_routes(app: Flask):
                 "value": f'{(latest_entry[0].total_statistic["total_runtime"] / 3600):.2f} Minutes',
                 "percent": (
                     (
-                        latest_entry[0].total_statistic["total_runtime"]
-                        - latest_entry[1].total_statistic["total_runtime"]
+                        (
+                            latest_entry[0].total_statistic["total_runtime"]
+                            - latest_entry[1].total_statistic["total_runtime"]
+                        )
+                        / latest_entry[0].total_statistic["total_runtime"]
                     )
-                    / latest_entry[0].total_statistic["total_runtime"]
-                )
-                * 100,
+                    if latest_entry[0].total_statistic["total_runtime"] > 0
+                    else 0 * 100
+                ),
                 "icon": "ni-watch-time",
             },
             {
@@ -52,12 +55,15 @@ def init_routes(app: Flask):
                 "value": latest_entry[0].total_statistic["total_records"],
                 "percent": (
                     (
-                        latest_entry[0].total_statistic["total_records"]
-                        - latest_entry[1].total_statistic["total_records"]
+                        (
+                            latest_entry[0].total_statistic["total_records"]
+                            - latest_entry[1].total_statistic["total_records"]
+                        )
+                        / latest_entry[0].total_statistic["total_records"]
                     )
-                    / latest_entry[0].total_statistic["total_records"]
-                )
-                * 100,
+                    if latest_entry[0].total_statistic["total_records"] > 0
+                    else 0 * 100
+                ),
                 "icon": "ni-delivery-fast",
             },
         ]

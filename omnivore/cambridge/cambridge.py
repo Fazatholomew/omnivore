@@ -139,7 +139,7 @@ exclude_quote_column = [
 # }
 
 number_ranges = [
-    "1-4",
+    "2-4",
     "5-10",
     "11-25",
     "26-50",
@@ -182,18 +182,20 @@ def determine_building_age_range(number: str) -> str:
 
 def determine_number_range(number: str) -> str:
     if isna(number) or number.lower() == "nan":
-        return "1-4"
+        return "1"
     numbers = findall(r"\d+", number)
     if len(numbers) == 0:
-        return "1-4"
+        return "1"
     current_number = int(numbers[0])
+    if current_number < 1:
+        return "1"
     if current_number > 50:
         return "50+"
     for ranges in number_ranges:
         lower_bound, upper_bound = ranges.split("-")
         if int(lower_bound) <= current_number and int(upper_bound) >= current_number:
             return ranges
-    return "1-4"
+    return "1"
 
 
 def combine_notes(row: Series, column_mapper: list[str]):
@@ -238,7 +240,9 @@ def cambridge_general_process(
     with_first_name["Name"] = (
         with_first_name["FirstName"] + " " + with_first_name["LastName"]
     )
-    with_first_name["Street__c"] = with_first_name["Street__c"] + ", Cambridge, MA"
+    with_first_name["Street__c"] = (
+        with_first_name["Street__c"].fillna("") + ", Cambridge, MA"
+    )
 
     return with_first_name
 

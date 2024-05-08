@@ -106,11 +106,17 @@ class Blueprint:
                     current_data = await response.json()
 
                 except ContentTypeError as err:
-                    logger.error(f"Failed to fetch {url}")
+                    logger.error(f"Wrong content type {url}")
                     logger.error(err, exc_info=True)
                     logger.error((await response.text()))
 
-            df = read_csv(StringIO(current_data["data"]), dtype="object")
+            df = read_csv(
+                StringIO(current_data["data"]),
+                dtype="object",
+                encoding=(
+                    "Windows-1252" if url == "CAMBIRDGE_NEW_ECOLOGY_DATA_URL" else None
+                ),
+            )
             self.data[url] = df
 
             if self.telemetry.id:
@@ -163,10 +169,18 @@ class Blueprint:
         Remove rows that already processed and no changes occures
         Add temp id for processed row detection
         """
-        result = data.copy()
-        if "tempId" not in data.columns:
-            result["tempId"] = result.fillna("").T.agg("".join).str.lower()
-        return result[~result["tempId"].isin(self.processed_rows)].copy()
+        try:
+            result = data.copy()
+            if "tempId" not in data.columns:
+                result["tempId"] = (
+                    result.fillna("").astype(str).T.agg("".join).str.lower()
+                )
+            return result[~result["tempId"].isin(self.processed_rows)].copy()
+        except Exception as err:
+            logger.error("Failed to remove already procecced row")
+            logger.error(result.sample(5))
+            logger.error(err, exc_info=True)
+            return result
 
     def generate_tempId(self, data: DataFrame) -> DataFrame:
         result = data.copy()
@@ -651,17 +665,22 @@ class Blueprint:
         Run Cambridge process
         """
         try:
-            consultation_data = read_csv(
-                cast(str, getenv("CAMBRIDGE_DATA_URL")), dtype="object"
-            )
-            quote_data = read_csv(
-                cast(str, getenv("CAMBIRDGE_QUOTE_DATA_URL")), dtype="object"
-            )
-            new_ecology_data = read_csv(
-                cast(str, getenv("CAMBIRDGE_NEW_ECOLOGY_DATA_URL")),
-                dtype="object",
-                encoding="Windows-1252",
-            )
+            consultation_data = self.data["CAMBRIDGE_DATA_URL"]
+            quote_data = self.data["CAMBIRDGE_QUOTE_DATA_URL"]
+            new_ecology_data = self.data["CAMBIRDGE_NEW_ECOLOGY_DATA_URL"]
+            if self.telemetry.id:
+                self.hpcs[CAMBRIDGE_ACCID] = HPC(
+                    name=HPCIDTOHPCNAME[CAMBRIDGE_ACCID],
+                    start_time=datetime.now(),
+                    telemetry_id=self.telemetry.id,
+                    input=len(consultation_data)
+                    + len(quote_data)
+                    + len(new_ecology_data),
+                    acc_created=0,
+                    acc_updated=0,
+                    opp_created=0,
+                    opp_updated=0,
+                )
 
             consultation_data = consultation_data[
                 ~consultation_data["Date of Communication"].isna()
@@ -682,6 +701,26 @@ class Blueprint:
             # save_output_df(processed_row, "Cambridge")
             grouped_opps = to_account_and_opportunities(processed_row)
             run(self.start_upload_to_salesforce(grouped_opps, CAMBRIDGE_ACCID))
+            if self.telemetry.id:
+                date_sorted = processed_row.sort_values("CloseDate", ascending=False)
+                latest_record = date_sorted.iloc[0]["CloseDate"]
+                if isinstance(latest_record, str):
+                    latest_record = datetime.strptime(
+                        latest_record, DATETIME_SALESFORCE
+                    )
+                self.hpcs[CAMBRIDGE_ACCID].latest_record = latest_record
+                self.hpcs[CAMBRIDGE_ACCID].output = len(processed_row)
+                self.hpcs[CAMBRIDGE_ACCID].examples = {
+                    "Cambridge Consultation": consultation_data.sample(10).to_dict(
+                        "records"
+                    ),
+                    "Cambridge Quote": quote_data.sample(10).to_dict("records"),
+                    "Cambridge New Ecology": new_ecology_data.sample(10).to_dict(
+                        "records"
+                    ),
+                }
+                self.hpcs[CAMBRIDGE_ACCID].end_time = datetime.now()
+                self.post_hpc_telemetry(CAMBRIDGE_ACCID)
         except Exception as e:
             logger.error("Error in Cambridge process.")
             logger.error(e, exc_info=True)
@@ -695,18 +734,18 @@ class Blueprint:
                 break
             run(self.async_init(no_data))
         logger.info("Start Processing Omnivore")
-        logger.info("Start Processing Neeeco")
-        self.run_neeeco()
-        self.save_processed_rows()
-        logger.info("Start Processing Homeworks")
-        self.run_homeworks()
-        self.save_processed_rows()
-        logger.info("Start Processing VHI")
-        self.run_vhi()
-        self.save_processed_rows()
-        logger.info("Start Processing Revise")
-        self.run_revise()
-        self.save_processed_rows()
+        # logger.info("Start Processing Neeeco")
+        # self.run_neeeco()
+        # self.save_processed_rows()
+        # logger.info("Start Processing Homeworks")
+        # self.run_homeworks()
+        # self.save_processed_rows()
+        # logger.info("Start Processing VHI")
+        # self.run_vhi()
+        # self.save_processed_rows()
+        # logger.info("Start Processing Revise")
+        # self.run_revise()
+        # self.save_processed_rows()
         self.sf.get_salesforce_table(True)
         logger.info("Start Processing Cambridge")
         self.run_cambridge()

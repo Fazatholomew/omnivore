@@ -77,7 +77,7 @@
       <li class="nav-item mt-3">
         <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">HPC pages</h6>
       </li>
-      {% set hpcs = ['Homeworks', 'Neeeco', 'Revise', 'Valley Home Insulation'] %}
+      {% set hpcs = ['Homeworks', 'Neeeco', 'Revise', 'Valley Home Insulation', 'Cambridge'] %}
       {% for hpc in hpcs %}
       <li class="nav-item">
         <a class="nav-link {% if hpc in segment %} active {% endif %} " href="{{url_for('hpc', hpc=hpc)}}">

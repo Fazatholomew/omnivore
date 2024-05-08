@@ -588,7 +588,7 @@ def combine_xy_columns(
     for column in columns:
         primary_column = f"{column}_{primary}"
         secondary_column = f"{column}_{secondary}"
-        if primary_column not in data.columns and secondary_column not in data.columns:
+        if primary_column not in data.columns or secondary_column not in data.columns:
             continue
         data[column] = data[primary_column].combine_first(data[secondary_column])
     return data

@@ -236,6 +236,9 @@ HPC_DATA_URLS = [
     "VHI_DATA_URL",
     "REVISE_DATA_URL",
     "REVISE_WX_DATA_URL",
+    "CAMBRIDGE_DATA_URL",
+    "CAMBIRDGE_QUOTE_DATA_URL",
+    "CAMBIRDGE_NEW_ECOLOGY_DATA_URL",
 ]
 
 # HPC name from ACC ID
@@ -244,4 +247,5 @@ HPCIDTOHPCNAME = {
     HOMEWORKS_ACCID: "Homeworks",
     VHI_ACCID: "Valley Home Insulation",
     REVISE_ACCID: "Revise",
+    CAMBRIDGE_ACCID: "Cambridge",
 }
