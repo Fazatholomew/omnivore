@@ -339,7 +339,7 @@ def cambridge(
         "Number_of_Spaces__c",
     ]:
         if current_column in combined:
-            combined[current_column] = combined[current_column].str.extract("(\d+)")
+            combined[current_column] = combined[current_column].fillna('').astype(str).str.extract("(\d+)")
     mask = combined["Name"].isna() | (combined["Name"] == "")
     combined.loc[mask, "Name"] = combined["FirstName"] + " " + combined["LastName"]
     combined["Number_of_Units_in_the_Building_Condo_As__c"] = combined[
