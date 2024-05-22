@@ -26,6 +26,7 @@ from omnivore.utils.constants import (
     DATETIME_SALESFORCE,
 )
 from omnivore.utils.database import init_db
+from omnivore.utils.logging import getLogger
 
 from dashboard.models import Telemetry, HPC, Data
 
@@ -40,7 +41,8 @@ from datetime import datetime
 from aiohttp import ClientSession, ContentTypeError
 from io import StringIO
 from concurrent.futures import ThreadPoolExecutor
-from omnivore.utils.logging import getLogger
+from hashlib import sha256
+
 
 # Create a logger object
 logger = getLogger(__name__)
@@ -172,9 +174,7 @@ class Blueprint:
         try:
             result = data.copy()
             if "tempId" not in data.columns:
-                result["tempId"] = (
-                    result.fillna("").astype(str).T.agg("".join).str.lower()
-                )
+                result = self.generate_tempId(result)
             return result[~result["tempId"].isin(self.processed_rows)].copy()
         except Exception as err:
             logger.error("Failed to remove already procecced row")
@@ -184,7 +184,12 @@ class Blueprint:
 
     def generate_tempId(self, data: DataFrame) -> DataFrame:
         result = data.copy()
-        result["tempId"] = result.fillna("").T.agg("".join).fillna("").str.lower()
+        result["tempId"] = (
+            result.fillna("").astype(str).T.agg("".join).fillna("").str.lower()
+        )
+        result["tempId"] = result["tempId"].apply(
+            lambda x: sha256(x.encode()).hexdigest()
+        )
         return result
 
     def upload_to_salesforce(self, data: Record_Find_Info, HPC_ID):
@@ -241,9 +246,7 @@ class Blueprint:
                     maybe_id = err.content[0]["message"].split("id: ")
                     if len(maybe_id) == 2:
                         try:
-                            res = self.sf.sf.Account.update(
-                                maybe_id[1], acc_payload
-                            )  # type:ignore
+                            res = self.sf.sf.Account.update(maybe_id[1], acc_payload)  # type:ignore
                             if cast(int, res) > 399:
                                 logger.error(res)
                             else:
@@ -280,9 +283,7 @@ class Blueprint:
                         payload = to_sf_payload(opp, "Opportunity")
                         current_id = payload.pop("Id")
                         try:
-                            res = self.sf.sf.Opportunity.update(
-                                current_id, payload
-                            )  # type:ignore
+                            res = self.sf.sf.Opportunity.update(current_id, payload)  # type:ignore
                             if cast(int, res) > 200 and cast(int, res) < 300:
                                 self.processed_rows.add(processed_row_id)
                                 # Reporting
@@ -301,9 +302,7 @@ class Blueprint:
                                     payload["Cancelation_Reason_s__c"] = (
                                         "No Reason"  # Default reason
                                     )
-                                    res = self.sf.sf.Opportunity.create(
-                                        payload
-                                    )  # type:ignore
+                                    res = self.sf.sf.Opportunity.create(payload)  # type:ignore
                                     if cast(int, res) > 200 and cast(int, res) < 300:
                                         self.processed_rows.add(processed_row_id)
                                         self.hpcs[HPC_ID].opp_updated += 1
@@ -361,9 +360,7 @@ class Blueprint:
                 else:
                     payload = to_sf_payload(opp, "Opportunity")
                     try:
-                        res: Create = self.sf.sf.Opportunity.create(
-                            payload
-                        )  # type:ignore
+                        res: Create = self.sf.sf.Opportunity.create(payload)  # type:ignore
                         if res["success"]:
                             self.processed_rows.add(processed_row_id)
                             self.hpcs[HPC_ID].opp_created += 1
@@ -393,9 +390,7 @@ class Blueprint:
                                 payload["Cancelation_Reason_s__c"] = (
                                     "No Reason"  # Default reason
                                 )
-                                res = self.sf.sf.Opportunity.create(
-                                    payload
-                                )  # type:ignore
+                                res = self.sf.sf.Opportunity.create(payload)  # type:ignore
                                 if cast(int, res) > 200 and cast(int, res) < 300:
                                     self.processed_rows.add(processed_row_id)
                                     self.hpcs[HPC_ID].opp_created += 1

@@ -6,6 +6,7 @@ from .constants import (
     ACCOUNT_COLUMNS,
     CFP_TOWS,
     DATETIME_SALESFORCE,
+    HPC_CITY_TABLE,
 )
 from urllib.parse import unquote_plus
 from typing import TypedDict, Dict, Any, Callable
@@ -323,9 +324,9 @@ def to_account_and_opportunities(input: DataFrame) -> list[Record_Find_Info]:
             try:
                 if len(current_record_find_info["opps"]) > 0:
                     for i in range(1, len(current_record_find_info["opps"])):
-                        current_record_find_info["opps"][i][
-                            "Name"
-                        ] = f'{current_record_find_info["opps"][i]["Name"]} unit {i}'
+                        current_record_find_info["opps"][i]["Name"] = (
+                            f'{current_record_find_info["opps"][i]["Name"]} unit {i}'
+                        )
                 results.append(current_record_find_info)
             except Exception as e:
                 logger.error(
@@ -381,8 +382,10 @@ def find_cfp_campaign(data: Opportunity) -> str:
         return ""
     if isna(data["City__c"]):
         return ""
+    if data["HPC__c"] not in HPC_CITY_TABLE:
+        return ""
     for key, value in CFP_TOWS.items():
-        if key in data["City__c"].lower():
+        if key in data["City__c"].lower() and key in HPC_CITY_TABLE[data["HPC__c"]]:
             return value
     return ""
 
