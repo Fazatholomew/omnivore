@@ -595,3 +595,12 @@ def combine_xy_columns(
             continue
         data[column] = data[primary_column].combine_first(data[secondary_column])
     return data
+
+
+def extract_zipcode(column: Series) -> Series:
+    extracted_column = column.str.extract(r"(\d+)")
+    mask = extracted_column.str.len() == 4
+
+    # Add leading zero using the mask
+    extracted_column.loc[mask] = "0" + extracted_column.loc[mask]
+    return extracted_column.str[:5]

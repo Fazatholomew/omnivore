@@ -127,6 +127,20 @@ exclude_quote_column = [
     "Customer Name: Billing Address Line 2",
 ]
 
+new_ecology_stage_mapper = {
+    "Unknown - needs HEA": "Prospecting",
+    "No - but plan to": "Prospecting",
+    "No - weatherization barriers": "Health & Safety Barrier",
+    "Yes - some recommendations completed": "Signed Contracts",
+}
+
+new_ecology_wx_mapper = {
+    "Unknown - needs HEA": "Not Yet Scheduled",
+    "No - but plan to": "Not Yet Scheduled",
+    "No - weatherization barriers": "Not Yet Scheduled",
+    "Yes - some recommendations completed": "Completed",
+}
+
 # decarb_mapper = {
 #     "EV / EBike technologies": "EV / EBike technologies",
 #     "Heat pumps": "Heat pumps",
@@ -268,6 +282,8 @@ def new_ecology(_data: DataFrame) -> DataFrame:
         .str.replace(", ", ";")
         .str.replace(",", ";")
     )
+    data["Weatherization_Status__c"] = data["Weatherized:"].map(new_ecology_wx_mapper)
+    data["StageName"] = data["Weatherized:"]
     return data
 
 
@@ -294,6 +310,7 @@ def cambridge(
             "column_mapper": new_ecology_column_mapper,
             "date_format": "%m/%d/%Y %H:%M:%S",
             "type": "New Ecology",
+            "stage_mapper": new_ecology_stage_mapper,
         },
     ]:
         result = cambridge_general_process(
@@ -339,7 +356,18 @@ def cambridge(
         "Number_of_Spaces__c",
     ]:
         if current_column in combined:
-            combined[current_column] = combined[current_column].fillna('').astype(str).str.extract("(\d+)")
+            combined[current_column] = (
+                combined[current_column].fillna("").astype(str).str.extract("(\d+)")
+            )
+    no_last_name_mask = (combined["LastName"].isna() | (combined["LastName"] == "")) & (
+        ~combined["FirstName"].isna() & (combined["FirstName"] != "")
+    )
+    combined.loc[no_last_name_mask, "LastName"] = combined.loc[no_last_name_mask][
+        "FirstName"
+    ]
+    combined.loc[no_last_name_mask, "FirstName"] = ""
+    no_name_mask = combined["LastName"].isna() | (combined["LastName"] == "")
+    combined.loc[no_name_mask, "LastName"] = "Unknown"
     mask = combined["Name"].isna() | (combined["Name"] == "")
     combined.loc[mask, "Name"] = combined["FirstName"] + " " + combined["LastName"]
     combined["Number_of_Units_in_the_Building_Condo_As__c"] = combined[

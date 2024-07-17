@@ -11,6 +11,7 @@ from omnivore.utils.aux import (
     sanitize_data_for_sf,
     extract_firstname_lastname,
     to_sf_datetime,
+    extract_zipcode,
 )
 from pandas import DataFrame, Series
 from numpy import NaN
@@ -409,3 +410,41 @@ def test_to_sf_datetime():
         to_sf_datetime(Series(["02-01-2023"]), "%m-%d-%Y"),
         Series(["2023-02-01T00:00:00.000-07:00"]),
     )
+
+
+def test_extract_and_modify_numbers():
+    # Case 1: Standard case with a mix of 4-digit and 5-digit numbers
+    text_series = Series(["order 1234", "product 5678", "item 91011", "code 1213"])
+    expected = Series(["01234", "05678", "91011", "01213"])
+    result = extract_zipcode(text_series)
+    assert_series_equal(result, expected)
+
+    # Case 2: No numbers present
+    text_series = Series(["order", "product", "item", "code"])
+    expected = Series([None, None, None, None], dtype=object)
+    result = extract_zipcode(text_series)
+    assert_series_equal(result, expected)
+
+    # Case 3: Mixed content with no 4-digit numbers
+    text_series = Series(["order 123", "product 56789", "item 9101", "code 1213"])
+    expected = Series(["123", "56789", "09101", "01213"])
+    result = extract_zipcode(text_series)
+    assert_series_equal(result, expected)
+
+    # Case 4: Empty Series
+    text_series = Series([], dtype=object)
+    expected = Series([], dtype=object)
+    result = extract_zipcode(text_series)
+    assert_series_equal(result, expected)
+
+    # Case 5: Series with NaN values
+    text_series = Series(["order 1234", None, "item 91011", ""])
+    expected = Series(["01234", None, "91011", None], dtype=object)
+    result = extract_zipcode(text_series)
+    assert_series_equal(result, expected)
+
+    # Case 6: Series with numbers longer than 5 digits
+    text_series = Series(["order 123456", "product 567890", "item 12345"])
+    expected = Series(["12345", "56789", "12345"])
+    result = extract_zipcode(text_series)
+    assert_series_equal(result, expected)

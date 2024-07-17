@@ -196,6 +196,7 @@ def rename_and_merge(_homeworks_old_input, _homeworks_new_input) -> DataFrame:
                 "Reason for Canceled": "Cancelation_Reason_s__c",
                 "Created Date": "CloseDate",
                 "Operations: Account: Preferred Language": "Prefered_Lan__c",
+                "Operations: Account: 5-digit Zip Code": "Zipcode__c",
             }
         )
 
@@ -245,7 +246,6 @@ def rename_and_merge(_homeworks_old_input, _homeworks_new_input) -> DataFrame:
 
 
 def homeworks(homeworks_output):
-
     try:
         homeworks_output["StageName"] = homeworks_output["StageName"].map(stageMapper)
         homeworks_output["Cancelation_Reason_s__c"] = homeworks_output[

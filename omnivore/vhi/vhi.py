@@ -4,6 +4,7 @@ from omnivore.utils.aux import (
     save_output_df,
     to_sf_datetime,
     DATETIME_SALESFORCE,
+    extract_zipcode,
 )
 from pandas import DataFrame, Series
 from datetime import datetime
@@ -69,6 +70,8 @@ def vhi(data: DataFrame) -> DataFrame:
                 "Health & Safety Issues": "Health_Safety_Barrier__c",
                 "Date of work": "Weatherization_Date_Time__c",
                 "Amount": "Final_Contract_Amount__c",
+                "Preferred Language": "Prefered_Lan__c",
+                "Mailing Zip/Postal Code": "Zipcode__c",
             }
         )
     except Exception as e:
@@ -134,6 +137,24 @@ def vhi(data: DataFrame) -> DataFrame:
     no_address_removed = data[~data["Address"].isna()]
     no_address_removed["FirstName"] = no_address_removed["FirstName"].fillna("")
     no_address_removed["LastName"] = no_address_removed["LastName"].fillna("Unknown")
+
+    no_address_removed["Zipcode__c"] = extract_zipcode(no_address_removed["Zipcode__c"])
+
+    # Owner Renter
+    no_address_removed["Owner_Renter__c"] = ""
+
+    no_address_removed.loc[
+        no_address_removed["Ownership Status"].str.contains("Owner"), "Owner_Renter__c"
+    ] = "Owner"
+    no_address_removed.loc[
+        no_address_removed["Ownership Status"].str.contains("Renter"), "Owner_Renter__c"
+    ] = "Renter"
+
+    # Low Income
+    no_address_removed.loc[
+        no_address_removed["Mod Income Eligible"].astype(str) == "1",
+        "Cancelation_Reason_s__c",
+    ] = "Low Income"
 
     return no_address_removed
     # # Calculate rows added in the file

@@ -3,6 +3,7 @@ from omnivore.utils.aux import (
     toSalesforceEmail,
     toSalesforcePhone,
     combine_xy_columns,
+    extract_zipcode,
 )
 from pandas import DataFrame
 from omnivore.utils.logging import getLogger
@@ -26,11 +27,12 @@ hs_mapper = {
     "Untreatable Dirt Floor": "Dirt Floor Basement",
     "Unvented Kitchen Fan": "Unvented Bath Fan",
     "Vermiculite": "Vermiculite",
-    "Inadequate Attic Ventilation": "",
-    "No Health and Safety": "",
-    "Roof Leak": "",
-    "Structural": "",
-    "Wet Basement": "",
+    "Inadequate Attic Ventilation": "Other",
+    "No Health and Safety": "Other",
+    "Roof Leak": "Other",
+    "Structural": "Other",
+    "Wet Basement": "Other",
+    "Roof Replacement/Repair": "Other",
 }
 
 stage_mapper = {
@@ -157,7 +159,12 @@ def revise(data: DataFrame) -> DataFrame:
         merged["Weatherization_Date_Time__c"]
     )
 
+    merged["LastName"] = merged["LastName"].fillna("Unknown")
+
     merged["Name"] = merged["FirstName"] + " " + merged["LastName"]
+
+    merged["Name"] = merged["Name"].replace("", "Unknown")
+    merged["Name"] = merged["Name"].fillna("Unknown")
 
     merged["Street__c"] = (
         merged["Street__c"] + ", " + merged["City__c"] + ", MA, " + merged["Zipcode__c"]
@@ -175,4 +182,5 @@ def revise(data: DataFrame) -> DataFrame:
     merged["Phone"] = merged["Phone"].apply(toSalesforcePhone)
     merged["Prefered_Lan__c"] = merged["Prefered_Lan__c"].map(language_mapper)
     merged = merged.drop_duplicates(["ID_from_HPC__c"])
+    merged["Zipcode__c"] = extract_zipcode(merged["Zipcode__c"])
     return merged
