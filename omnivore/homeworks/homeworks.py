@@ -7,6 +7,7 @@ from ..utils.aux import (
     toSalesforcePhone,
     combine_xy_columns,
     save_output_df,
+    extract_zipcode,
 )
 
 # Create a logger object
@@ -288,10 +289,23 @@ def homeworks(homeworks_output):
         logger.error("An error occurred: %s", str(e), exc_info=True)
 
     try:
-        homeworks_output["Zipcode__c"] = homeworks_output["Zipcode__c"].fillna("")
-        homeworks_output["Street__c"] = homeworks_output["Street__c"].str.extract(
-            r"(\d+ [a-zA-Z]\w{2,} \w{1,})"
+        homeworks_output["Zipcode__c"] = extract_zipcode(
+            homeworks_output["Zipcode__c"]
+        ).fillna("")
+
+        homeworks_output["Street__c"] = (
+            homeworks_output["Street__c"]
+            .str.replace(homeworks_output["FirstName"], "", 1, True)
+            .str.strip()
         )
+        homeworks_output["Street__c"] = (
+            homeworks_output["Street__c"]
+            .str.replace(homeworks_output["LastName"], "", 1, True)
+            .str.strip()
+        )
+        # homeworks_output["Street__c"] = homeworks_output["Street__c"].str.extract(
+        #     r"(\d+ [a-zA-Z]\w{2,} \w{1,})"
+        # )
         homeworks_output["Street__c"] = (
             homeworks_output["Street__c"] + ", MA " + homeworks_output["Zipcode__c"]
         )
