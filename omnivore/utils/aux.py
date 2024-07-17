@@ -598,7 +598,7 @@ def combine_xy_columns(
 
 
 def extract_zipcode(column: Series) -> Series:
-    extracted_column = column.str.extract(r"(\d+)")
+    extracted_column = column.str.extract(r"(\d+)")[0]
     mask = extracted_column.str.len() == 4
 
     # Add leading zero using the mask

@@ -74,7 +74,7 @@ relationship_mapper = {
 new_ecology_column_mapper = {
     "ID": "ID_from_HPC__c",
     "Notes": "Description",
-    "Status": "StageName",
+    # "Status": "StageName",
     "Billable Time Spent": "Billable_Time_Spent__c",
     "Timestamp": "CloseDate",
     "Name": "Name",
@@ -323,7 +323,6 @@ def cambridge(
                 else CAMBRIDGE_DATE_FORMAT
             ),
         )
-        result = result.reset_index(drop=True)
         result["Cambridge_Data_Sorce__c"] = current_data["type"]
         if "stage_mapper" in current_data:
             result["StageName"] = result["StageName"].rename(
@@ -331,9 +330,18 @@ def cambridge(
             )
         else:
             result["StageName"] = "Not Yet Scheduled"
-        processed.append(result)
+        result = result.reset_index(drop=True)
+        if len(result) > 0:
+            processed.append(result)
 
-    combined = concat(processed, ignore_index=True)
+    if len(processed) == 0:
+        return DataFrame([])
+
+    if len(processed) == 1:
+        combined = processed[0]
+    else:
+        combined = concat(processed, ignore_index=True)
+
     combined["Existing_Solar__c"] = combined["Existing_Solar__c"].map(yes_no_mapper)
     combined["Existing_EV_Charging__c"] = combined["Existing_EV_Charging__c"].map(
         yes_no_mapper
