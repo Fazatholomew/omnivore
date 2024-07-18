@@ -295,12 +295,16 @@ def homeworks(homeworks_output):
 
         homeworks_output["Street__c"] = (
             homeworks_output["Street__c"]
+            .fillna("")
             .str.replace(homeworks_output["FirstName"], "", 1, True)
+            .fillna("")
             .str.strip()
         )
         homeworks_output["Street__c"] = (
             homeworks_output["Street__c"]
+            .fillna("")
             .str.replace(homeworks_output["LastName"], "", 1, True)
+            .fillna("")
             .str.strip()
         )
         # homeworks_output["Street__c"] = homeworks_output["Street__c"].str.extract(

@@ -325,9 +325,7 @@ def cambridge(
         )
         result["Cambridge_Data_Sorce__c"] = current_data["type"]
         if "stage_mapper" in current_data:
-            result["StageName"] = result["StageName"].rename(
-                current_data["stage_mapper"]
-            )
+            result["StageName"] = result["StageName"].map(current_data["stage_mapper"])
         else:
             result["StageName"] = "Not Yet Scheduled"
         result = result.reset_index(drop=True)

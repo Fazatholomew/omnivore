@@ -144,10 +144,12 @@ def vhi(data: DataFrame) -> DataFrame:
     no_address_removed["Owner_Renter__c"] = ""
 
     no_address_removed.loc[
-        no_address_removed["Ownership Status"].str.contains("Owner"), "Owner_Renter__c"
+        no_address_removed["Ownership Status"].fillna("").str.contains("Owner"),
+        "Owner_Renter__c",
     ] = "Owner"
     no_address_removed.loc[
-        no_address_removed["Ownership Status"].str.contains("Renter"), "Owner_Renter__c"
+        no_address_removed["Ownership Status"].fillna("").str.contains("Renter"),
+        "Owner_Renter__c",
     ] = "Renter"
 
     # Low Income
