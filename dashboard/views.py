@@ -18,7 +18,7 @@ def init_routes(app: Flask):
     def index():
         latest_entry = (
             db.session.query(Telemetry)
-            .filter_by(Telemetry.end_date.is_not(None))
+            .filter(Telemetry.end_date.is_not(None))
             .order_by(Telemetry.created_date.desc())
             .limit(2)
             .all()
