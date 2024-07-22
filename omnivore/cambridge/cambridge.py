@@ -129,16 +129,16 @@ exclude_quote_column = [
 
 new_ecology_stage_mapper = {
     "Unknown - needs HEA": "Prospecting",
-    "No - but plan to": "Prospecting",
-    "No - weatherization barriers": "Health & Safety Barrier",
-    "Yes - some recommendations completed": "Signed Contracts",
+    "No - but plan to ": "Prospecting",
+    "No - weatherization barriers ": "Health & Safety Barrier",
+    "Yes - all recommendations completed  ": "Signed Contracts",
 }
 
 new_ecology_wx_mapper = {
     "Unknown - needs HEA": "Not Yet Scheduled",
-    "No - but plan to": "Not Yet Scheduled",
-    "No - weatherization barriers": "Not Yet Scheduled",
-    "Yes - some recommendations completed": "Completed",
+    "No - but plan to ": "Not Yet Scheduled",
+    "No - weatherization barriers ": "Not Yet Scheduled",
+    "Yes - all recommendations completed  ": "Completed",
 }
 
 # decarb_mapper = {
@@ -363,7 +363,7 @@ def cambridge(
     ]:
         if current_column in combined:
             combined[current_column] = (
-                combined[current_column].fillna("").astype(str).str.extract("(\d+)")
+                combined[current_column].fillna("").astype(str).str.extract(r"(\d+)")
             )
     no_last_name_mask = (combined["LastName"].isna() | (combined["LastName"] == "")) & (
         ~combined["FirstName"].isna() & (combined["FirstName"] != "")

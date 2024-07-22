@@ -104,9 +104,7 @@ def vhi(data: DataFrame) -> DataFrame:
 
     # Date and Time
     try:
-        data["CloseDate"] = to_sf_datetime(
-            data["HEA_Date_And_Time__c"], "%m/%d/%Y, %I:%M %p"
-        )
+        data["CloseDate"] = to_sf_datetime(data["Created Date"], "%m/%d/%Y")
         data.loc[(data["CloseDate"].isna()), "CloseDate"] = datetime.now().strftime(
             DATETIME_SALESFORCE
         )
