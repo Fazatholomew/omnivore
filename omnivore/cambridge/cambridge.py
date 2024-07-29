@@ -59,7 +59,6 @@ consulting_column_mapper = {
     "Cambridge - consultation feedback?": "Open_feedback_what_should_we_know__c",
     "Billable Time Spent": "Billable_Time_Spent__c",
     "Customer: Account Name": "Name",
-    "Home Weatherized?": "StageName",
 }
 
 relationship_mapper = {
@@ -116,7 +115,6 @@ new_ecology_column_mapper = {
     "Milestone 2 Date": "Milestone_2_Date_cambridge__c",
     "Milestone 3 Date": "Milestone_3_Date_cambridge__c",
     "Milestone 4 Date": "Milestone_4_Date_cambridge__c",
-    "Weatherized:": "StageName",
 }
 
 exclude_consulting_column = [
@@ -309,8 +307,9 @@ def cambridge(
             "column_mapper": consulting_column_mapper,
             "exclude_column": exclude_consulting_column,
             "type": "Consultation",
+            "stage_column": "Home Weatherized?",
             "stage_mapper": stage_mapper,
-            "wx_column": "StageName",
+            "wx_column": "Home Weatherized?",
             "wx_mapper": wx_mapper,
         },
         {
@@ -325,7 +324,8 @@ def cambridge(
             "date_format": "%m/%d/%Y %H:%M:%S",
             "type": "New Ecology",
             "stage_mapper": stage_mapper,
-            "wx_column": "StageName",
+            "stage_column": "Weatherized:",
+            "wx_column": "Weatherized:",
             "wx_mapper": wx_mapper,
         },
     ]:
@@ -340,8 +340,10 @@ def cambridge(
             ),
         )
         result["Cambridge_Data_Sorce__c"] = current_data["type"]
-        if "stage_mapper" in current_data:
-            result["StageName"] = result["StageName"].map(current_data["stage_mapper"])
+        if "stage_mapper" in current_data and "stage_column" in current_data:
+            result["StageName"] = result[current_data["stage_column"]].map(
+                current_data["stage_mapper"]
+            )
         else:
             result["StageName"] = "Not Yet Scheduled"
 
