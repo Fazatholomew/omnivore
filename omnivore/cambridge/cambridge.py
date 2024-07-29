@@ -59,6 +59,7 @@ consulting_column_mapper = {
     "Cambridge - consultation feedback?": "Open_feedback_what_should_we_know__c",
     "Billable Time Spent": "Billable_Time_Spent__c",
     "Customer: Account Name": "Name",
+    "Home Weatherized?": "StageName",
 }
 
 relationship_mapper = {
@@ -115,6 +116,7 @@ new_ecology_column_mapper = {
     "Milestone 2 Date": "Milestone_2_Date_cambridge__c",
     "Milestone 3 Date": "Milestone_3_Date_cambridge__c",
     "Milestone 4 Date": "Milestone_4_Date_cambridge__c",
+    "Weatherized:": "StageName",
 }
 
 exclude_consulting_column = [
@@ -127,18 +129,28 @@ exclude_quote_column = [
     "Customer Name: Billing Address Line 2",
 ]
 
-new_ecology_stage_mapper = {
+stage_mapper = {
     "Unknown - needs HEA": "Prospecting",
     "No - but plan to ": "Prospecting",
     "No - weatherization barriers ": "Health & Safety Barrier",
     "Yes - all recommendations completed  ": "Signed Contracts",
+    "Yes - some recommendations completed": "Signed Contracts",
+    "No - no interest": "Canceled/No Longer Interested",
+    "No - but plan to": "Prospecting",
+    "No - weatherization barriers": "Health & Safety Barrier",
+    "Yes - all recommendations completed": "Signed Contracts",
 }
 
-new_ecology_wx_mapper = {
+wx_mapper = {
     "Unknown - needs HEA": "Not Yet Scheduled",
     "No - but plan to ": "Not Yet Scheduled",
     "No - weatherization barriers ": "Not Yet Scheduled",
     "Yes - all recommendations completed  ": "Completed",
+    "Yes - some recommendations completed": "Completed",
+    "No - no interest": "Not Yet Scheduled",
+    "No - but plan to": "Not Yet Scheduled",
+    "No - weatherization barriers": "Not Yet Scheduled",
+    "Yes - all recommendations completed": "Completed",
 }
 
 # decarb_mapper = {
@@ -282,7 +294,6 @@ def new_ecology(_data: DataFrame) -> DataFrame:
         .str.replace(", ", ";")
         .str.replace(",", ";")
     )
-    data["Weatherization_Status__c"] = data["Weatherized:"].map(new_ecology_wx_mapper)
     data["StageName"] = data["Weatherized:"]
     return data
 
@@ -298,6 +309,9 @@ def cambridge(
             "column_mapper": consulting_column_mapper,
             "exclude_column": exclude_consulting_column,
             "type": "Consultation",
+            "stage_mapper": stage_mapper,
+            "wx_column": "StageName",
+            "wx_mapper": wx_mapper,
         },
         {
             "data": quote_data,
@@ -310,7 +324,9 @@ def cambridge(
             "column_mapper": new_ecology_column_mapper,
             "date_format": "%m/%d/%Y %H:%M:%S",
             "type": "New Ecology",
-            "stage_mapper": new_ecology_stage_mapper,
+            "stage_mapper": stage_mapper,
+            "wx_column": "StageName",
+            "wx_mapper": wx_mapper,
         },
     ]:
         result = cambridge_general_process(
@@ -328,6 +344,13 @@ def cambridge(
             result["StageName"] = result["StageName"].map(current_data["stage_mapper"])
         else:
             result["StageName"] = "Not Yet Scheduled"
+
+        if "wx_column" in current_data and "wx_mapper" in current_data:
+            result["Weatherization_Status__c"] = result[current_data["wx_column"]].map(
+                current_data["wx_mapper"]
+            )
+        else:
+            result["Weatherization_Status__c"] = "Not Yet Scheduled"
         result = result.reset_index(drop=True)
         if len(result) > 0:
             processed.append(result)
