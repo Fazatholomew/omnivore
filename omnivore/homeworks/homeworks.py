@@ -78,7 +78,9 @@ cancelMapper = {
     "Unqualified (5+ Units)": "5+ units",
     "Unqualified - 5+ Units": "5+ units",
     "Visit Not Confirmed": "By Office",
+    "CAP Vetting Reschedule": "By Office",
 }
+
 
 # // Weatherization Status
 wxMapper = {
@@ -210,7 +212,7 @@ def rename_and_merge(_homeworks_old_input, _homeworks_new_input) -> DataFrame:
             "%m/%d/%Y %I:%M %p",
         )
         homeworks_old_input["Created Date"] = to_sf_datetime(
-            homeworks_old_input["Created Date"], "%m/%d/%Y"
+            homeworks_old_input["Operations: Created Date"], "%m/%d/%Y"
         )
         homeworks_old_input = homeworks_old_input.rename(
             columns={
