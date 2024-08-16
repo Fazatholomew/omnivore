@@ -178,7 +178,7 @@ def rename_and_merge(_homeworks_old_input, _homeworks_new_input) -> DataFrame:
             format="%m/%d/%Y %I:%M %p",
         )
         homeworks_new_input["Created Date"] = to_sf_datetime(
-            homeworks_new_input["Created Date"],
+            homeworks_new_input["Operations: Created Date"],
             format="%m/%d/%Y",
         )
 
@@ -212,7 +212,7 @@ def rename_and_merge(_homeworks_old_input, _homeworks_new_input) -> DataFrame:
             "%m/%d/%Y %I:%M %p",
         )
         homeworks_old_input["Created Date"] = to_sf_datetime(
-            homeworks_old_input["Operations: Created Date"], "%m/%d/%Y"
+            homeworks_old_input["Created Date"], "%m/%d/%Y"
         )
         homeworks_old_input = homeworks_old_input.rename(
             columns={
