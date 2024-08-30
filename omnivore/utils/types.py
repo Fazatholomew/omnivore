@@ -76,6 +76,9 @@ class Opportunity(TypedDict, total=False):
     Cambridge_Data_Sorce__c: str
     Site_Visit_cambridge__c: str
     Building_size_cambridge__c: int
+    Current_heating_system_type__c: str
+    Existing_cooling_system__c: str
+    Customer_primary_motivation__c: str
 
 
 class Account(TypedDict, total=False):

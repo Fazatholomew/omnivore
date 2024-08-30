@@ -145,6 +145,9 @@ CAMBRIDGE_OPPORTUNITY_COLUMNS = [
     "Cambridge_Data_Sorce__c",
     "Site_Visit_cambridge__c",
     "Building_size_cambridge__c",
+    "Current_heating_system_type__c",
+    "Existing_cooling_system__c",
+    "Customer_primary_motivation__c",
 ]
 # Account columns to fetch
 ACCOUNT_COLUMNS = [

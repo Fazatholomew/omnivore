@@ -59,6 +59,9 @@ consulting_column_mapper = {
     "Cambridge - consultation feedback?": "Open_feedback_what_should_we_know__c",
     "Billable Time Spent": "Billable_Time_Spent__c",
     "Customer: Account Name": "Name",
+    "Current heating system type": "Current_heating_system_type__c",
+    "Existing cooling system": "Existing_cooling_system__c",
+    "Customer primary motivation": "Customer_primary_motivation__c",
 }
 
 relationship_mapper = {
@@ -131,12 +134,13 @@ stage_mapper = {
     "Unknown - needs HEA": "Prospecting",
     "No - but plan to ": "Prospecting",
     "No - weatherization barriers ": "Health & Safety Barrier",
-    "Yes - all recommendations completed  ": "Signed Contracts",
-    "Yes - some recommendations completed": "Signed Contracts",
+    "Yes - all recommendations completed  ": "Completed",
+    "Yes - some recommendations completed": "Completed",
     "No - no interest": "Canceled/No Longer Interested",
-    "No - but plan to": "Prospecting",
+    "No - but plan to": "Not Yet Scheduled",
     "No - weatherization barriers": "Health & Safety Barrier",
-    "Yes - all recommendations completed": "Signed Contracts",
+    "Yes - all recommendations completed": "Completed",
+    "Yes - some recommendations completed  ": "Completed",
 }
 
 wx_mapper = {
