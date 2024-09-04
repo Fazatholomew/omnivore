@@ -296,6 +296,12 @@ def new_ecology(_data: DataFrame) -> DataFrame:
         .str.replace(", ", ";")
         .str.replace(",", ";")
     )
+    no_need_hea_mask = data["Weatherized:"].isna() & (
+        data["Have you completed a Mass Save Energy Audit in the past 5 years? "]
+        == "No"
+    )
+    data.loc[no_need_hea_mask, "Weatherized:"] = "Unknown - needs HEA"
+
     data["StageName"] = data["Weatherized:"]
     return data
 
