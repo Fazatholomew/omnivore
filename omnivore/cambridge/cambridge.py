@@ -420,4 +420,5 @@ def cambridge(
     combined["Relationship_to_Building__c"] = combined[
         "Relationship_to_Building__c"
     ].map(relationship_mapper)
+    combined["StageName"] = combined["StageName"].fillna("Not Yet Scheduled")
     return combined.reset_index(drop=True)
