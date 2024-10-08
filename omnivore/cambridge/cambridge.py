@@ -55,7 +55,7 @@ consulting_column_mapper = {
     "Building Owner/Property Management Name": "Owner_Property_Management_Name__c",
     "Building Owner/Property Management Phone": "Owner_Property_Management_Phone__c",
     "Cambridge - found consultation helpful?": "Did_you_find_your_consultation_helpful__c",
-    "Cambridge - advisor answered questions?": "Were_your_advisors_helpful__c",
+    "Cambridge - advisor answered questions?": "Did_they_answer_all_your_questions__c",
     "Cambridge - consultation feedback?": "Open_feedback_what_should_we_know__c",
     "Billable Time Spent": "Billable_Time_Spent__c",
     "Customer: Account Name": "Name",
