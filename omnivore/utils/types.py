@@ -79,6 +79,7 @@ class Opportunity(TypedDict, total=False):
     Current_heating_system_type__c: str
     Existing_cooling_system__c: str
     Customer_primary_motivation__c: str
+    Did_they_answer_all_your_questions__c: str
 
 
 class Account(TypedDict, total=False):
